@@ -452,3 +452,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .update-banner button { padding: 7px 11px; border: 0; border-radius: 8px; background: #f2c230; color: #20252c; font-size: 12px; font-weight: 800; cursor: pointer; }
 
 .layers-tool { min-height: 42px; gap: 8px; padding: 0 13px; border-radius: 13px; color: #323941; font-size: 11px; font-weight: 800; }
+
+/* Guidage : bannière de direction et voies seulement pendant la conduite */
+.app:not(.is-navigating) .direction-sign { display: none !important; }
+.app:not(.is-navigating) .lane-guidance,
+.lane-guidance:has(.lane-unknown) { display: none !important; }
