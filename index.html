@@ -229,6 +229,10 @@
             <span><strong>Vue 3D</strong><small>Carte en perspective avec les bâtiments. Se règle aussi ici, à tout moment</small></span>
             <input id="default3dSetting" type="checkbox" /><i></i>
           </label>
+          <label class="setting-select-row" for="map3dSourceSetting">
+            <span><strong>Fond de la vue 3D</strong><small>TomTom si la clé est enregistrée, sinon OpenFreeMap</small></span>
+            <select id="map3dSourceSetting"><option value="openfreemap">OpenFreeMap</option><option value="tomtom">TomTom</option></select>
+          </label>
 
           <div class="settings-note">Le zoom et les indications s’appuient sur le GPS et les détails présents dans OpenStreetMap. Les cartes et le guidage nécessitent une connexion Internet.</div>
           <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>

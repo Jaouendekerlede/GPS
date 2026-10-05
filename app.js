@@ -1,4 +1,4 @@
-const APP_VERSION = '1.18.1';
+const APP_VERSION = '1.19.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -24,6 +24,7 @@ const DEFAULT_SETTINGS = {
   showSignals: true,
   showCameras: true,
   autoNight: true,
+  map3dSource: 'openfreemap',
 };
 let settings;
 try {
@@ -728,6 +729,16 @@ function add3dRouteLayers(renderer) {
   });
 }
 
+const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+// Nom du style TomTom à vérifier avec le compte : sans clé, ou si le style échoue, OpenFreeMap est utilisé
+const TOMTOM_3D_STYLE = 'basic-main';
+
+function map3dStyleUrl() {
+  const key = settings.map3dSource === 'tomtom' ? getTomTomKey() : '';
+  if (!key) return OPENFREEMAP_STYLE;
+  return `https://api.tomtom.com/style/2/custom/style/${TOMTOM_3D_STYLE}.json?key=${encodeURIComponent(key)}`;
+}
+
 async function setMap3d(enabled, { silent = false } = {}) {
   const button = document.getElementById('mapModeBtn');
   if (!enabled) {
@@ -752,7 +763,7 @@ async function setMap3d(enabled, { silent = false } = {}) {
       const center = map.getCenter();
       state.map3d = new maplibregl.Map({
         container: 'map3d',
-        style: 'https://tiles.openfreemap.org/styles/liberty',
+        style: map3dStyleUrl(),
         center: [center.lng, center.lat],
         zoom: Math.min(map.getZoom(), 16),
         pitch: 58,
@@ -767,6 +778,9 @@ async function setMap3d(enabled, { silent = false } = {}) {
         state.map3d.once('load', resolve);
         state.map3d.once('error', (event) => reject(event.error || new Error('La carte 3D ne peut pas être affichée.')));
       });
+      if (state.map3d.getStyle().layers.every((layer) => layer.type !== 'fill-extrusion') && settings.map3dSource === 'tomtom') {
+        throw new Error('Le style TomTom ne contient pas de bâtiments 3D.');
+      }
       add3dRouteLayers(state.map3d);
       state.map3d.on('moveend', () => {
         if (!state.map3dEnabled) return;
@@ -786,6 +800,14 @@ async function setMap3d(enabled, { silent = false } = {}) {
     button.title = 'Revenir à la carte 2D';
     if (!silent) showToast('Vue 3D cartographique activée.');
   } catch (error) {
+    if (settings.map3dSource === 'tomtom') {
+      if (state.map3d) { state.map3d.remove(); state.map3d = null; }
+      settings.map3dSource = 'openfreemap';
+      saveSettings();
+      document.getElementById('map3dSourceSetting').value = 'openfreemap';
+      showToast('Vue 3D TomTom indisponible : fond OpenFreeMap utilisé.');
+      return setMap3d(true, { silent: true });
+    }
     state.map3dEnabled = false;
     if (state.map3d) {
       state.map3d.remove();
@@ -1283,6 +1305,7 @@ function applySettingsToControls() {
   document.getElementById('voiceSetting').checked = settings.voiceGuidance;
   document.getElementById('wakeLockSetting').checked = settings.wakeLock;
   document.getElementById('default3dSetting').checked = settings.default3d;
+  document.getElementById('map3dSourceSetting').value = settings.map3dSource;
   document.getElementById('poiFuelSetting').checked = settings.showFuel;
   document.getElementById('poiSignalsSetting').checked = settings.showSignals;
   document.getElementById('poiCamerasSetting').checked = settings.showCameras;
@@ -1398,6 +1421,7 @@ function handleSettingChange(event) {
     voiceSetting: ['voiceGuidance', event.target.checked],
     wakeLockSetting: ['wakeLock', event.target.checked],
     default3dSetting: ['default3d', event.target.checked],
+    map3dSourceSetting: ['map3dSource', event.target.value],
     poiFuelSetting: ['showFuel', event.target.checked],
     poiSignalsSetting: ['showSignals', event.target.checked],
     poiCamerasSetting: ['showCameras', event.target.checked],
@@ -1410,6 +1434,10 @@ function handleSettingChange(event) {
   else saveSettings();
   if (event.target.id.startsWith('poi')) applyPoiSettings();
   if (event.target.id === 'autoNightSetting') applyAutoNight();
+  if (event.target.id === 'map3dSourceSetting') {
+    if (state.map3d) { state.map3d.remove(); state.map3d = null; }
+    if (state.map3dEnabled) setMap3d(false, { silent: true }).then(() => setMap3d(true, { silent: true }));
+  }
   if (event.target.id === 'default3dSetting' && settings.default3d) {
     setMap3d(true);
   } else if (event.target.id === 'default3dSetting' && !settings.default3d && state.map3dEnabled) {
@@ -1522,7 +1550,7 @@ document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!
 document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
   button.addEventListener('click', () => setMapStyle(button.dataset.style));
 });
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting, #map3dSourceSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {
