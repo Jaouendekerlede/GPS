@@ -1,4 +1,4 @@
-const APP_VERSION = '1.11.0';
+const APP_VERSION = '1.11.1';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1387,6 +1387,8 @@ document.getElementById('locateBtn').addEventListener('click', () => {
   elements.from.value = 'Ma position';
   locateUser(false).catch((error) => console.error('Localisation impossible :', error));
 });
+// Au lancement, le départ est la position de l'appareil (si l'accès est accordé)
+document.getElementById('locateBtn').click();
 document.getElementById('recenterBtn').addEventListener('click', () => {
   locateUser(true).catch((error) => console.error('Recentrage GPS impossible :', error));
 });
