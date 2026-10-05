@@ -1,4 +1,4 @@
-const APP_VERSION = '1.14.1';
+const APP_VERSION = '1.15.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1292,7 +1292,7 @@ function makeTomTomLayer(style, key) {
     if (++tomtomErrors < 6 || tomtomLayer !== layer) return;
     tomtomLayer = null;
     map.removeLayer(layer);
-    setMapStyle('standard', { keepChoice: true });
+    setMapStyle('standard', { keepChoice: true, noTomTom: true });
     showToast('Fond TomTom refusé (clé ou quota). Retour sur OpenStreetMap.');
   });
   return layer;
@@ -1315,10 +1315,11 @@ function refreshModeButtons() {
   });
 }
 
-function setMapStyle(style, { keepChoice = false } = {}) {
+function setMapStyle(style, { keepChoice = false, noTomTom = false } = {}) {
   const wantsTomTom = Object.hasOwn(TOMTOM_STYLES, style);
   const wantsSatellite = style === 'satellite';
-  const key = wantsTomTom ? getTomTomKey() : '';
+  const ttStyle = noTomTom ? null : (TOMTOM_STYLES[style] || (style === 'standard' ? 'main' : style === 'dark' ? 'night' : null));
+  const key = ttStyle ? getTomTomKey() : '';
   if (wantsTomTom && !key) showToast('Ajoutez votre clé TomTom dans les paramètres pour afficher ce fond.');
   if (!keepChoice) settings.mapStyle = style === 'dark' || wantsSatellite || (wantsTomTom && key) ? style : 'standard';
   if (tomtomLayer) {
@@ -1330,9 +1331,9 @@ function setMapStyle(style, { keepChoice = false } = {}) {
     satelliteTiles = null;
   }
   [lightTiles, lightFallbackTiles, darkTiles].forEach((layer) => { if (map.hasLayer(layer)) map.removeLayer(layer); });
-  if (wantsTomTom && key) {
+  if (ttStyle && key) {
     tomtomErrors = 0;
-    tomtomLayer = makeTomTomLayer(TOMTOM_STYLES[style], key);
+    tomtomLayer = makeTomTomLayer(ttStyle, key);
     tomtomLayer.addTo(map);
   } else if (settings.mapStyle === 'satellite') {
     satelliteTiles = makeSatelliteLayer();
