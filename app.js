@@ -1,4 +1,4 @@
-const APP_VERSION = '1.19.0';
+const APP_VERSION = '1.19.1';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -733,7 +733,10 @@ const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 // Nom du style TomTom à vérifier avec le compte : sans clé, ou si le style échoue, OpenFreeMap est utilisé
 const TOMTOM_3D_STYLE = 'basic-main';
 
+let map3dFallback = false;
+
 function map3dStyleUrl() {
+  if (map3dFallback) return OPENFREEMAP_STYLE;
   const key = settings.map3dSource === 'tomtom' ? getTomTomKey() : '';
   if (!key) return OPENFREEMAP_STYLE;
   return `https://api.tomtom.com/style/2/custom/style/${TOMTOM_3D_STYLE}.json?key=${encodeURIComponent(key)}`;
@@ -800,12 +803,10 @@ async function setMap3d(enabled, { silent = false } = {}) {
     button.title = 'Revenir à la carte 2D';
     if (!silent) showToast('Vue 3D cartographique activée.');
   } catch (error) {
-    if (settings.map3dSource === 'tomtom') {
+    if (settings.map3dSource === 'tomtom' && !map3dFallback) {
       if (state.map3d) { state.map3d.remove(); state.map3d = null; }
-      settings.map3dSource = 'openfreemap';
-      saveSettings();
-      document.getElementById('map3dSourceSetting').value = 'openfreemap';
-      showToast('Vue 3D TomTom indisponible : fond OpenFreeMap utilisé.');
+      map3dFallback = true;
+      showToast(`Vue 3D TomTom indisponible (${error.message}). OpenFreeMap affiché.`);
       return setMap3d(true, { silent: true });
     }
     state.map3dEnabled = false;
@@ -1435,6 +1436,7 @@ function handleSettingChange(event) {
   if (event.target.id.startsWith('poi')) applyPoiSettings();
   if (event.target.id === 'autoNightSetting') applyAutoNight();
   if (event.target.id === 'map3dSourceSetting') {
+    map3dFallback = false;
     if (state.map3d) { state.map3d.remove(); state.map3d = null; }
     if (state.map3dEnabled) setMap3d(false, { silent: true }).then(() => setMap3d(true, { silent: true }));
   }
