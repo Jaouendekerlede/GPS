@@ -523,3 +523,11 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 /* Bouton démo et menus */
 .demo-button { background: var(--gps-blue-soft); color: var(--gps-blue); border-radius: 14px; }
 .menu-ligne { border-radius: 14px; background: #f8fafc; }
+
+/* Bannière de direction : flèche à gauche, texte aligné (1.16.0) */
+.sign-panel { grid-template-columns: auto 1fr auto; align-items: center; }
+.sign-kicker { grid-column: 1 / -1; grid-row: 1; }
+.sign-arrow { grid-column: 1; grid-row: 2 / span 2; font-size: 52px; line-height: 1; color: #fff; }
+.sign-panel strong { grid-column: 2; grid-row: 2; }
+.sign-destination { grid-column: 2; grid-row: 3; }
+.sign-exit { grid-column: 3; grid-row: 2 / span 2; }

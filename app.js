@@ -1,4 +1,4 @@
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.16.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -89,6 +89,7 @@ const elements = {
   signRoad: document.getElementById('signRoad'),
   signDestination: document.getElementById('signDestination'),
   signExit: document.getElementById('signExit'),
+  signArrow: document.getElementById('signArrow'),
   lanes: document.getElementById('laneGuidance'),
   laneTrack: document.getElementById('laneTrack'),
   laneRoad: document.getElementById('laneRoad'),
@@ -535,6 +536,15 @@ function renderLaneGuidance(step) {
   elements.laneRoad.textContent = step.ref || step.name || 'Voies';
 }
 
+function maneuverArrow(step) {
+  const type = step?.maneuver?.type || '';
+  const modifier = step?.maneuver?.modifier || '';
+  if (type === 'arrive') return '⚑';
+  if (type === 'roundabout' || type === 'rotary') return '↻';
+  const arrows = { left: '↰', right: '↱', 'slight left': '↖', 'slight right': '↗', 'sharp left': '↲', 'sharp right': '↳', straight: '↑', uturn: '↶' };
+  return arrows[modifier] || '↑';
+}
+
 function updateNavigationOverlay(route, stepIndex) {
   const step = nextManeuver(route, stepIndex);
   if (!step) return;
@@ -551,6 +561,7 @@ function updateNavigationOverlay(route, stepIndex) {
   } else {
     elements.signExit.hidden = true;
   }
+  elements.signArrow.textContent = maneuverArrow(step);
   renderLaneGuidance(step);
   if (settings.voiceGuidance && state.navigationActive && stepIndex !== state.lastVoiceStep) {
     state.lastVoiceStep = stepIndex;
@@ -830,6 +841,8 @@ function upcomingManeuverDistance(latlng, route) {
   return map.distance(latlng, [lat, lon]);
 }
 
+let lastCameraMove = 0;
+
 function adaptNavigationCamera(position, latlng) {
   const route = state.routes[state.selectedRoute];
   if (!route) return;
@@ -838,19 +851,21 @@ function adaptNavigationCamera(position, latlng) {
   const upcomingStep = routeSteps(route)[Math.min((state.currentStepIndex || 0) + 1, routeSteps(route).length - 1)];
   const isRoundabout = upcomingStep?.maneuver?.type === 'roundabout' ||
     upcomingStep?.maneuver?.type === 'rotary';
-  const zoom = isRoundabout && maneuverDistance < 800 ? 17.5 :
-    speed < 12 ? 18 :
-      speed < 35 ? 17 :
-        speed < 70 ? 16 : 15;
+  const zoom = isRoundabout && maneuverDistance < 800 ? 17 :
+    speed < 12 ? 17 :
+      speed < 35 ? 16 : 15;
+  const now = Date.now();
+  if (now - lastCameraMove < 1200) return;
+  lastCameraMove = now;
 
   if (state.map3dEnabled && state.map3d) {
     const camera = { center: [latlng[1], latlng[0]] };
-    if (settings.adaptiveZoom) camera.zoom = Math.min(zoom, isRoundabout && maneuverDistance < 800 ? 17.5 : 17);
+    if (settings.adaptiveZoom) camera.zoom = Math.min(zoom, 17);
     if (settings.followHeading && Number.isFinite(position.coords.heading) && speed > 8) {
       camera.bearing = position.coords.heading;
     }
-    camera.pitch = 58;
-    camera.duration = 850;
+    camera.pitch = 45;
+    camera.duration = 1000;
     state.map3d.easeTo(camera);
     return;
   }
@@ -1026,7 +1041,8 @@ function toggleNavigation() {
 const SERVICES_RADIUS_M = 20000;
 const SERVICES_REFRESH_M = 3000;
 const SERVICES_REFRESH_MS = 5 * 60 * 1000;
-const nearbyServices = { fuel: [], rest: [], origin: null, fetchedAt: 0, loading: false };
+const nearbyServices = { fuel: [], rest: [], origin: null, fetchedAt: 0, loading: false, failed: false };
+const OVERPASS_MIRRORS = [OVERPASS, 'https://overpass.kumi.systems/api/interpreter'];
 
 function nearestService(points, latlng) {
   let best = null;
@@ -1040,8 +1056,9 @@ function nearestService(points, latlng) {
 function renderNearbyServices(latlng) {
   const fuel = nearestService(nearbyServices.fuel, latlng);
   const rest = nearestService(nearbyServices.rest, latlng);
-  elements.nearbyFuel.textContent = fuel ? formatDistance(fuel.distance) : `Aucune dans ${SERVICES_RADIUS_M / 1000} km`;
-  elements.nearbyRest.textContent = rest ? formatDistance(rest.distance) : `Aucune dans ${SERVICES_RADIUS_M / 1000} km`;
+  const empty = nearbyServices.failed ? 'Indisponible' : `Aucune dans ${SERVICES_RADIUS_M / 1000} km`;
+  elements.nearbyFuel.textContent = fuel ? formatDistance(fuel.distance) : empty;
+  elements.nearbyRest.textContent = rest ? formatDistance(rest.distance) : empty;
 }
 
 async function fetchNearbyServices(latlng) {
@@ -1051,11 +1068,21 @@ async function fetchNearbyServices(latlng) {
   const query = `[out:json][timeout:20];(node["amenity"="fuel"]${around};way["amenity"="fuel"]${around};node${restSelector}${around};way${restSelector}${around};);out center 300;`;
   nearbyServices.loading = true;
   try {
-    const data = await requestJson(OVERPASS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: new URLSearchParams({ data: query }),
-    });
+    let data = null;
+    for (const endpoint of OVERPASS_MIRRORS) {
+      try {
+        data = await requestJson(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body: new URLSearchParams({ data: query }),
+        });
+        break;
+      } catch (error) {
+        console.warn('Serveur de services indisponible :', endpoint, error);
+      }
+    }
+    if (!data) throw new Error('Aucun serveur de services ne répond');
+    nearbyServices.failed = false;
     nearbyServices.fuel = [];
     nearbyServices.rest = [];
     (data.elements || []).forEach((element) => {
@@ -1066,6 +1093,7 @@ async function fetchNearbyServices(latlng) {
       target.push([pointLat, pointLon]);
     });
   } catch (error) {
+    nearbyServices.failed = true;
     console.error('Services à proximité indisponibles :', error);
   } finally {
     nearbyServices.origin = latlng;
