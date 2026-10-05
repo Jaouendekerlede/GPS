@@ -1,4 +1,4 @@
-const APP_VERSION = '1.19.1';
+const APP_VERSION = '1.19.2';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -730,8 +730,6 @@ function add3dRouteLayers(renderer) {
 }
 
 const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
-// Nom du style TomTom à vérifier avec le compte : sans clé, ou si le style échoue, OpenFreeMap est utilisé
-const TOMTOM_3D_STYLE = 'basic-main';
 
 let map3dFallback = false;
 
@@ -739,7 +737,9 @@ function map3dStyleUrl() {
   if (map3dFallback) return OPENFREEMAP_STYLE;
   const key = settings.map3dSource === 'tomtom' ? getTomTomKey() : '';
   if (!key) return OPENFREEMAP_STYLE;
-  return `https://api.tomtom.com/style/2/custom/style/${TOMTOM_3D_STYLE}.json?key=${encodeURIComponent(key)}`;
+  // Même style que Trajet VE : TomTom « basic_street », clair ou sombre selon le réglage
+  const variante = settings.mapStyle === 'dark' ? 'dark' : 'light';
+  return `https://api.tomtom.com/style/1/style/*?map=2/basic_street-${variante}&key=${encodeURIComponent(key)}`;
 }
 
 async function setMap3d(enabled, { silent = false } = {}) {
@@ -781,8 +781,8 @@ async function setMap3d(enabled, { silent = false } = {}) {
         state.map3d.once('load', resolve);
         state.map3d.once('error', (event) => reject(event.error || new Error('La carte 3D ne peut pas être affichée.')));
       });
-      if (state.map3d.getStyle().layers.every((layer) => layer.type !== 'fill-extrusion') && settings.map3dSource === 'tomtom') {
-        throw new Error('Le style TomTom ne contient pas de bâtiments 3D.');
+      if (settings.map3dSource === 'tomtom' && state.map3d.getStyle().layers.every((layer) => layer.type !== 'fill-extrusion')) {
+        showToast('Style TomTom : pas de bâtiments 3D sur ce fond.');
       }
       add3dRouteLayers(state.map3d);
       state.map3d.on('moveend', () => {
