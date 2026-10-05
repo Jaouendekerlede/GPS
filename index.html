@@ -107,10 +107,7 @@
           <button class="poi-tool mode-3d-tool" id="mapModeBtn" type="button" aria-pressed="false" title="Activer la vue 3D">3D</button>
         </div>
         <div class="poi-tools" id="poiTools" aria-label="Points d’intérêt sur la carte">
-          <button class="map-tool report-tool" id="reportBtn" type="button">
-          <span class="report-plus" aria-hidden="true">+</span><span>Signaler</span>
-        </button>
-          <button class="poi-tool" type="button" data-layer="fuel" aria-pressed="false" title="Afficher les stations-service"><span aria-hidden="true">⛽</span><small>Stations</small></button>
+            <button class="poi-tool" type="button" data-layer="fuel" aria-pressed="false" title="Afficher les stations-service"><span aria-hidden="true">⛽</span><small>Stations</small></button>
           <button class="poi-tool" type="button" data-layer="signals" aria-pressed="false" title="Afficher les feux de circulation"><span aria-hidden="true">🚦</span><small>Feux</small></button>
           <button class="poi-tool" type="button" data-layer="cameras" aria-pressed="false" title="Afficher les radars cartographiés"><span aria-hidden="true">◉</span><small>Radars</small></button>
         </div>
@@ -160,26 +157,6 @@
         <button class="nav-item" id="shareBtn" type="button"><span aria-hidden="true">↗</span>Partager</button>
       </nav>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-      <dialog class="app-dialog" id="reportDialog">
-        <form method="dialog" id="reportForm">
-          <div class="dialog-kicker">CONTRIBUTION LOCALE</div>
-          <h2>Signaler sur la carte</h2>
-          <p>Ce signalement sera visible uniquement sur cet appareil. Il ne sera pas transmis à d’autres conducteurs.</p>
-          <label for="reportType">Type d’événement</label>
-          <select id="reportType">
-            <option value="hazard">Danger</option>
-            <option value="work">Travaux</option>
-            <option value="incident">Incident</option>
-          </select>
-          <label for="reportDescription">Détail (facultatif)</label>
-          <input id="reportDescription" maxlength="90" placeholder="Ex. : voie fermée" />
-          <div class="dialog-actions">
-            <button class="dialog-cancel" value="cancel">Annuler</button>
-            <button class="dialog-confirm" id="confirmReport" value="confirm">Placer sur la carte</button>
-          </div>
-        </form>
-      </dialog>
 
       <dialog class="app-dialog" id="savedDialog">
         <form method="dialog">

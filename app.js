@@ -1,4 +1,4 @@
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.9.1';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1141,25 +1141,6 @@ async function shareRoute() {
   }
 }
 
-async function confirmReport(event) {
-  if (event.submitter?.value !== 'confirm') return;
-  event.preventDefault();
-  const type = document.getElementById('reportType').value;
-  const description = document.getElementById('reportDescription').value.trim();
-  const labels = { hazard: 'Danger signalé', work: 'Travaux signalés', incident: 'Incident signalé' };
-  const center = map.getCenter();
-  const marker = L.circleMarker(center, {
-    radius: 9, color: '#fff', weight: 2,
-    fillColor: type === 'work' ? '#e6ae25' : type === 'incident' ? '#df4951' : '#ce7851',
-    fillOpacity: 1,
-  }).addTo(state.userReports);
-  const report = `${labels[type]}${description ? ` : ${description}` : ''}`;
-  marker.bindPopup(`<strong>${escapeHtml(report)}</strong><br>Signalement local à cet appareil.`);
-  document.getElementById('reportDialog').close();
-  document.getElementById('reportDescription').value = '';
-  showToast('Signalement ajouté à votre carte uniquement.');
-}
-
 function toggleSheet() {
   const expanded = elements.routeCard.dataset.expanded === 'true';
   elements.routeCard.dataset.expanded = String(!expanded);
@@ -1378,8 +1359,6 @@ document.getElementById('sheetToggle').addEventListener('click', toggleSheet);
 document.getElementById('saveRouteBtn').addEventListener('click', saveCurrentRoute);
 document.getElementById('savedRoutesBtn').addEventListener('click', showSavedRoutes);
 document.getElementById('shareBtn').addEventListener('click', shareRoute);
-document.getElementById('reportBtn').addEventListener('click', () => document.getElementById('reportDialog').showModal());
-document.getElementById('reportForm').addEventListener('submit', confirmReport);
 document.querySelectorAll('.poi-tool[data-layer]').forEach((button) => {
   const layer = L.layerGroup();
   state.poiLayers.set(button.dataset.layer, layer);
