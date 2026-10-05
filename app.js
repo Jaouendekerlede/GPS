@@ -1,4 +1,4 @@
-const APP_VERSION = '1.11.1';
+const APP_VERSION = '1.11.2';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -298,7 +298,7 @@ function chooseRoute(index) {
   state.selectedRoute = index;
   state.routeLayers.forEach((layer, routeIndex) => {
     layer.setStyle({
-      color: routeIndex === index ? '#f3cb3e' : '#78a6c9',
+      color: routeIndex === index ? '#1565c0' : '#8d99a6',
       weight: routeIndex === index ? 8 : 5,
       opacity: routeIndex === index ? 1 : 0.62,
     });
@@ -401,7 +401,7 @@ function buildRouteLayers(routes, start, end, vias = []) {
   state.routeLayers = routes.map((route, index) => {
     const coordinates = route.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
     return L.polyline(coordinates, {
-      color: index === 0 ? '#f3cb3e' : '#78a6c9',
+      color: index === 0 ? '#1565c0' : '#8d99a6',
       weight: index === 0 ? 8 : 5,
       opacity: index === 0 ? 1 : 0.62,
       lineCap: 'round',
@@ -702,7 +702,7 @@ function add3dRouteLayers(renderer) {
     source: 'trajet-route',
     filter: ['==', ['get', 'selected'], true],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': '#f3cb3e', 'line-width': 7, 'line-opacity': 1 },
+    paint: { 'line-color': '#1565c0', 'line-width': 7, 'line-opacity': 1 },
   });
 }
 
