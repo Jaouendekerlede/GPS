@@ -446,3 +446,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .nearby-row + .nearby-row { margin-top: 0; padding-top: 0; padding-left: 12px; border-top: 0; border-left: 1px solid #e3e6ea; }
 .nearby-row small { display: none; }
 .nearby-row strong { font-size: 13px; }
+
+.menu-version { margin: 12px 2px 0; color: #9aa1aa; font-size: 10px; text-align: center; }
+.update-banner { position: absolute; z-index: 1300; top: max(12px, env(safe-area-inset-top)); left: 50%; display: flex; width: max-content; max-width: calc(100vw - 24px); align-items: center; gap: 12px; padding: 10px 12px 10px 15px; transform: translateX(-50%); border-radius: 12px; background: #20252c; box-shadow: 0 8px 24px rgb(0 0 0 / 22%); color: white; font-size: 12px; }
+.update-banner button { padding: 7px 11px; border: 0; border-radius: 8px; background: #f2c230; color: #20252c; font-size: 12px; font-weight: 800; cursor: pointer; }

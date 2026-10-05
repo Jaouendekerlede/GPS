@@ -1,3 +1,4 @@
+const APP_VERSION = '1.7.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1306,9 +1307,27 @@ async function releaseWakeLock() {
   await lock.release();
 }
 
+function showUpdateBanner() {
+  if (document.querySelector('.update-banner')) return;
+  const banner = document.createElement('div');
+  banner.className = 'update-banner';
+  banner.setAttribute('role', 'status');
+  banner.innerHTML = `<span>Nouvelle version disponible (${APP_VERSION}).</span><button type="button">Mettre à jour</button>`;
+  banner.querySelector('button').addEventListener('click', () => location.reload());
+  document.querySelector('.app').appendChild(banner);
+}
+
 function installServiceWorker() {
+  document.getElementById('appVersion').textContent = `Version ${APP_VERSION}`;
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+    navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
+        });
+      });
+    }).catch((error) => {
       console.error('Enregistrement hors ligne impossible :', error);
     });
   }
