@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gps-v3';
+const CACHE_NAME = 'gps-v4';
 const APP_FILES = [
   './',
   './index.html',
@@ -10,8 +10,11 @@ const APP_FILES = [
   './trajet-waze-512.png',
   './trajet-waze-maskable-512.png',
   './trajet-waze.png',
+  './vendor/leaflet/leaflet.js',
+  './vendor/leaflet/leaflet.css',
+  './vendor/maplibre/maplibre-gl.js',
+  './vendor/maplibre/maplibre-gl.css',
 ];
-const CACHEABLE_EXTERNAL_HOSTS = ['unpkg.com'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -44,17 +47,4 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (CACHEABLE_EXTERNAL_HOSTS.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const network = fetch(request).then((response) => {
-          if (response.ok || response.type === 'opaque') {
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone())).catch(() => {});
-          }
-          return response;
-        });
-        return cached || network;
-      }),
-    );
-  }
 });
