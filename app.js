@@ -1176,6 +1176,7 @@ function saveSettings() {
 function applySettingsToControls() {
   document.getElementById('unitsSetting').value = settings.units;
   document.getElementById('mapStyleSetting').value = settings.mapStyle;
+  document.getElementById('tomtomKeySetting').value = getTomTomKey();
   document.getElementById('autoZoomSetting').checked = settings.adaptiveZoom;
   document.getElementById('headingSetting').checked = settings.followHeading;
   document.getElementById('voiceSetting').checked = settings.voiceGuidance;
@@ -1183,13 +1184,68 @@ function applySettingsToControls() {
   document.getElementById('default3dSetting').checked = settings.default3d;
 }
 
-function setMapStyle(style) {
-  settings.mapStyle = style === 'dark' ? 'dark' : 'standard';
-  const lightLayer = lightTilesFallbackActive ? lightFallbackTiles : lightTiles;
-  const inactive = lightLayer === lightTiles ? lightFallbackTiles : lightTiles;
-  if (map.hasLayer(inactive)) map.removeLayer(inactive);
-  if (!map.hasLayer(lightLayer)) lightLayer.addTo(map);
+const TOMTOM_STYLES = { tomtom: 'main', 'tomtom-night': 'night' };
+const TOMTOM_KEY_STORAGE = 'gps_tomtom_key';
+let tomtomLayer = null;
+let tomtomErrors = 0;
+
+function getTomTomKey() {
+  try {
+    return localStorage.getItem(TOMTOM_KEY_STORAGE) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function setTomTomKey(key) {
+  try {
+    if (key.trim()) localStorage.setItem(TOMTOM_KEY_STORAGE, key.trim());
+    else localStorage.removeItem(TOMTOM_KEY_STORAGE);
+  } catch (error) {
+    showToast(`Impossible d’enregistrer la clé TomTom : ${error.message}`);
+  }
+}
+
+function makeTomTomLayer(style, key) {
+  const layer = L.tileLayer(`https://api.tomtom.com/map/1/tile/basic/${style}/{z}/{x}/{y}.png?key=${encodeURIComponent(key)}&tileSize=512&language=fr-FR`, {
+    maxZoom: 19,
+    maxNativeZoom: 20,
+    attribution: '© <a href="https://www.tomtom.com/">TomTom</a>',
+  });
+  layer.on('tileload', () => { tomtomErrors = 0; });
+  layer.on('tileerror', () => {
+    // Clé refusée ou quota épuisé : les tuiles échouent toutes. Une tuile isolée ne suffit pas.
+    if (++tomtomErrors < 6 || tomtomLayer !== layer) return;
+    tomtomLayer = null;
+    map.removeLayer(layer);
+    setMapStyle('standard', { keepChoice: true });
+    showToast('Fond TomTom refusé (clé ou quota). Retour sur OpenStreetMap.');
+  });
+  return layer;
+}
+
+function setMapStyle(style, { keepChoice = false } = {}) {
+  const wantsTomTom = Object.hasOwn(TOMTOM_STYLES, style);
+  const key = wantsTomTom ? getTomTomKey() : '';
+  if (wantsTomTom && !key) showToast('Ajoutez votre clé TomTom dans les paramètres pour afficher ce fond.');
+  if (!keepChoice) settings.mapStyle = style === 'dark' || (wantsTomTom && key) ? style : 'standard';
+  if (tomtomLayer) {
+    map.removeLayer(tomtomLayer);
+    tomtomLayer = null;
+  }
+  if (wantsTomTom && key) {
+    tomtomErrors = 0;
+    tomtomLayer = makeTomTomLayer(TOMTOM_STYLES[style], key);
+    [lightTiles, lightFallbackTiles].forEach((layer) => { if (map.hasLayer(layer)) map.removeLayer(layer); });
+    tomtomLayer.addTo(map);
+  } else {
+    const lightLayer = lightTilesFallbackActive ? lightFallbackTiles : lightTiles;
+    const inactive = lightLayer === lightTiles ? lightFallbackTiles : lightTiles;
+    if (map.hasLayer(inactive)) map.removeLayer(inactive);
+    if (!map.hasLayer(lightLayer)) lightLayer.addTo(map);
+  }
   document.querySelector('.app').classList.toggle('map-theme-dark', settings.mapStyle === 'dark');
+  document.getElementById('mapStyleSetting').value = settings.mapStyle;
   saveSettings();
 }
 
@@ -1199,6 +1255,11 @@ function openSettings() {
 }
 
 function handleSettingChange(event) {
+  if (event.target.id === 'tomtomKeySetting') {
+    setTomTomKey(event.target.value);
+    if (settings.mapStyle.startsWith('tomtom')) setMapStyle(settings.mapStyle);
+    return;
+  }
   const settingById = {
     unitsSetting: ['units', event.target.value],
     mapStyleSetting: ['mapStyle', event.target.value],
@@ -1285,7 +1346,7 @@ document.getElementById('menuBtn').addEventListener('click', () => {
   openSettings();
 });
 document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!state.map3dEnabled));
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {

@@ -202,7 +202,11 @@
           </label>
           <label class="setting-select-row" for="mapStyleSetting">
             <span><strong>Style de carte 2D</strong><small>Contraste adapté à votre préférence</small></span>
-            <select id="mapStyleSetting"><option value="standard">Clair</option><option value="dark">Sombre</option></select>
+            <select id="mapStyleSetting"><option value="standard">Clair (OpenStreetMap)</option><option value="dark">Sombre (OpenStreetMap)</option><option value="tomtom">Clair (TomTom)</option><option value="tomtom-night">Nuit (TomTom)</option></select>
+          </label>
+          <label class="setting-text-row" for="tomtomKeySetting">
+            <span><strong>Clé API TomTom</strong><small>Pour les fonds TomTom. Gardée seulement sur cet appareil.</small></span>
+            <input id="tomtomKeySetting" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Collez votre clé" />
           </label>
 
           <label class="setting-toggle">
