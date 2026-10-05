@@ -1,4 +1,4 @@
-const APP_VERSION = '1.13.0';
+const APP_VERSION = '1.14.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   showFuel: true,
   showSignals: true,
   showCameras: true,
+  autoNight: true,
 };
 let settings;
 try {
@@ -812,6 +813,7 @@ function setCurrentPosition(position) {
   }
   sync3dRoute();
   if (state.navigationActive) {
+    checkOffRoute(latlng);
     advanceGuidance(latlng);
     adaptNavigationCamera(position, latlng);
     updateNearbyServices(latlng);
@@ -905,6 +907,56 @@ function advanceGuidance(latlng) {
   if (stepIndex === routeSteps(route).length - 1) {
     showToast('Vous approchez de votre destination.');
   }
+}
+
+function applyAutoNight() {
+  if (!settings.autoNight) return;
+  const hour = new Date().getHours();
+  const night = hour >= 20 || hour < 7;
+  if (night && settings.mapStyle === 'standard') setMapStyle('dark');
+  else if (!night && settings.mapStyle === 'dark') setMapStyle('standard');
+}
+
+let offRouteFixes = 0;
+let recalculating = false;
+
+function distanceToRoute(route, latlng) {
+  let best = Infinity;
+  route.geometry.coordinates.forEach(([lon, lat]) => {
+    const distance = map.distance(latlng, [lat, lon]);
+    if (distance < best) best = distance;
+  });
+  return best;
+}
+
+async function recalculateRoute(latlng) {
+  const route = state.routes[state.selectedRoute];
+  if (!route) return;
+  const [endLon, endLat] = route.geometry.coordinates.at(-1);
+  const url = new URL(`${ROUTERS[elements.profile.value]}/${latlng[1]},${latlng[0]};${endLon},${endLat}`);
+  url.search = new URLSearchParams({ alternatives: '3', steps: 'true', overview: 'full', geometries: 'geojson' });
+  const result = await requestJson(url);
+  if (result.code !== 'Ok' || !result.routes?.length) return;
+  const start = { lat: latlng[0], lon: latlng[1], label: 'Ma position' };
+  const end = { lat: endLat, lon: endLon, label: 'Destination' };
+  buildRouteLayers(result.routes, start, end, []);
+  chooseRoute(0);
+  state.currentStepIndex = 0;
+  updateNavigationOverlay(state.routes[0], 0);
+  showToast('Itinéraire recalculé.');
+}
+
+function checkOffRoute(latlng) {
+  const route = state.routes[state.selectedRoute];
+  if (!route || recalculating || demoMode) return;
+  offRouteFixes = distanceToRoute(route, latlng) > 80 ? offRouteFixes + 1 : 0;
+  if (offRouteFixes < 3) return;
+  offRouteFixes = 0;
+  recalculating = true;
+  showToast('Vous vous êtes écarté du trajet : recalcul…');
+  recalculateRoute(latlng)
+    .catch((error) => showToast(`Recalcul impossible : ${error.message}`))
+    .finally(() => { recalculating = false; });
 }
 
 let demoMode = false;
@@ -1203,6 +1255,7 @@ function applySettingsToControls() {
   document.getElementById('poiFuelSetting').checked = settings.showFuel;
   document.getElementById('poiSignalsSetting').checked = settings.showSignals;
   document.getElementById('poiCamerasSetting').checked = settings.showCameras;
+  document.getElementById('autoNightSetting').checked = settings.autoNight;
 }
 
 const TOMTOM_STYLES = { tomtom: 'main', 'tomtom-night': 'night' };
@@ -1316,6 +1369,7 @@ function handleSettingChange(event) {
     poiFuelSetting: ['showFuel', event.target.checked],
     poiSignalsSetting: ['showSignals', event.target.checked],
     poiCamerasSetting: ['showCameras', event.target.checked],
+    autoNightSetting: ['autoNight', event.target.checked],
   };
   const setting = settingById[event.target.id];
   if (!setting) return;
@@ -1323,6 +1377,7 @@ function handleSettingChange(event) {
   if (event.target.id === 'mapStyleSetting') setMapStyle(event.target.value);
   else saveSettings();
   if (event.target.id.startsWith('poi')) applyPoiSettings();
+  if (event.target.id === 'autoNightSetting') applyAutoNight();
   if (event.target.id === 'default3dSetting' && settings.default3d) {
     setMap3d(true);
   } else if (event.target.id === 'default3dSetting' && !settings.default3d && state.map3dEnabled) {
@@ -1431,7 +1486,7 @@ document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!
 document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
   button.addEventListener('click', () => setMapStyle(button.dataset.style));
 });
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {
@@ -1464,6 +1519,8 @@ window.addEventListener('resize', () => map.invalidateSize());
 installServiceWorker();
 applySettingsToControls();
 setMapStyle(settings.mapStyle);
+applyAutoNight();
+setInterval(applyAutoNight, 10 * 60 * 1000);
 if (settings.default3d) setMap3d(true, { silent: true });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && state.navigationActive && settings.wakeLock) acquireWakeLock();
