@@ -498,8 +498,10 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 .location-tool { width: 52px; height: 52px; border-radius: 50%; }
 
 /* Bannière de direction : sombre, grande lisibilité */
-.sign-panel, .sign-local, .sign-motorway, .sign-express { background: #0f172a; border: 0; border-radius: 20px; box-shadow: 0 14px 34px rgb(15 23 42 / 28%); }
-.sign-kicker { color: #93c5fd; }
+.sign-panel { border: 0; border-radius: 20px; box-shadow: 0 14px 34px rgb(15 23 42 / 28%); }
+.sign-local, .sign-express { background: #15803d; }
+.sign-motorway { background: #1d4ed8; }
+.sign-kicker { color: rgb(255 255 255 / 80%); }
 .sign-panel strong { font-size: 20px; }
 
 /* Services : pastille claire */
