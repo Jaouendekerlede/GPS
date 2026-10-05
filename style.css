@@ -454,3 +454,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .app:not(.is-navigating) .direction-sign { display: none !important; }
 .app:not(.is-navigating) .lane-guidance,
 .lane-guidance:has(.lane-unknown) { display: none !important; }
+
+.style-tools { display: grid; gap: 7px; }
+.mode-3d-tool { min-height: 49px; font-size: 13px; font-weight: 850; color: #3d434a; }
+.mode-3d-tool[aria-pressed="true"] { outline: 2px solid #e2bd24; background: #fff9db; }
+.sos-tool { color: #c62828; text-decoration: none; }
+.sos-tool small { font-weight: 850; }
+.app.is-navigating .style-tools { display: none !important; }

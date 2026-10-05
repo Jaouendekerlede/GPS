@@ -1,4 +1,4 @@
-const APP_VERSION = '1.8.2';
+const APP_VERSION = '1.9.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1225,28 +1225,52 @@ function makeTomTomLayer(style, key) {
   return layer;
 }
 
+let satelliteTiles = null;
+
+function makeSatelliteLayer() {
+  const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  return L.layerGroup([
+    L.tileLayer(esri + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagerie © Esri' }),
+    L.tileLayer(esri + 'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+    L.tileLayer(esri + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+  ]);
+}
+
+function refreshModeButtons() {
+  document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.style === settings.mapStyle));
+  });
+}
+
 function setMapStyle(style, { keepChoice = false } = {}) {
   const wantsTomTom = Object.hasOwn(TOMTOM_STYLES, style);
+  const wantsSatellite = style === 'satellite';
   const key = wantsTomTom ? getTomTomKey() : '';
   if (wantsTomTom && !key) showToast('Ajoutez votre clé TomTom dans les paramètres pour afficher ce fond.');
-  if (!keepChoice) settings.mapStyle = style === 'dark' || (wantsTomTom && key) ? style : 'standard';
+  if (!keepChoice) settings.mapStyle = style === 'dark' || wantsSatellite || (wantsTomTom && key) ? style : 'standard';
   if (tomtomLayer) {
     map.removeLayer(tomtomLayer);
     tomtomLayer = null;
   }
+  if (satelliteTiles) {
+    map.removeLayer(satelliteTiles);
+    satelliteTiles = null;
+  }
+  [lightTiles, lightFallbackTiles].forEach((layer) => { if (map.hasLayer(layer)) map.removeLayer(layer); });
   if (wantsTomTom && key) {
     tomtomErrors = 0;
     tomtomLayer = makeTomTomLayer(TOMTOM_STYLES[style], key);
-    [lightTiles, lightFallbackTiles].forEach((layer) => { if (map.hasLayer(layer)) map.removeLayer(layer); });
     tomtomLayer.addTo(map);
+  } else if (settings.mapStyle === 'satellite') {
+    satelliteTiles = makeSatelliteLayer();
+    satelliteTiles.addTo(map);
   } else {
     const lightLayer = lightTilesFallbackActive ? lightFallbackTiles : lightTiles;
-    const inactive = lightLayer === lightTiles ? lightFallbackTiles : lightTiles;
-    if (map.hasLayer(inactive)) map.removeLayer(inactive);
-    if (!map.hasLayer(lightLayer)) lightLayer.addTo(map);
+    lightLayer.addTo(map);
   }
   document.querySelector('.app').classList.toggle('map-theme-dark', settings.mapStyle === 'dark');
   document.getElementById('mapStyleSetting').value = settings.mapStyle;
+  refreshModeButtons();
   saveSettings();
 }
 
@@ -1356,7 +1380,7 @@ document.getElementById('savedRoutesBtn').addEventListener('click', showSavedRou
 document.getElementById('shareBtn').addEventListener('click', shareRoute);
 document.getElementById('reportBtn').addEventListener('click', () => document.getElementById('reportDialog').showModal());
 document.getElementById('reportForm').addEventListener('submit', confirmReport);
-document.querySelectorAll('.poi-tool').forEach((button) => {
+document.querySelectorAll('.poi-tool[data-layer]').forEach((button) => {
   const layer = L.layerGroup();
   state.poiLayers.set(button.dataset.layer, layer);
   button.addEventListener('click', () => togglePoi(button.dataset.layer, button));
@@ -1374,6 +1398,9 @@ document.getElementById('menuAide').addEventListener('click', () => {
   help.hidden = !help.hidden;
 });
 document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!state.map3dEnabled));
+document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
+  button.addEventListener('click', () => setMapStyle(button.dataset.style));
+});
 elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
