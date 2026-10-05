@@ -1,4 +1,4 @@
-const APP_VERSION = '1.11.2';
+const APP_VERSION = '1.12.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',

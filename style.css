@@ -465,3 +465,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .demo-button { width: 100%; margin-top: 8px; padding: 9px 14px; border: 0; border-radius: 12px; background: #eef1f4; color: #323941; font-size: 12px; font-weight: 800; cursor: pointer; }
 .demo-button:disabled { opacity: .5; cursor: default; }
 .app.is-navigating .demo-button { display: none !important; }
+
+/* Style clair et épuré (1.12.0) */
+.card { border-radius: 20px; box-shadow: 0 10px 30px rgb(15 23 42 / 12%); }
+.sign-panel { border: 0; border-radius: 18px; background: #1e293b; box-shadow: 0 12px 30px rgb(15 23 42 / 25%); }
+.lane-guidance { display: none !important; }
+.nearby-services { gap: 10px; padding: 6px 12px; border-radius: 999px; box-shadow: 0 6px 18px rgb(15 23 42 / 14%); }
+.nearby-row span { font-size: 14px; }
+.nearby-row strong { font-size: 12px; }
+.nearby-row + .nearby-row { padding-left: 10px; }
+.map-tool, .poi-tool { border-radius: 16px; box-shadow: 0 6px 18px rgb(15 23 42 / 14%); }
+.go-button { border-radius: 16px; }
