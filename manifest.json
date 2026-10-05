@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "GPS — navigation",
+  "short_name": "GPS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#171b20",
+  "theme_color": "#171b20",
+  "description": "Itinéraires, carte et guidage GPS sans compte ni clé API.",
+  "orientation": "any",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "./trajet-waze-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./trajet-waze-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./trajet-waze-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

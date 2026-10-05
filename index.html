@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#181c22" />
+    <meta name="description" content="Planifiez votre itinéraire sur une carte, au bureau ou sur votre téléphone." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>GPS — itinéraires</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./trajet-waze.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./trajet-waze.png" />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <div id="map" aria-label="Carte interactive"></div>
+      <div id="map3d" aria-label="Carte 3D"></div>
+
+      <header class="topbar">
+        <button class="install-button" id="installBtn" type="button" hidden>Installer l’app</button>
+        <button class="top-action" id="menuBtn" type="button" aria-label="Paramètres du GPS" title="Paramètres">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.2 13.6 1.2.9-1.5 2.6-1.4-.5a7.5 7.5 0 0 1-1.6.9l-.2 1.5h-3l-.3-1.5a7.5 7.5 0 0 1-1.6-.9l-1.4.5-1.5-2.6 1.2-.9a7.2 7.2 0 0 1 0-1.8l-1.2-.9 1.5-2.6 1.4.5a7.5 7.5 0 0 1 1.6-.9l.3-1.5h3l.2 1.5a7.5 7.5 0 0 1 1.6.9l1.4-.5 1.5 2.6-1.2.9a7.2 7.2 0 0 1 0 1.8Z"/></svg>
+        </button>
+      </header>
+      <button class="map-mode-button" id="mapModeBtn" type="button" aria-pressed="false" title="Activer la vue 3D">3D</button>
+
+      <section class="direction-sign" id="directionSign" aria-live="polite" aria-label="Panneau de direction" hidden>
+        <div class="sign-panel sign-local" id="signPanel">
+          <span class="sign-kicker" id="signKicker">PROCHAINE DIRECTION</span>
+          <strong id="signRoad">Calcul de l’itinéraire</strong>
+          <span class="sign-destination" id="signDestination">Les panneaux apparaîtront avec le guidage</span>
+          <span class="sign-exit" id="signExit" hidden></span>
+        </div>
+      </section>
+
+      <section class="lane-guidance card" id="laneGuidance" aria-label="Positionnement sur les voies" hidden>
+        <div class="lane-guidance-head"><span>VOIES À SUIVRE</span><span id="laneRoad">Guidage</span></div>
+        <div class="lane-track" id="laneTrack" aria-live="polite">
+          <span class="lane-unknown">Données de voies non disponibles</span>
+        </div>
+        <div class="lane-caption" id="laneCaption">Les informations de voies dépendent de la carte locale.</div>
+      </section>
+
+      <section class="planner card" aria-label="Calculer un itinéraire">
+        <div class="planner-topline">
+          <span class="eyebrow">VOTRE TRAJET</span>
+          <span class="secure-label"><i></i> Planification</span>
+        </div>
+        <div class="place-fields">
+          <div class="place-row">
+            <span class="place-marker origin" aria-hidden="true"><i></i></span>
+            <input id="fromInput" type="text" value="Paris, France" autocomplete="off" aria-label="Point de départ" />
+            <button class="input-action" id="locateBtn" type="button" title="Utiliser ma position" aria-label="Utiliser ma position">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+            </button>
+          </div>
+          <div id="viaFields"></div>
+          <div class="field-connector" aria-hidden="true"><span></span></div>
+          <div class="place-row">
+            <span class="place-marker destination" aria-hidden="true"><i></i></span>
+            <input id="toInput" type="text" value="Versailles, France" autocomplete="off" aria-label="Destination" />
+            <button class="input-action" id="swapBtn" type="button" title="Inverser départ et destination" aria-label="Inverser départ et destination">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v15m0 0-4-4m4 4 4-4M17 20V5m0 0 4 4m-4-4-4 4"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="add-via-button" id="addViaBtn" type="button">＋ Ajouter une étape via</button>
+        <div class="planner-footer">
+          <label class="transport-mode" for="profileSelect"><span aria-hidden="true">◉</span>
+            <select id="profileSelect" aria-label="Mode de déplacement">
+              <option value="driving">En voiture</option>
+              <option value="cycling">À vélo</option>
+              <option value="foot">À pied</option>
+            </select>
+          </label>
+          <button class="route-button" id="routeBtn" type="button">
+            <span>Calculer le trajet</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+          </button>
+        </div>
+        <p class="status" id="routeStatus" role="status" aria-live="polite">Saisissez vos adresses pour calculer le trajet.</p>
+      </section>
+
+      <section class="route-options card" id="routeOptions" aria-label="Choisir parmi les itinéraires" hidden>
+        <div class="options-heading"><span>ITINÉRAIRES</span><span id="routeCount">—</span></div>
+        <div class="route-choice-list" id="routeChoiceList"></div>
+      </section>
+
+      <div class="map-tools" aria-label="Outils de carte">
+        <button class="map-tool report-tool" id="reportBtn" type="button">
+          <span class="report-plus" aria-hidden="true">+</span><span>Signaler</span>
+        </button>
+        <div class="poi-tools" aria-label="Points d’intérêt sur la carte">
+          <button class="poi-tool" type="button" data-layer="fuel" aria-pressed="false" title="Afficher les stations-service"><span aria-hidden="true">⛽</span><small>Stations</small></button>
+          <button class="poi-tool" type="button" data-layer="signals" aria-pressed="false" title="Afficher les feux de circulation"><span aria-hidden="true">🚦</span><small>Feux</small></button>
+          <button class="poi-tool" type="button" data-layer="cameras" aria-pressed="false" title="Afficher les radars cartographiés"><span aria-hidden="true">◉</span><small>Radars</small></button>
+        </div>
+        <button class="map-tool location-tool" id="recenterBtn" type="button" title="Recentrer la carte" aria-label="Recentrer la carte">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+        </button>
+      </div>
+
+      <section class="route-card card" id="routeCard" aria-label="Résumé de l'itinéraire" data-expanded="false">
+        <button class="sheet-grip" id="sheetToggle" type="button" aria-label="Afficher le détail du trajet"><span></span></button>
+        <div class="route-card-head">
+          <div class="arrival">
+            <span class="arrival-time" id="arrivalTime">--:--</span>
+            <span class="arrival-label">Arrivée estimée</span>
+          </div>
+          <div class="trip-stats">
+            <strong id="routeDuration">—</strong>
+            <span id="routeDistance">En attente de l’itinéraire</span>
+          </div>
+          <button class="go-button" id="startDriveBtn" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 5.2 6a2 2 0 0 1 1.9-1.3h9.8A2 2 0 0 1 18.8 6l2.2 5.5V19h-2v-2H5v2H3zm3.2-.5h11.6l-1.3-4h-9zM6.5 14a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4m11 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4"/></svg>
+            <span>Partir</span>
+          </button>
+        </div>
+        <div class="route-detail">
+          <div class="detail-heading">
+            <div><span class="eyebrow">ITINÉRAIRE CONSEILLÉ</span><span class="source-tag">OpenStreetMap</span></div>
+            <button class="save-button" id="saveRouteBtn" type="button" aria-label="Enregistrer ce trajet" title="Enregistrer ce trajet">☆</button>
+          </div>
+          <div class="route-line-summary">
+            <span class="route-bullet"></span>
+            <div><strong id="routeName">Calculé à la demande</strong><small id="routeNote">Temps indicatif — trafic en direct non disponible</small></div>
+          </div>
+          <div class="steps-heading">Étapes principales</div>
+          <ol class="steps-list" id="stepsList"><li>Les étapes apparaîtront après le calcul du trajet.</li></ol>
+          <div class="data-note">
+            <span aria-hidden="true">ⓘ</span>
+            <span>Carte © OpenStreetMap · Temps de trajet estimé, sans données de trafic en direct.</span>
+          </div>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Navigation">
+        <button class="nav-item active" type="button" data-action="map"><span aria-hidden="true">⌖</span>Carte</button>
+        <button class="nav-item" id="savedRoutesBtn" type="button"><span aria-hidden="true">☆</span>Favoris</button>
+        <button class="nav-item" id="shareBtn" type="button"><span aria-hidden="true">↗</span>Partager</button>
+      </nav>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <dialog class="app-dialog" id="reportDialog">
+        <form method="dialog" id="reportForm">
+          <div class="dialog-kicker">CONTRIBUTION LOCALE</div>
+          <h2>Signaler sur la carte</h2>
+          <p>Ce signalement sera visible uniquement sur cet appareil. Il ne sera pas transmis à d’autres conducteurs.</p>
+          <label for="reportType">Type d’événement</label>
+          <select id="reportType">
+            <option value="hazard">Danger</option>
+            <option value="work">Travaux</option>
+            <option value="incident">Incident</option>
+          </select>
+          <label for="reportDescription">Détail (facultatif)</label>
+          <input id="reportDescription" maxlength="90" placeholder="Ex. : voie fermée" />
+          <div class="dialog-actions">
+            <button class="dialog-cancel" value="cancel">Annuler</button>
+            <button class="dialog-confirm" id="confirmReport" value="confirm">Placer sur la carte</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="app-dialog" id="savedDialog">
+        <form method="dialog">
+          <div class="dialog-kicker">VOS TRAJETS</div>
+          <h2>Favoris enregistrés</h2>
+          <div class="saved-routes" id="savedRoutesList"></div>
+          <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>
+        </form>
+      </dialog>
+
+      <dialog class="app-dialog settings-dialog" id="settingsDialog">
+        <form method="dialog">
+          <div class="dialog-kicker">PERSONNALISATION</div>
+          <h2>Paramètres du GPS</h2>
+          <p class="settings-intro">Réglez l’affichage et le guidage de GPS.</p>
+
+          <label class="setting-select-row" for="unitsSetting">
+            <span><strong>Unités de distance</strong><small>Distances de trajet et indications</small></span>
+            <select id="unitsSetting"><option value="km">Kilomètres</option><option value="mi">Miles</option></select>
+          </label>
+          <label class="setting-select-row" for="mapStyleSetting">
+            <span><strong>Style de carte 2D</strong><small>Contraste adapté à votre préférence</small></span>
+            <select id="mapStyleSetting"><option value="standard">Clair</option><option value="dark">Sombre</option></select>
+          </label>
+
+          <label class="setting-toggle">
+            <span><strong>Zoom intelligent</strong><small>Adapte le zoom à la vitesse et aux intersections</small></span>
+            <input id="autoZoomSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Vue orientée dans le sens du trajet</strong><small>Suit le cap GPS en vue 3D pendant le guidage</small></span>
+            <input id="headingSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Instructions vocales</strong><small>Lecture des prochaines manœuvres si disponible</small></span>
+            <input id="voiceSetting" type="checkbox" /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Garder l’écran allumé</strong><small>Uniquement pendant le guidage, si pris en charge</small></span>
+            <input id="wakeLockSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Ouvrir directement la carte 3D</strong><small>Perspective avec bâtiments cartographiés</small></span>
+            <input id="default3dSetting" type="checkbox" /><i></i>
+          </label>
+
+          <div class="settings-note">Le zoom et les indications s’appuient sur le GPS et les détails présents dans OpenStreetMap. Les cartes et le guidage nécessitent une connexion Internet.</div>
+          <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>
+        </form>
+      </dialog>
+    </main>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
