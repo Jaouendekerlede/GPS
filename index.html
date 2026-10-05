@@ -221,6 +221,18 @@
             <span><strong>Instructions vocales</strong><small>Lecture des prochaines manœuvres si disponible</small></span>
             <input id="voiceSetting" type="checkbox" /><i></i>
           </label>
+          <label class="setting-select-row" for="voiceVolumeSetting">
+            <span><strong>Volume de la voix</strong><small>Niveau des annonces vocales</small></span>
+            <select id="voiceVolumeSetting"><option value="1">Fort</option><option value="0.6">Moyen</option><option value="0.3">Faible</option></select>
+          </label>
+          <label class="setting-select-row" for="voiceFrequencySetting">
+            <span><strong>Annonces</strong><small>Toutes les manœuvres, ou seulement les carrefours</small></span>
+            <select id="voiceFrequencySetting"><option value="all">Toutes</option><option value="crossroads">Carrefours seulement</option></select>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Vibration aux manœuvres</strong><small>Vibre à chaque changement de direction</small></span>
+            <input id="vibrationSetting" type="checkbox" checked /><i></i>
+          </label>
           <label class="setting-toggle">
             <span><strong>Garder l’écran allumé</strong><small>Uniquement pendant le guidage, si pris en charge</small></span>
             <input id="wakeLockSetting" type="checkbox" checked /><i></i>

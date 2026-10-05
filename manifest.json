@@ -27,5 +27,29 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Favoris",
+      "short_name": "Favoris",
+      "url": "./index.html?action=favoris",
+      "icons": [
+        {
+          "src": "./trajet-waze-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Démo",
+      "short_name": "Démo",
+      "url": "./index.html?action=demo",
+      "icons": [
+        {
+          "src": "./trajet-waze-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

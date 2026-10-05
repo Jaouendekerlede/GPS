@@ -1,4 +1,4 @@
-const APP_VERSION = '1.19.2';
+const APP_VERSION = '1.20.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -25,6 +25,9 @@ const DEFAULT_SETTINGS = {
   showCameras: true,
   autoNight: true,
   map3dSource: 'openfreemap',
+  voiceVolume: 1,
+  voiceFrequency: 'all',
+  vibration: true,
 };
 let settings;
 try {
@@ -567,10 +570,20 @@ function updateNavigationOverlay(route, stepIndex, distance) {
   elements.signArrow.textContent = isRoundabout && step.maneuver?.exit ? String(step.maneuver.exit) : maneuverArrow(step);
   elements.signDistance.textContent = Number.isFinite(distance) ? `Dans ${formatDistance(distance)}` : '';
   renderLaneGuidance(step);
+  if (state.navigationActive && stepIndex !== state.lastManeuverStep) {
+    state.lastManeuverStep = stepIndex;
+    if (settings.vibration && navigator.vibrate && isMajorManeuver(step)) navigator.vibrate([150, 80, 150]);
+  }
   if (settings.voiceGuidance && state.navigationActive && stepIndex !== state.lastVoiceStep) {
     state.lastVoiceStep = stepIndex;
-    speakInstruction(action, step);
+    if (settings.voiceFrequency === 'all' || isMajorManeuver(step)) speakInstruction(action, step);
   }
+}
+
+function isMajorManeuver(step) {
+  const type = step?.maneuver?.type || '';
+  const modifier = step?.maneuver?.modifier || '';
+  return ['roundabout', 'rotary', 'arrive', 'fork', 'merge', 'end of road'].includes(type) || (modifier !== '' && modifier !== 'straight');
 }
 
 function speakInstruction(action, step) {
@@ -583,6 +596,7 @@ function speakInstruction(action, step) {
   const utterance = new SpeechSynthesisUtterance(`${distanceText}, ${action}.`);
   utterance.lang = 'fr-FR';
   utterance.rate = 1;
+  utterance.volume = Number(settings.voiceVolume) || 1;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utterance);
 }
@@ -939,12 +953,27 @@ function nearestStepIndex(route, latlng) {
   return closestIndex;
 }
 
+function updateRemaining(route, stepIndex, latlng) {
+  const steps = routeSteps(route);
+  const upcoming = upcomingManeuverDistance(latlng, route);
+  const toNext = Number.isFinite(upcoming) ? upcoming : 0;
+  const remainingMeters = toNext + steps.slice(stepIndex + 2).reduce((sum, step) => sum + (step.distance || 0), 0);
+  const speedMs = state.smoothedSpeedKmh > 10 ? state.smoothedSpeedKmh / 3.6 : null;
+  const remainingSeconds = speedMs
+    ? remainingMeters / speedMs
+    : steps.slice(stepIndex + 1).reduce((sum, step) => sum + (step.duration || 0), 0);
+  elements.distance.textContent = `${formatDistance(remainingMeters)} restants`;
+  elements.duration.textContent = formatDuration(remainingSeconds);
+  elements.arrival.textContent = formatArrival(remainingSeconds);
+}
+
 function advanceGuidance(latlng) {
   const route = state.routes[state.selectedRoute];
   if (!route) return;
   const stepIndex = nearestStepIndex(route, latlng);
   state.currentStepIndex = stepIndex;
   updateNavigationOverlay(route, stepIndex, upcomingManeuverDistance(latlng, route));
+  updateRemaining(route, stepIndex, latlng);
   if (stepIndex === routeSteps(route).length - 1) {
     showToast('Vous approchez de votre destination.');
   }
@@ -1030,6 +1059,12 @@ function stopNavigation() {
   state.lastVoiceStep = -1;
   document.querySelector('.app').classList.remove('is-navigating');
   elements.nearby.hidden = true;
+  const finished = state.routes[state.selectedRoute];
+  if (finished) {
+    elements.duration.textContent = formatDuration(finished.duration);
+    elements.distance.textContent = `${formatDistance(finished.distance)} · itinéraire ${state.selectedRoute + 1} sur ${state.routes.length}`;
+    elements.arrival.textContent = formatArrival(finished.duration);
+  }
   state.currentStepIndex = 0;
   elements.startDrive.querySelector('span').textContent = 'Partir';
   elements.startDrive.classList.remove('active');
@@ -1307,6 +1342,9 @@ function applySettingsToControls() {
   document.getElementById('wakeLockSetting').checked = settings.wakeLock;
   document.getElementById('default3dSetting').checked = settings.default3d;
   document.getElementById('map3dSourceSetting').value = settings.map3dSource;
+  document.getElementById('voiceVolumeSetting').value = String(settings.voiceVolume);
+  document.getElementById('voiceFrequencySetting').value = settings.voiceFrequency;
+  document.getElementById('vibrationSetting').checked = settings.vibration;
   document.getElementById('poiFuelSetting').checked = settings.showFuel;
   document.getElementById('poiSignalsSetting').checked = settings.showSignals;
   document.getElementById('poiCamerasSetting').checked = settings.showCameras;
@@ -1423,6 +1461,9 @@ function handleSettingChange(event) {
     wakeLockSetting: ['wakeLock', event.target.checked],
     default3dSetting: ['default3d', event.target.checked],
     map3dSourceSetting: ['map3dSource', event.target.value],
+    voiceVolumeSetting: ['voiceVolume', Number(event.target.value)],
+    voiceFrequencySetting: ['voiceFrequency', event.target.value],
+    vibrationSetting: ['vibration', event.target.checked],
     poiFuelSetting: ['showFuel', event.target.checked],
     poiSignalsSetting: ['showSignals', event.target.checked],
     poiCamerasSetting: ['showCameras', event.target.checked],
@@ -1552,7 +1593,7 @@ document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!
 document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
   button.addEventListener('click', () => setMapStyle(button.dataset.style));
 });
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting, #map3dSourceSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting, #map3dSourceSetting, #voiceVolumeSetting, #voiceFrequencySetting, #vibrationSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {
@@ -1583,6 +1624,10 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => showToast('GPS est installé.'));
 window.addEventListener('resize', () => map.invalidateSize());
 installServiceWorker();
+// Raccourcis de l'écran d'accueil : ?action=favoris ou ?action=demo
+const launchAction = new URLSearchParams(location.search).get('action');
+if (launchAction === 'favoris') showSavedRoutes();
+if (launchAction === 'demo') showToast('Calculez un trajet, puis touchez Démo.');
 applySettingsToControls();
 setMapStyle(settings.mapStyle);
 applyAutoNight();
