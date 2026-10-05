@@ -433,3 +433,16 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .setting-text-row strong { display: block; font-size: 13px; }
 .setting-text-row small { display: block; color: #747c86; font-size: 11px; }
 .setting-text-row input { width: 100%; padding: 9px 10px; border: 1px solid #d5d9df; border-radius: 9px; font: inherit; font-size: 13px; }
+
+/* Écran allégé : couches repliées, et pendant la conduite seul l'essentiel reste visible */
+.poi-tools:not(.is-open) { display: none !important; }
+.layers-tool[aria-expanded="true"] { border-color: #1c6fa7; color: #176a9e; }
+.app.is-navigating .report-tool,
+.app.is-navigating .layers-tool,
+.app.is-navigating .poi-tools,
+.app.is-navigating .map-mode-button,
+.app.is-navigating #shareBtn { display: none !important; }
+.nearby-services { display: flex; width: auto; gap: 12px; padding: 8px 12px; }
+.nearby-row + .nearby-row { margin-top: 0; padding-top: 0; padding-left: 12px; border-top: 0; border-left: 1px solid #e3e6ea; }
+.nearby-row small { display: none; }
+.nearby-row strong { font-size: 13px; }

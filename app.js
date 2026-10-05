@@ -1342,6 +1342,11 @@ document.querySelectorAll('.poi-tool').forEach((button) => {
   state.poiLayers.set(button.dataset.layer, layer);
   button.addEventListener('click', () => togglePoi(button.dataset.layer, button));
 });
+document.getElementById('layersBtn').addEventListener('click', (event) => {
+  const open = !document.getElementById('poiTools').classList.contains('is-open');
+  document.getElementById('poiTools').classList.toggle('is-open', open);
+  event.currentTarget.setAttribute('aria-expanded', String(open));
+});
 const menuDialog = document.getElementById('menuDialog');
 document.getElementById('menuBtn').addEventListener('click', () => {
   document.getElementById('menuAideTexte').hidden = true;
