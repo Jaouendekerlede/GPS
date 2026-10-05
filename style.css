@@ -435,8 +435,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .setting-text-row input { width: 100%; padding: 9px 10px; border: 1px solid #d5d9df; border-radius: 9px; font: inherit; font-size: 13px; }
 
 /* Écran allégé : couches repliées, et pendant la conduite seul l'essentiel reste visible */
-.poi-tools:not(.is-open) { display: none !important; }
-.layers-tool[aria-expanded="true"] { border-color: #1c6fa7; color: #176a9e; }
 .app.is-navigating .report-tool,
 .app.is-navigating .layers-tool,
 .app.is-navigating .poi-tools,
@@ -451,7 +449,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .update-banner { position: absolute; z-index: 1300; top: max(12px, env(safe-area-inset-top)); left: 50%; display: flex; width: max-content; max-width: calc(100vw - 24px); align-items: center; gap: 12px; padding: 10px 12px 10px 15px; transform: translateX(-50%); border-radius: 12px; background: #20252c; box-shadow: 0 8px 24px rgb(0 0 0 / 22%); color: white; font-size: 12px; }
 .update-banner button { padding: 7px 11px; border: 0; border-radius: 8px; background: #f2c230; color: #20252c; font-size: 12px; font-weight: 800; cursor: pointer; }
 
-.layers-tool { min-height: 42px; gap: 8px; padding: 0 13px; border-radius: 13px; color: #323941; font-size: 11px; font-weight: 800; }
 
 /* Guidage : bannière de direction et voies seulement pendant la conduite */
 .app:not(.is-navigating) .direction-sign { display: none !important; }

@@ -1,4 +1,4 @@
-const APP_VERSION = '1.8.1';
+const APP_VERSION = '1.8.2';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1360,11 +1360,6 @@ document.querySelectorAll('.poi-tool').forEach((button) => {
   const layer = L.layerGroup();
   state.poiLayers.set(button.dataset.layer, layer);
   button.addEventListener('click', () => togglePoi(button.dataset.layer, button));
-});
-document.getElementById('layersBtn').addEventListener('click', (event) => {
-  const open = !document.getElementById('poiTools').classList.contains('is-open');
-  document.getElementById('poiTools').classList.toggle('is-open', open);
-  event.currentTarget.setAttribute('aria-expanded', String(open));
 });
 document.getElementById('menuBtn').addEventListener('click', () => {
   document.getElementById('menuAideTexte').hidden = true;

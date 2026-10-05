@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gps-v10';
+const CACHE_NAME = 'gps-v11';
 const APP_FILES = [
   './',
   './index.html',
