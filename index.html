@@ -106,11 +106,6 @@
           <button class="poi-tool mode-tool" type="button" data-style="satellite" aria-pressed="false" title="Vue satellite"><span aria-hidden="true">🛰️</span><small>Satellite</small></button>
           <button class="poi-tool mode-3d-tool" id="mapModeBtn" type="button" aria-pressed="false" title="Activer la vue 3D">3D</button>
         </div>
-        <div class="poi-tools" id="poiTools" aria-label="Points d’intérêt sur la carte">
-            <button class="poi-tool" type="button" data-layer="fuel" aria-pressed="false" title="Afficher les stations-service"><span aria-hidden="true">⛽</span><small>Stations</small></button>
-          <button class="poi-tool" type="button" data-layer="signals" aria-pressed="false" title="Afficher les feux de circulation"><span aria-hidden="true">🚦</span><small>Feux</small></button>
-          <button class="poi-tool" type="button" data-layer="cameras" aria-pressed="false" title="Afficher les radars cartographiés"><span aria-hidden="true">◉</span><small>Radars</small></button>
-        </div>
         <a class="poi-tool sos-tool" href="tel:112" title="Appeler le 112"><span aria-hidden="true">🆘</span><small>SOS</small></a>
         <button class="map-tool location-tool" id="recenterBtn" type="button" title="Recentrer la carte" aria-label="Recentrer la carte">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
@@ -194,6 +189,19 @@
             <input id="tomtomKeySetting" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Collez votre clé" />
           </label>
 
+          <div class="menu-titre">Affichage sur la carte</div>
+          <label class="setting-toggle">
+            <span><strong>Stations-service</strong><small>Visibles sur la carte et sur le trajet</small></span>
+            <input id="poiFuelSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Feux de circulation</strong><small>Visibles sur la carte et sur le trajet</small></span>
+            <input id="poiSignalsSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-toggle">
+            <span><strong>Radars cartographiés</strong><small>Visibles sur la carte et sur le trajet</small></span>
+            <input id="poiCamerasSetting" type="checkbox" checked /><i></i>
+          </label>
           <label class="setting-toggle">
             <span><strong>Zoom intelligent</strong><small>Adapte le zoom à la vitesse et aux intersections</small></span>
             <input id="autoZoomSetting" type="checkbox" checked /><i></i>

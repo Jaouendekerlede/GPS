@@ -1,4 +1,4 @@
-const APP_VERSION = '1.10.0';
+const APP_VERSION = '1.11.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -20,6 +20,9 @@ const DEFAULT_SETTINGS = {
   voiceGuidance: false,
   wakeLock: true,
   default3d: false,
+  showFuel: true,
+  showSignals: true,
+  showCameras: true,
 };
 let settings;
 try {
@@ -1043,7 +1046,7 @@ function escapeHtml(text) {
   })[character]);
 }
 
-async function loadVisiblePois() {
+async function loadVisiblePois({ silent = false } = {}) {
   if (state.poiEnabled.size === 0) return;
   const bounds = map.getBounds();
   const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
@@ -1076,27 +1079,30 @@ async function loadVisiblePois() {
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
       state.poiLayers.get(key).addLayer(poiMarker([lat, lon], { ...poiDefinitions[key], tags }));
     });
-    showToast(`${data.elements?.length || 0} point(s) cartographié(s) dans la zone affichée.`);
+    if (!silent) showToast(`${data.elements?.length || 0} point(s) cartographié(s) dans la zone affichée.`);
   } catch (error) {
-    showToast(`Points d’intérêt indisponibles : ${error.message}`);
+    if (!silent) showToast(`Points d’intérêt indisponibles : ${error.message}`);
   }
 }
 
-function togglePoi(key, button) {
-  const layer = state.poiLayers.get(key);
-  if (!layer) return;
-  if (state.poiEnabled.has(key)) {
-    state.poiEnabled.delete(key);
-    map.removeLayer(layer);
-    button.setAttribute('aria-pressed', 'false');
-  } else {
-    state.poiEnabled.add(key);
-    layer.addTo(map);
-    button.setAttribute('aria-pressed', 'true');
-    loadVisiblePois();
-  }
-}
+let poiMoveTimer = null;
+const POI_SETTINGS = { fuel: 'showFuel', signals: 'showSignals', cameras: 'showCameras' };
 
+function applyPoiSettings() {
+  Object.entries(POI_SETTINGS).forEach(([key, setting]) => {
+    const layer = state.poiLayers.get(key);
+    if (!layer) return;
+    if (settings[setting]) {
+      state.poiEnabled.add(key);
+      if (!map.hasLayer(layer)) layer.addTo(map);
+    } else {
+      state.poiEnabled.delete(key);
+      layer.clearLayers();
+      if (map.hasLayer(layer)) map.removeLayer(layer);
+    }
+  });
+  loadVisiblePois({ silent: true });
+}
 function saveCurrentRoute() {
   const route = state.routes[state.selectedRoute];
   if (!route) return showToast('Calculez d’abord un itinéraire.');
@@ -1187,6 +1193,9 @@ function applySettingsToControls() {
   document.getElementById('voiceSetting').checked = settings.voiceGuidance;
   document.getElementById('wakeLockSetting').checked = settings.wakeLock;
   document.getElementById('default3dSetting').checked = settings.default3d;
+  document.getElementById('poiFuelSetting').checked = settings.showFuel;
+  document.getElementById('poiSignalsSetting').checked = settings.showSignals;
+  document.getElementById('poiCamerasSetting').checked = settings.showCameras;
 }
 
 const TOMTOM_STYLES = { tomtom: 'main', 'tomtom-night': 'night' };
@@ -1297,12 +1306,16 @@ function handleSettingChange(event) {
     voiceSetting: ['voiceGuidance', event.target.checked],
     wakeLockSetting: ['wakeLock', event.target.checked],
     default3dSetting: ['default3d', event.target.checked],
+    poiFuelSetting: ['showFuel', event.target.checked],
+    poiSignalsSetting: ['showSignals', event.target.checked],
+    poiCamerasSetting: ['showCameras', event.target.checked],
   };
   const setting = settingById[event.target.id];
   if (!setting) return;
   [settings[setting[0]]] = [setting[1]];
   if (event.target.id === 'mapStyleSetting') setMapStyle(event.target.value);
   else saveSettings();
+  if (event.target.id.startsWith('poi')) applyPoiSettings();
   if (event.target.id === 'default3dSetting' && settings.default3d) {
     setMap3d(true);
   } else if (event.target.id === 'default3dSetting' && !settings.default3d && state.map3dEnabled) {
@@ -1387,10 +1400,11 @@ document.getElementById('demoBtn').addEventListener('click', () => {
 });
 document.getElementById('savedRoutesBtn').addEventListener('click', showSavedRoutes);
 document.getElementById('shareBtn').addEventListener('click', shareRoute);
-document.querySelectorAll('.poi-tool[data-layer]').forEach((button) => {
-  const layer = L.layerGroup();
-  state.poiLayers.set(button.dataset.layer, layer);
-  button.addEventListener('click', () => togglePoi(button.dataset.layer, button));
+Object.keys(POI_SETTINGS).forEach((key) => state.poiLayers.set(key, L.layerGroup()));
+applyPoiSettings();
+map.on('moveend', () => {
+  clearTimeout(poiMoveTimer);
+  poiMoveTimer = setTimeout(() => loadVisiblePois({ silent: true }), 800);
 });
 document.getElementById('menuBtn').addEventListener('click', () => {
   document.getElementById('menuAideTexte').hidden = true;
@@ -1408,7 +1422,7 @@ document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!
 document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
   button.addEventListener('click', () => setMapStyle(button.dataset.style));
 });
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {
