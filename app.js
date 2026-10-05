@@ -1,4 +1,4 @@
-const APP_VERSION = '1.9.1';
+const APP_VERSION = '1.10.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -308,6 +308,7 @@ function chooseRoute(index) {
   elements.routeName.textContent = routeRoadName(route);
   elements.routeNote.textContent = 'Estimation hors trafic en temps réel';
   elements.startDrive.disabled = false;
+  document.getElementById('demoBtn').disabled = false;
   renderRouteSteps(route);
   renderRouteChoices();
   updateNavigationOverlay(route, 0);
@@ -896,8 +897,30 @@ function advanceGuidance(latlng) {
   }
 }
 
+let demoMode = false;
+
+function startDemo() {
+  const coords = state.routes[state.selectedRoute]?.geometry?.coordinates || [];
+  if (coords.length < 2) return null;
+  let index = 0;
+  return setInterval(() => {
+    const [lon, lat] = coords[index];
+    setCurrentPosition({ coords: { latitude: lat, longitude: lon, speed: 13.9, heading: null, accuracy: 5 }, timestamp: Date.now() });
+    index = Math.min(index + 4, coords.length - 1);
+    if (index === coords.length - 1) {
+      clearInterval(state.gpsWatch);
+      state.gpsWatch = null;
+      showToast('Démo terminée.');
+    }
+  }, 1000);
+}
+
 function stopNavigation() {
-  if (state.gpsWatch !== null) navigator.geolocation.clearWatch(state.gpsWatch);
+  if (state.gpsWatch !== null) {
+    if (demoMode) clearInterval(state.gpsWatch);
+    else navigator.geolocation.clearWatch(state.gpsWatch);
+  }
+  demoMode = false;
   state.gpsWatch = null;
   state.navigationActive = false;
   state.lastGpsFix = null;
@@ -918,7 +941,7 @@ function toggleNavigation() {
     showToast('Guidage arrêté.');
     return;
   }
-  if (!navigator.geolocation) {
+  if (!demoMode && !navigator.geolocation) {
     showToast('La géolocalisation n’est pas disponible dans ce navigateur.');
     return;
   }
@@ -927,7 +950,7 @@ function toggleNavigation() {
   elements.nearby.hidden = false;
   elements.startDrive.querySelector('span').textContent = 'Arrêter';
   elements.startDrive.classList.add('active');
-  state.gpsWatch = navigator.geolocation.watchPosition(setCurrentPosition, (error) => {
+  state.gpsWatch = demoMode ? startDemo() : navigator.geolocation.watchPosition(setCurrentPosition, (error) => {
     stopNavigation();
     showToast(error.code === error.PERMISSION_DENIED
       ? 'Autorisez la localisation pour démarrer le guidage.'
@@ -1357,6 +1380,11 @@ document.getElementById('recenterBtn').addEventListener('click', () => {
 document.getElementById('startDriveBtn').addEventListener('click', toggleNavigation);
 document.getElementById('sheetToggle').addEventListener('click', toggleSheet);
 document.getElementById('saveRouteBtn').addEventListener('click', saveCurrentRoute);
+document.getElementById('demoBtn').addEventListener('click', () => {
+  if (state.navigationActive || !state.routes.length) return;
+  demoMode = true;
+  toggleNavigation();
+});
 document.getElementById('savedRoutesBtn').addEventListener('click', showSavedRoutes);
 document.getElementById('shareBtn').addEventListener('click', shareRoute);
 document.querySelectorAll('.poi-tool[data-layer]').forEach((button) => {
