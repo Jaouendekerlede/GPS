@@ -82,6 +82,9 @@ const elements = {
   laneRoad: document.getElementById('laneRoad'),
   laneCaption: document.getElementById('laneCaption'),
   routeCard: document.getElementById('routeCard'),
+  nearby: document.getElementById('nearbyServices'),
+  nearbyFuel: document.getElementById('nearbyFuel'),
+  nearbyRest: document.getElementById('nearbyRest'),
   toast: document.getElementById('toast'),
   settingsDialog: document.getElementById('settingsDialog'),
 };
@@ -799,6 +802,7 @@ function setCurrentPosition(position) {
   if (state.navigationActive) {
     advanceGuidance(latlng);
     adaptNavigationCamera(position, latlng);
+    updateNearbyServices(latlng);
   }
 }
 
@@ -898,6 +902,7 @@ function stopNavigation() {
   state.lastGpsFix = null;
   state.lastVoiceStep = -1;
   document.querySelector('.app').classList.remove('is-navigating');
+  elements.nearby.hidden = true;
   state.currentStepIndex = 0;
   elements.startDrive.querySelector('span').textContent = 'Partir';
   elements.startDrive.classList.remove('active');
@@ -918,6 +923,7 @@ function toggleNavigation() {
   }
   state.navigationActive = true;
   document.querySelector('.app').classList.add('is-navigating');
+  elements.nearby.hidden = false;
   elements.startDrive.querySelector('span').textContent = 'Arrêter';
   elements.startDrive.classList.add('active');
   state.gpsWatch = navigator.geolocation.watchPosition(setCurrentPosition, (error) => {
@@ -929,6 +935,64 @@ function toggleNavigation() {
   acquireWakeLock();
   elements.routeCard.dataset.expanded = 'false';
   showToast('Guidage GPS activé. Gardez les yeux sur la route.');
+}
+
+const SERVICES_RADIUS_M = 20000;
+const SERVICES_REFRESH_M = 3000;
+const SERVICES_REFRESH_MS = 5 * 60 * 1000;
+const nearbyServices = { fuel: [], rest: [], origin: null, fetchedAt: 0, loading: false };
+
+function nearestService(points, latlng) {
+  let best = null;
+  points.forEach((point) => {
+    const distance = map.distance(latlng, point);
+    if (!best || distance < best.distance) best = { point, distance };
+  });
+  return best;
+}
+
+function renderNearbyServices(latlng) {
+  const fuel = nearestService(nearbyServices.fuel, latlng);
+  const rest = nearestService(nearbyServices.rest, latlng);
+  elements.nearbyFuel.textContent = fuel ? formatDistance(fuel.distance) : `Aucune dans ${SERVICES_RADIUS_M / 1000} km`;
+  elements.nearbyRest.textContent = rest ? formatDistance(rest.distance) : `Aucune dans ${SERVICES_RADIUS_M / 1000} km`;
+}
+
+async function fetchNearbyServices(latlng) {
+  const [lat, lon] = latlng;
+  const around = `(around:${SERVICES_RADIUS_M},${lat},${lon})`;
+  const restSelector = '["highway"~"^(rest_area|services)$"]';
+  const query = `[out:json][timeout:20];(node["amenity"="fuel"]${around};way["amenity"="fuel"]${around};node${restSelector}${around};way${restSelector}${around};);out center 300;`;
+  nearbyServices.loading = true;
+  try {
+    const data = await requestJson(OVERPASS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ data: query }),
+    });
+    nearbyServices.fuel = [];
+    nearbyServices.rest = [];
+    (data.elements || []).forEach((element) => {
+      const pointLat = element.lat ?? element.center?.lat;
+      const pointLon = element.lon ?? element.center?.lon;
+      if (!Number.isFinite(pointLat) || !Number.isFinite(pointLon)) return;
+      const target = element.tags?.amenity === 'fuel' ? nearbyServices.fuel : nearbyServices.rest;
+      target.push([pointLat, pointLon]);
+    });
+  } catch (error) {
+    console.error('Services à proximité indisponibles :', error);
+  } finally {
+    nearbyServices.origin = latlng;
+    nearbyServices.fetchedAt = Date.now();
+    nearbyServices.loading = false;
+  }
+}
+
+async function updateNearbyServices(latlng) {
+  const { origin, fetchedAt, loading } = nearbyServices;
+  const stale = !origin || map.distance(origin, latlng) > SERVICES_REFRESH_M || Date.now() - fetchedAt > SERVICES_REFRESH_MS;
+  if (stale && !loading) await fetchNearbyServices(latlng);
+  renderNearbyServices(latlng);
 }
 
 const poiDefinitions = {

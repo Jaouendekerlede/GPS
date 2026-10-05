@@ -237,6 +237,19 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   padding: 12px 15px;
   transform: translateX(-50%);
 }
+.nearby-services {
+  position: absolute;
+  z-index: 680;
+  top: 134px;
+  left: 12px;
+  width: min(170px, calc(100vw - 24px));
+  padding: 9px 11px;
+}
+.nearby-row { display: flex; align-items: center; gap: 8px; }
+.nearby-row + .nearby-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e3e6ea; }
+.nearby-row span { font-size: 18px; }
+.nearby-row small { display: block; color: #737b85; font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.nearby-row strong { display: block; overflow: hidden; color: #20252c; font-size: 13px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
 .lane-guidance-head, .incidents-head { display: flex; justify-content: space-between; color: #737b85; font-size: 9px; font-weight: 850; letter-spacing: .1em; }
 .lane-guidance-head span:last-child { overflow: hidden; max-width: 50%; color: #3b424b; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
 .lane-track { display: flex; min-height: 43px; align-items: stretch; justify-content: center; margin: 9px 0 7px; }
@@ -383,6 +396,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   .app.has-routes:not(.planner-open) .lane-guidance { top: calc(max(73px, env(safe-area-inset-top) + 67px) + 214px); }
   .app.is-navigating .direction-sign { top: max(13px, env(safe-area-inset-top)); }
   .app.is-navigating .lane-guidance { top: calc(max(13px, env(safe-area-inset-top)) + 109px); }
+  .app.is-navigating .nearby-services { top: calc(max(13px, env(safe-area-inset-top)) + 109px); }
   .app.is-navigating .route-card { bottom: calc(70px + env(safe-area-inset-bottom)); }
   .route-card { right: 10px; bottom: calc(70px + env(safe-area-inset-bottom)); left: 10px; width: auto; padding-right: 13px; padding-left: 13px; border-radius: 19px; }
   .route-card[data-expanded="true"] { bottom: calc(70px + env(safe-area-inset-bottom)); }
