@@ -176,23 +176,6 @@
         </form>
       </dialog>
 
-      <dialog class="app-dialog menu-dialog" id="menuDialog">
-        <form method="dialog">
-          <div class="dialog-kicker">MENU</div>
-          <h2>☰ Menu</h2>
-          <div class="menu-titre">Mes trajets</div>
-          <button type="button" class="menu-ligne" id="menuFavoris"><span aria-hidden="true">⭐</span><span><strong>Favoris et trajets enregistrés</strong><small>Retrouver et relancer un trajet</small></span></button>
-          <div class="menu-titre">Réglages</div>
-          <button type="button" class="menu-ligne" id="menuReglages"><span aria-hidden="true">🧭</span><span><strong>Paramètres de navigation</strong><small>Unités, style de carte, guidage vocal</small></span></button>
-          <button type="button" class="menu-ligne" id="menuCles"><span aria-hidden="true">🔑</span><span><strong>Clé API TomTom</strong><small>Pour les fonds de carte TomTom</small></span></button>
-          <div class="menu-titre">Aide</div>
-          <button type="button" class="menu-ligne" id="menuAide"><span aria-hidden="true">❓</span><span><strong>Aide et astuces</strong><small>Comment utiliser GPS</small></span></button>
-          <p class="menu-aide" id="menuAideTexte" hidden>Recherchez une adresse de départ et d’arrivée, puis « Calculer le trajet ». « Partir » lance le guidage vocal. Les stations-service et aires de repos les plus proches s’affichent pendant la conduite. Les données viennent d’OpenStreetMap : le temps de trajet est estimé, sans trafic en direct.</p>
-          <p class="menu-version" id="appVersion"></p>
-          <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>
-        </form>
-      </dialog>
-
       <dialog class="app-dialog" id="savedDialog">
         <form method="dialog">
           <div class="dialog-kicker">VOS TRAJETS</div>
@@ -207,6 +190,13 @@
           <div class="dialog-kicker">PERSONNALISATION</div>
           <h2>Paramètres du GPS</h2>
           <p class="settings-intro">Réglez l’affichage et le guidage de GPS.</p>
+
+          <div class="menu-titre">Mes trajets</div>
+          <button type="button" class="menu-ligne" id="menuFavoris"><span aria-hidden="true">⭐</span><span><strong>Favoris et trajets enregistrés</strong><small>Retrouver et relancer un trajet</small></span></button>
+          <div class="menu-titre">Aide</div>
+          <button type="button" class="menu-ligne" id="menuAide"><span aria-hidden="true">❓</span><span><strong>Aide et astuces</strong><small>Comment utiliser GPS</small></span></button>
+          <p class="menu-aide" id="menuAideTexte" hidden>Recherchez une adresse de départ et d’arrivée, puis « Calculer le trajet ». « Partir » lance le guidage vocal. Les stations-service et aires de repos les plus proches s’affichent pendant la conduite. Les données viennent d’OpenStreetMap : le temps de trajet est estimé, sans trafic en direct.</p>
+          <p class="menu-version" id="appVersion"></p>
 
           <label class="setting-select-row" for="unitsSetting">
             <span><strong>Unités de distance</strong><small>Distances de trajet et indications</small></span>

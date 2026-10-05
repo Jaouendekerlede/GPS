@@ -1,4 +1,4 @@
-const APP_VERSION = '1.7.1';
+const APP_VERSION = '1.8.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1366,23 +1366,13 @@ document.getElementById('layersBtn').addEventListener('click', (event) => {
   document.getElementById('poiTools').classList.toggle('is-open', open);
   event.currentTarget.setAttribute('aria-expanded', String(open));
 });
-const menuDialog = document.getElementById('menuDialog');
 document.getElementById('menuBtn').addEventListener('click', () => {
   document.getElementById('menuAideTexte').hidden = true;
-  menuDialog.showModal();
+  openSettings();
 });
 document.getElementById('menuFavoris').addEventListener('click', () => {
-  menuDialog.close();
+  elements.settingsDialog.close();
   showSavedRoutes();
-});
-document.getElementById('menuReglages').addEventListener('click', () => {
-  menuDialog.close();
-  openSettings();
-});
-document.getElementById('menuCles').addEventListener('click', () => {
-  menuDialog.close();
-  openSettings();
-  document.getElementById('tomtomKeySetting').focus();
 });
 document.getElementById('menuAide').addEventListener('click', () => {
   const help = document.getElementById('menuAideTexte');
