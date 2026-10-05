@@ -1,4 +1,4 @@
-const APP_VERSION = '1.17.0';
+const APP_VERSION = '1.18.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -1505,6 +1505,10 @@ map.on('moveend', () => {
 document.getElementById('menuBtn').addEventListener('click', () => {
   document.getElementById('menuAideTexte').hidden = true;
   openSettings();
+});
+document.getElementById('settingsShareBtn').addEventListener('click', () => {
+  elements.settingsDialog.close();
+  shareRoute();
 });
 document.getElementById('menuFavoris').addEventListener('click', () => {
   elements.settingsDialog.close();

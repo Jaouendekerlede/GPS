@@ -538,3 +538,6 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 .sign-kicker { font-size: 13px; }
 .sign-distance { grid-column: 1 / -1; grid-row: 4; color: #fff; font-size: 26px; font-weight: 900; }
 .sign-arrow { font-size: 56px; min-width: 1.1em; text-align: center; }
+
+/* Écran épuré (1.18.0) : réglages dans Paramètres, principal sans options */
+.style-tools, #mapModeBtn, .bottom-nav { display: none !important; }
