@@ -1,4 +1,4 @@
-const APP_VERSION = '1.16.2';
+const APP_VERSION = '1.17.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -90,6 +90,7 @@ const elements = {
   signDestination: document.getElementById('signDestination'),
   signExit: document.getElementById('signExit'),
   signArrow: document.getElementById('signArrow'),
+  signDistance: document.getElementById('signDistance'),
   lanes: document.getElementById('laneGuidance'),
   laneTrack: document.getElementById('laneTrack'),
   laneRoad: document.getElementById('laneRoad'),
@@ -545,7 +546,7 @@ function maneuverArrow(step) {
   return arrows[modifier] || '↑';
 }
 
-function updateNavigationOverlay(route, stepIndex) {
+function updateNavigationOverlay(route, stepIndex, distance) {
   const step = nextManeuver(route, stepIndex);
   if (!step) return;
   const action = maneuverInstruction(step);
@@ -561,7 +562,9 @@ function updateNavigationOverlay(route, stepIndex) {
   } else {
     elements.signExit.hidden = true;
   }
-  elements.signArrow.textContent = maneuverArrow(step);
+  const isRoundabout = step.maneuver?.type === 'roundabout' || step.maneuver?.type === 'rotary';
+  elements.signArrow.textContent = isRoundabout && step.maneuver?.exit ? String(step.maneuver.exit) : maneuverArrow(step);
+  elements.signDistance.textContent = Number.isFinite(distance) ? `Dans ${formatDistance(distance)}` : '';
   renderLaneGuidance(step);
   if (settings.voiceGuidance && state.navigationActive && stepIndex !== state.lastVoiceStep) {
     state.lastVoiceStep = stepIndex;
@@ -918,7 +921,7 @@ function advanceGuidance(latlng) {
   if (!route) return;
   const stepIndex = nearestStepIndex(route, latlng);
   state.currentStepIndex = stepIndex;
-  updateNavigationOverlay(route, stepIndex);
+  updateNavigationOverlay(route, stepIndex, upcomingManeuverDistance(latlng, route));
   if (stepIndex === routeSteps(route).length - 1) {
     showToast('Vous approchez de votre destination.');
   }

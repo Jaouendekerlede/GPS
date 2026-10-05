@@ -533,3 +533,8 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 .sign-panel strong { grid-column: 2; grid-row: 2; }
 .sign-destination { grid-column: 2; grid-row: 3; }
 .sign-exit { grid-column: 3; grid-row: 2 / span 2; }
+
+/* Signalisation : distance bien visible, titre plus grand (1.17.0) */
+.sign-kicker { font-size: 13px; }
+.sign-distance { grid-column: 1 / -1; grid-row: 4; color: #fff; font-size: 26px; font-weight: 900; }
+.sign-arrow { font-size: 56px; min-width: 1.1em; text-align: center; }
