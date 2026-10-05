@@ -421,3 +421,15 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+.menu-titre { margin: 16px 0 6px; color: #737b85; font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.menu-ligne { display: flex; width: 100%; align-items: center; gap: 12px; margin-bottom: 6px; padding: 11px 12px; border: 1px solid #e3e6ea; border-radius: 12px; background: #f7f8fa; color: #272d35; text-align: left; cursor: pointer; }
+.menu-ligne span:first-child { font-size: 18px; }
+.menu-ligne strong { display: block; font-size: 13px; font-weight: 800; }
+.menu-ligne small { display: block; color: #747c86; font-size: 11px; }
+.menu-aide { margin: 8px 2px 0; }
+.menu-dialog .dialog-actions { margin-top: 14px; }
+.setting-text-row { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 0; }
+.setting-text-row strong { display: block; font-size: 13px; }
+.setting-text-row small { display: block; color: #747c86; font-size: 11px; }
+.setting-text-row input { width: 100%; padding: 9px 10px; border: 1px solid #d5d9df; border-radius: 9px; font: inherit; font-size: 13px; }

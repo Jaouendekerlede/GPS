@@ -1342,8 +1342,27 @@ document.querySelectorAll('.poi-tool').forEach((button) => {
   state.poiLayers.set(button.dataset.layer, layer);
   button.addEventListener('click', () => togglePoi(button.dataset.layer, button));
 });
+const menuDialog = document.getElementById('menuDialog');
 document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('menuAideTexte').hidden = true;
+  menuDialog.showModal();
+});
+document.getElementById('menuFavoris').addEventListener('click', () => {
+  menuDialog.close();
+  showSavedRoutes();
+});
+document.getElementById('menuReglages').addEventListener('click', () => {
+  menuDialog.close();
   openSettings();
+});
+document.getElementById('menuCles').addEventListener('click', () => {
+  menuDialog.close();
+  openSettings();
+  document.getElementById('tomtomKeySetting').focus();
+});
+document.getElementById('menuAide').addEventListener('click', () => {
+  const help = document.getElementById('menuAideTexte');
+  help.hidden = !help.hidden;
 });
 document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!state.map3dEnabled));
 elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting')
