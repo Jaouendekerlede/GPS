@@ -541,3 +541,6 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 
 /* Écran épuré (1.18.0) : réglages dans Paramètres, principal sans options */
 .style-tools, #mapModeBtn, .bottom-nav { display: none !important; }
+
+/* Répéter la consigne au toucher (1.21.0) */
+.sign-panel { pointer-events: auto; cursor: pointer; }

@@ -1,4 +1,4 @@
-const APP_VERSION = '1.20.0';
+const APP_VERSION = '1.21.0';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = {
   voiceVolume: 1,
   voiceFrequency: 'all',
   vibration: true,
+  demoSpeed: 4,
 };
 let settings;
 try {
@@ -488,6 +489,7 @@ async function calculateRoute() {
     }
     stopNavigation();
     buildRouteLayers(result.routes, start, end, vias);
+    rememberDestination(toText);
     document.querySelector('.app').classList.add('has-routes');
     const viaNotice = vias.length ? ` via ${vias.map((point) => point.label.split(',')[0]).join(' → ')}` : '';
     setStatus(`${result.routes.length} itinéraire${result.routes.length > 1 ? 's' : ''} calculé${result.routes.length > 1 ? 's' : ''}${viaNotice}. Durées sans trafic en direct.`);
@@ -567,6 +569,7 @@ function updateNavigationOverlay(route, stepIndex, distance) {
     elements.signExit.hidden = true;
   }
   const isRoundabout = step.maneuver?.type === 'roundabout' || step.maneuver?.type === 'rotary';
+  state.lastSpoken = { action, step };
   elements.signArrow.textContent = isRoundabout && step.maneuver?.exit ? String(step.maneuver.exit) : maneuverArrow(step);
   elements.signDistance.textContent = Number.isFinite(distance) ? `Dans ${formatDistance(distance)}` : '';
   renderLaneGuidance(step);
@@ -1038,7 +1041,7 @@ function startDemo() {
   return setInterval(() => {
     const [lon, lat] = coords[index];
     setCurrentPosition({ coords: { latitude: lat, longitude: lon, speed: 13.9, heading: null, accuracy: 5 }, timestamp: Date.now() });
-    index = Math.min(index + 4, coords.length - 1);
+    index = Math.min(index + (settings.demoSpeed || 4), coords.length - 1);
     if (index === coords.length - 1) {
       clearInterval(state.gpsWatch);
       state.gpsWatch = null;
@@ -1251,6 +1254,30 @@ function applyPoiSettings() {
   });
   loadVisiblePois({ silent: true });
 }
+const RECENT_KEY = 'gps_recent_destinations';
+
+function getRecent() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+  } catch (error) {
+    return [];
+  }
+}
+
+function renderRecent() {
+  document.getElementById('recentList').innerHTML = getRecent().map((item) => `<option value="${escapeHtml(item)}"></option>`).join('');
+}
+
+function rememberDestination(text) {
+  const list = [text, ...getRecent().filter((item) => item !== text)].slice(0, 8);
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  } catch (error) {
+    console.warn('Destinations récentes non enregistrées :', error);
+  }
+  renderRecent();
+}
+
 function saveCurrentRoute() {
   const route = state.routes[state.selectedRoute];
   if (!route) return showToast('Calculez d’abord un itinéraire.');
@@ -1345,6 +1372,7 @@ function applySettingsToControls() {
   document.getElementById('voiceVolumeSetting').value = String(settings.voiceVolume);
   document.getElementById('voiceFrequencySetting').value = settings.voiceFrequency;
   document.getElementById('vibrationSetting').checked = settings.vibration;
+  document.getElementById('demoSpeedSetting').value = String(settings.demoSpeed);
   document.getElementById('poiFuelSetting').checked = settings.showFuel;
   document.getElementById('poiSignalsSetting').checked = settings.showSignals;
   document.getElementById('poiCamerasSetting').checked = settings.showCameras;
@@ -1464,6 +1492,7 @@ function handleSettingChange(event) {
     voiceVolumeSetting: ['voiceVolume', Number(event.target.value)],
     voiceFrequencySetting: ['voiceFrequency', event.target.value],
     vibrationSetting: ['vibration', event.target.checked],
+    demoSpeedSetting: ['demoSpeed', Number(event.target.value)],
     poiFuelSetting: ['showFuel', event.target.checked],
     poiSignalsSetting: ['showSignals', event.target.checked],
     poiCamerasSetting: ['showCameras', event.target.checked],
@@ -1560,6 +1589,9 @@ document.getElementById('recenterBtn').addEventListener('click', () => {
 document.getElementById('startDriveBtn').addEventListener('click', toggleNavigation);
 document.getElementById('sheetToggle').addEventListener('click', toggleSheet);
 document.getElementById('saveRouteBtn').addEventListener('click', saveCurrentRoute);
+elements.signPanel.addEventListener('click', () => {
+  if (state.lastSpoken && settings.voiceGuidance) speakInstruction(state.lastSpoken.action, state.lastSpoken.step);
+});
 document.getElementById('demoBtn').addEventListener('click', () => {
   if (state.navigationActive || !state.routes.length) return;
   demoMode = true;
@@ -1593,7 +1625,7 @@ document.getElementById('mapModeBtn').addEventListener('click', () => setMap3d(!
 document.querySelectorAll('.mode-tool[data-style]').forEach((button) => {
   button.addEventListener('click', () => setMapStyle(button.dataset.style));
 });
-elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting, #map3dSourceSetting, #voiceVolumeSetting, #voiceFrequencySetting, #vibrationSetting')
+elements.settingsDialog.querySelectorAll('#unitsSetting, #mapStyleSetting, #tomtomKeySetting, #autoZoomSetting, #headingSetting, #voiceSetting, #wakeLockSetting, #default3dSetting, #poiFuelSetting, #poiSignalsSetting, #poiCamerasSetting, #autoNightSetting, #map3dSourceSetting, #voiceVolumeSetting, #voiceFrequencySetting, #vibrationSetting, #demoSpeedSetting')
   .forEach((input) => input.addEventListener('change', handleSettingChange));
 document.querySelector('.nav-item[data-action="map"]').addEventListener('click', () => map.setView(map.getCenter(), map.getZoom()));
 document.getElementById('profileSelect').addEventListener('change', () => {
@@ -1624,6 +1656,55 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => showToast('GPS est installé.'));
 window.addEventListener('resize', () => map.invalidateSize());
 installServiceWorker();
+
+// Journal de diagnostic (erreurs récentes, copiables depuis Paramètres)
+const errorLog = [];
+function logError(text) {
+  errorLog.push(`${new Date().toLocaleString('fr-FR')} ${text}`);
+  if (errorLog.length > 30) errorLog.shift();
+}
+window.addEventListener('error', (event) => logError(event.message));
+window.addEventListener('unhandledrejection', (event) => logError(String(event.reason)));
+document.getElementById('copyLogBtn').addEventListener('click', async () => {
+  const text = errorLog.length ? errorLog.join('\n') : 'Aucune erreur enregistrée.';
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Journal copié.');
+  } catch (error) {
+    showToast(text.slice(0, 200));
+  }
+});
+
+// Sauvegarde et restauration (sans la clé TomTom)
+const BACKUP_KEYS = ['trajetwaze_settings', 'trajetwaze_saved'];
+document.getElementById('exportDataBtn').addEventListener('click', () => {
+  const data = {};
+  BACKUP_KEYS.forEach((key) => {
+    const value = localStorage.getItem(key);
+    if (value) data[key] = value;
+  });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  link.download = 'gps-sauvegarde.json';
+  link.click();
+});
+document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    BACKUP_KEYS.forEach((key) => {
+      if (typeof data[key] === 'string') localStorage.setItem(key, data[key]);
+    });
+    showToast('Sauvegarde restaurée. Rechargement…');
+    setTimeout(() => location.reload(), 800);
+  } catch (error) {
+    showToast(`Fichier de sauvegarde invalide : ${error.message}`);
+  }
+});
+
+renderRecent();
 // Raccourcis de l'écran d'accueil : ?action=favoris ou ?action=demo
 const launchAction = new URLSearchParams(location.search).get('action');
 if (launchAction === 'favoris') showSavedRoutes();

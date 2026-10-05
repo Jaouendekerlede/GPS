@@ -73,7 +73,8 @@
           <div class="field-connector" aria-hidden="true"><span></span></div>
           <div class="place-row">
             <span class="place-marker destination" aria-hidden="true"><i></i></span>
-            <input id="toInput" type="text" value="" autocomplete="off" aria-label="Destination" />
+            <input id="toInput" type="text" value="" autocomplete="off" aria-label="Destination" list="recentList" />
+            <datalist id="recentList"></datalist>
             <button class="input-action" id="swapBtn" type="button" title="Inverser départ et destination" aria-label="Inverser départ et destination">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v15m0 0-4-4m4 4 4-4M17 20V5m0 0 4 4m-4-4-4 4"/></svg>
             </button>
@@ -177,6 +178,11 @@
           <div class="menu-titre">Aide</div>
           <button type="button" class="menu-ligne" id="menuAide"><span aria-hidden="true">❓</span><span><strong>Aide et astuces</strong><small>Comment utiliser GPS</small></span></button>
           <p class="menu-aide" id="menuAideTexte" hidden>Recherchez une adresse de départ et d’arrivée, puis « Calculer le trajet ». « Partir » lance le guidage vocal. Les stations-service et aires de repos les plus proches s’affichent pendant la conduite. Les données viennent d’OpenStreetMap : le temps de trajet est estimé, sans trafic en direct.</p>
+          <div class="menu-titre">Mes données</div>
+          <button type="button" class="menu-ligne" id="exportDataBtn"><span aria-hidden="true">💾</span><span><strong>Sauvegarder mes réglages et favoris</strong><small>Télécharge un fichier (sans la clé TomTom)</small></span></button>
+          <button type="button" class="menu-ligne" id="importDataBtn"><span aria-hidden="true">📂</span><span><strong>Restaurer une sauvegarde</strong><small>Choisir un fichier de sauvegarde</small></span></button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+          <button type="button" class="menu-ligne" id="copyLogBtn"><span aria-hidden="true">🩺</span><span><strong>Copier le journal de diagnostic</strong><small>Erreurs récentes, à envoyer en cas de problème</small></span></button>
           <p class="menu-version" id="appVersion"></p>
 
           <label class="setting-select-row" for="unitsSetting">
@@ -232,6 +238,10 @@
           <label class="setting-toggle">
             <span><strong>Vibration aux manœuvres</strong><small>Vibre à chaque changement de direction</small></span>
             <input id="vibrationSetting" type="checkbox" checked /><i></i>
+          </label>
+          <label class="setting-select-row" for="demoSpeedSetting">
+            <span><strong>Vitesse de la démo</strong><small>Rythme de la simulation de trajet</small></span>
+            <select id="demoSpeedSetting"><option value="2">Lente</option><option value="4">Normale</option><option value="8">Rapide</option></select>
           </label>
           <label class="setting-toggle">
             <span><strong>Garder l’écran allumé</strong><small>Uniquement pendant le guidage, si pris en charge</small></span>
