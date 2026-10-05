@@ -476,3 +476,50 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .nearby-row + .nearby-row { padding-left: 10px; }
 .map-tool, .poi-tool { border-radius: 16px; box-shadow: 0 6px 18px rgb(15 23 42 / 14%); }
 .go-button { border-radius: 16px; }
+
+/* ===== Refonte visuelle 1.13.0 : clair, lisible, style GPS moderne ===== */
+:root { --gps-blue: #2563eb; --gps-blue-soft: #eff6ff; --gps-ink: #0f172a; --gps-muted: #64748b; --gps-line: #e2e8f0; --gps-red: #dc2626; }
+body, .app, button, input, select { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.app.map-theme-dark .leaflet-tile-pane { filter: none; }
+
+/* Panneaux : blanc, arrondis, ombre douce */
+.planner, .route-options, .route-card, .nearby-services, .lane-guidance, .card {
+  background: #fff; border: 0; border-radius: 22px; box-shadow: 0 12px 34px rgb(15 23 42 / 14%); color: var(--gps-ink);
+}
+.route-card { padding: 16px 18px; }
+
+/* Boutons de la carte : carrés arrondis, icônes et étiquettes alignées */
+.map-tool, .poi-tool { min-width: 54px; min-height: 54px; border: 0; border-radius: 16px; background: #fff; box-shadow: 0 8px 22px rgb(15 23 42 / 16%); color: var(--gps-ink); }
+.poi-tool > span { font-size: 18px; }
+.poi-tool small { font-size: 10px; font-weight: 700; color: var(--gps-muted); }
+.poi-tool[aria-pressed="true"], .mode-3d-tool[aria-pressed="true"] { outline: 2px solid var(--gps-blue); background: var(--gps-blue-soft); }
+.sos-tool { background: var(--gps-red); color: #fff; text-decoration: none; }
+.sos-tool small, .sos-tool span { color: #fff; }
+.location-tool { width: 52px; height: 52px; border-radius: 50%; }
+
+/* Bannière de direction : sombre, grande lisibilité */
+.sign-panel, .sign-local, .sign-motorway, .sign-express { background: #0f172a; border: 0; border-radius: 20px; box-shadow: 0 14px 34px rgb(15 23 42 / 28%); }
+.sign-kicker { color: #93c5fd; }
+.sign-panel strong { font-size: 20px; }
+
+/* Services : pastille claire */
+.nearby-services { border-radius: 999px; padding: 8px 14px; }
+.nearby-row strong { color: var(--gps-ink); }
+
+/* Bouton principal */
+#routeBtn, .route-button { background: var(--gps-blue); color: #fff; border: 0; border-radius: 14px; box-shadow: 0 8px 20px rgb(37 99 235 / 30%); }
+.go-button { background: var(--gps-blue); color: #fff; border: 0; border-radius: 18px; box-shadow: 0 10px 24px rgb(37 99 235 / 35%); }
+.go-button.active { background: var(--gps-red); box-shadow: 0 10px 24px rgb(220 38 38 / 35%); }
+.go-button:disabled { background: #e2e8f0; color: var(--gps-muted); box-shadow: none; }
+
+/* Choix d'itinéraires */
+.route-choice { border: 1px solid var(--gps-line); border-radius: 14px; background: #f8fafc; }
+.route-choice[aria-pressed="true"], .route-choice.active, .route-choice.selected { border-color: var(--gps-blue); background: var(--gps-blue-soft); }
+
+/* Barre du bas */
+.bottom-nav { background: #fff; border-top: 1px solid var(--gps-line); }
+.nav-item.active { color: var(--gps-blue); }
+
+/* Bouton démo et menus */
+.demo-button { background: var(--gps-blue-soft); color: var(--gps-blue); border-radius: 14px; }
+.menu-ligne { border-radius: 14px; background: #f8fafc; }
