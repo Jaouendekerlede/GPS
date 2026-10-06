@@ -1690,7 +1690,7 @@ function rendreRaccourcis() {
         ? `<span class="gps-raccourci-duo"><button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button><button type="button" class="gps-raccourci-x" data-oublier="${escapeHtml(i.dest)}" aria-label="Retirer ${escapeHtml(i.texte)}">✕</button></span>`
         : `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("")
     : '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
-  const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restaurant"]];
+  const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restau"]];
   const ligneActions = actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci gps-raccourci-action" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`).join("");
   $("gps-raccourcis").innerHTML = ligneActions + personnels;
 }
