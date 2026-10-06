@@ -544,3 +544,30 @@ body, .app, button, input, select { font-family: system-ui, -apple-system, "Sego
 
 /* Répéter la consigne au toucher (1.21.0) */
 .sign-panel { pointer-events: auto; cursor: pointer; }
+
+/* ===== Palette de Trajet VE (sombre par défaut) — 1.22.0 ===== */
+:root {
+  --gps-fond: #05080e; --gps-panneau: #0d121b; --gps-bloc: #141a25; --gps-bloc-2: #1a2130;
+  --gps-texte: #e6eef9; --gps-texte-att: rgba(230, 238, 249, 0.66); --gps-bordure: rgba(255, 255, 255, 0.09);
+  --gps-vert: #22e5a0; --gps-cyan: #4fe0ff; --gps-jaune: #ffd23f; --gps-rouge: #ff7a90;
+}
+body, .app { background: var(--gps-fond); color: var(--gps-texte); }
+.planner, .route-options, .route-card, .nearby-services, .lane-guidance, .card, .toast {
+  background: rgb(13 18 27 / 94%); color: var(--gps-texte); border: 1px solid var(--gps-bordure);
+}
+.map-tool, .poi-tool, .location-tool, .top-action, .nav-item {
+  background: rgb(20 26 37 / 94%); color: var(--gps-texte); border: 1px solid var(--gps-bordure);
+}
+.poi-tool small, .nav-item { color: var(--gps-texte-att); }
+.sos-tool { background: #3a0f18; color: var(--gps-rouge); }
+.sos-tool small, .sos-tool span { color: var(--gps-rouge); }
+#routeBtn, .route-button, .go-button { background: var(--gps-vert); color: #04110b; box-shadow: 0 8px 24px rgb(34 229 160 / 25%); }
+.go-button.active { background: var(--gps-rouge); color: #1a0508; }
+.go-button:disabled { background: var(--gps-bloc-2); color: var(--gps-texte-att); box-shadow: none; }
+.sign-panel { background: #0d121b; border: 1px solid var(--gps-bordure); }
+.sign-local, .sign-express { background: #0f5a3c; }
+.sign-motorway { background: #0b4a8a; }
+.nearby-services strong, .nearby-row strong { color: var(--gps-texte); }
+.bottom-nav { background: var(--gps-panneau); border-top: 1px solid var(--gps-bordure); }
+.nav-item.active { color: var(--gps-cyan); }
+input, select, textarea { background: var(--gps-bloc); color: var(--gps-texte); border: 1px solid var(--gps-bordure); }
