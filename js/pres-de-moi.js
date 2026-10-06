@@ -9,6 +9,8 @@ const RECHERCHES = {
   repos: { libelle: "Aire de repos", filtre: '["highway"~"^(services|rest_area)$"]' },
   parking: { libelle: "Parking", filtre: '["amenity"="parking"]' },
   restaurant: { libelle: "Restaurant", filtre: '["amenity"~"^(restaurant|cafe)$"]' },
+  pharmacie: { libelle: "Pharmacie", filtre: '["amenity"="pharmacy"]' },
+  urgences: { libelle: "Urgences hospitalières", filtre: '["amenity"="hospital"]' },
 };
 const RAYON_M = 10000;
 const ENDPOINT = "https://overpass-api.de/api/interpreter";

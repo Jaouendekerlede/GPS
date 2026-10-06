@@ -157,7 +157,11 @@ function majFlecheCarte(instr, distance) {
   vue.dessinerFlecheManoeuvre(cible ? flecheManoeuvre(etat.route.coords, etat.route.cum, cible.offset, { apresM }) : null);
 }
 
+// Dernière consigne prononcée : « répète » la redit.
+let derniereConsigne = "";
+
 function parler(texte, prioritaire = false) {
+  if (texte) derniereConsigne = texte;
   if (!etat?.voix || !texte || !("speechSynthesis" in window)) return;
   if (prioritaire) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(texte);
@@ -496,6 +500,7 @@ function majEcran() {
   $("gps-nav-limite").textContent = limite || "–";
   $("gps-nav-limite").classList.toggle("inconnue", !limite);
   surveillerVitesse(kmh, limite);
+  surveillerConduite(kmh, limite);
   if (document.body.classList.contains("gps-hud")) majHud(kmh, limite);
 
   // Bas de l'écran : heure d'arrivée, temps et km restants
@@ -822,6 +827,30 @@ const TOLERANCE_VITESSE_KMH = 5;
 const DUREE_AVANT_BIP_MS = 2000;
 
 // Un seul bip par dépassement, après 2 s au-dessus (pas pour un pic de GPS).
+// Arrêt prolongé (pause proposée une fois par arrêt) et excès de vitesse qui dure
+// (rappel doux, au plus une fois toutes les dix minutes).
+const DUREE_ARRET_ALERTE_MS = 10 * 60000;
+const DUREE_EXCES_RAPPEL_MS = 60000;
+const DELAI_ENTRE_RAPPELS_MS = 10 * 60000;
+
+function surveillerConduite(kmh, limite) {
+  if (kmh <= 3) {
+    etat.arretDepuis ??= Date.now();
+    if (!etat.arretAnnonce && Date.now() - etat.arretDepuis >= DUREE_ARRET_ALERTE_MS) {
+      etat.arretAnnonce = true;
+      parler("Vous êtes à l'arrêt depuis dix minutes. Besoin d'une pause ?", true);
+    }
+  } else {
+    etat.arretDepuis = null;
+    etat.arretAnnonce = false;
+  }
+  const exces = !!limite && kmh > limite + (etat.prefs.margeVitesse ?? TOLERANCE_VITESSE_KMH);
+  if (exces && etat.excesDepuis && Date.now() - etat.excesDepuis >= DUREE_EXCES_RAPPEL_MS && Date.now() - (etat.rappelExcesAt || 0) >= DELAI_ENTRE_RAPPELS_MS) {
+    etat.rappelExcesAt = Date.now();
+    parler("Vous roulez au-dessus de la limite depuis plus d'une minute. Ralentissez, s'il vous plaît.", true);
+  }
+}
+
 function surveillerVitesse(kmh, limite) {
   const exces = !!limite && kmh > limite + (etat.prefs.margeVitesse ?? TOLERANCE_VITESSE_KMH);
   if (!exces) {
@@ -2045,6 +2074,9 @@ async function commandeVocale() {
       break;
     case "partage":
       partagerArrivee();
+      break;
+    case "repeter":
+      parler(derniereConsigne, true);
       break;
     case "essence":
     case "repos": {

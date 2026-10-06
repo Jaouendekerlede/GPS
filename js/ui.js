@@ -873,7 +873,9 @@ function afficherResultat(p) {
   const peage = p.km_peage
     ? `<div class="gps-meteo-info">🛣️ Péages : environ <strong>${euros(coutPeage(p.km_peage))}</strong> (estimation sur ${nombre(p.km_peage)} km)</div>`
     : "";
-  $("gps-trajet-summary").innerHTML = `<div class="gps-tuiles">${tuiles}</div>${peage}`;
+  const carb = coutCarburant(p.distance_km);
+  const carburant = carb != null ? `<div class="gps-meteo-info">⛽ Carburant : environ <strong>${euros(carb)}</strong> (aller simple)</div>` : "";
+  $("gps-trajet-summary").innerHTML = `<div class="gps-tuiles">${tuiles}</div>${peage}${carburant}`;
 
   $("gps-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
 
@@ -1315,6 +1317,11 @@ function rendreReglagesProfil() {
   $("gps-reglage-distance-virage").value = String(reglages.distance_virage || 300);
   $("gps-reglage-alerte-passages").checked = reglages.alerte_passages_niveau !== false;
   $("gps-reglage-alerte-stops").checked = reglages.alerte_stops !== false;
+  $("gps-reglage-conso").value = reglages.conso_l_100 ?? "";
+  $("gps-reglage-prix-carburant").value = reglages.prix_carburant_l ?? "";
+  $("gps-reglage-taille-globale").value = String(reglages.taille_globale ?? 100);
+  $("gps-reglage-taille-globale-val").textContent = String(reglages.taille_globale ?? 100);
+  appliquerTailleGlobale(reglages.taille_globale);
 
   const { tomtom, openChargeMap } = getApiKeys();
   $("gps-cle-tomtom").value = tomtom || "";
@@ -1620,8 +1627,41 @@ function majBasculesMenu() {
   });
 }
 
+// Coût du carburant d'un aller simple, d'après la consommation et le prix réglés.
+function coutCarburant(km) {
+  const r = lireReglages();
+  const conso = Number(r.conso_l_100), prix = Number(r.prix_carburant_l);
+  if (!conso || !prix || !km) return null;
+  return (km * conso) / 100 * prix;
+}
+
+// Taille de tout l'écran (85 à 125 %) : appliquée au chargement et au curseur.
+function appliquerTailleGlobale(pourcent) {
+  const v = Number(pourcent) || 100;
+  document.documentElement.style.zoom = v === 100 ? "" : String(v / 100);
+}
+
+// Historique des trajets en CSV (une ligne par trajet), pour les indemnités kilométriques.
+function exporterTrajetsCsv() {
+  const lignes = [["date", "départ", "destination", "distance_km", "durée"]];
+  for (const h of listerHistoriqueTrajets()) {
+    lignes.push([
+      new Date(h.ts * 1000).toLocaleDateString("fr-FR"),
+      h.from_name || h.depart || "",
+      h.to_name || h.destination || "",
+      String(h.distance_km ?? "").replace(".", ","),
+      h.duree_text || "",
+    ]);
+  }
+  if (lignes.length === 1) return toast("Aucun trajet à exporter pour l'instant.");
+  const csv = lignes.map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+  telechargerTexte("trajets-gps.csv", "﻿" + csv);
+  toast(`📄 ${lignes.length - 1} trajet(s) exporté(s).`);
+}
+
 function cablerBasculesMenu() {
   $("vue-menu").addEventListener("click", (e) => {
+    if (e.target.closest("[data-action='exporter-trajets']")) return exporterTrajetsCsv();
     const b = e.target.closest("[data-basculer]");
     if (!b) return;
     const cle = b.dataset.basculer;
@@ -1657,6 +1697,10 @@ function cablerRechercheBas() {
     toast(`${nomCourt(dest).split(",")[0]} retiré des raccourcis.`);
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
+  $("gps-reglage-taille-globale").addEventListener("input", (e) => {
+    $("gps-reglage-taille-globale-val").textContent = e.target.value;
+    appliquerTailleGlobale(e.target.value);
+  });
   // Bouton « Enregistrer » du panneau Réglages : tous les champs restants, d'un coup.
   $("gps-profil-save-btn").addEventListener("click", () => {
     sauverReglages({
@@ -1692,6 +1736,9 @@ function cablerRechercheBas() {
       distance_virage: Number($("gps-reglage-distance-virage").value),
       alerte_passages_niveau: $("gps-reglage-alerte-passages").checked,
       alerte_stops: $("gps-reglage-alerte-stops").checked,
+      conso_l_100: Number($("gps-reglage-conso").value) || null,
+      prix_carburant_l: Number($("gps-reglage-prix-carburant").value) || null,
+      taille_globale: Number($("gps-reglage-taille-globale").value),
     });
     toast("✅ Réglages enregistrés");
   });

@@ -172,6 +172,8 @@
       </div>
       <div class="gps-menu-titre">Outils</div>
       <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-pres="pharmacie"><span class="gps-menu-icone">💊</span><span><span class="gps-menu-nom">Pharmacie la plus proche</span><span class="gps-menu-detail">Recherche autour de moi</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-pres="urgences"><span class="gps-menu-icone">🏥</span><span><span class="gps-menu-nom">Urgences la plus proche</span><span class="gps-menu-detail">Hôpital avec urgences, autour de moi</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="voix_guidage" data-id="gps-reglage-voix"><span class="gps-menu-icone">🔊</span><span><span class="gps-menu-nom">Voix de guidage</span><span class="gps-menu-detail">Activée</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="bip_vitesse" data-id="gps-reglage-bip"><span class="gps-menu-icone">🔔</span><span><span class="gps-menu-nom">Bip d'excès de vitesse</span><span class="gps-menu-detail">Activé</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="contraste_fort" data-id="gps-reglage-contraste"><span class="gps-menu-icone">🌓</span><span><span class="gps-menu-nom">Contraste élevé</span><span class="gps-menu-detail">Désactivé</span></span></button>
@@ -192,6 +194,7 @@
       </div>
       <div class="gps-menu-titre">Mes données</div>
       <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-action="exporter-trajets"><span class="gps-menu-icone">📄</span><span><span class="gps-menu-nom">Exporter mes trajets</span><span class="gps-menu-detail">Fichier CSV (indemnités kilométriques)</span></span></button>
           <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-sauvegarde"><span class="gps-menu-icone">💾</span><span><span class="gps-menu-nom">Sauvegarde</span><span class="gps-menu-detail">Lien de restauration, Google Drive</span></span></button>
           <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-raz"><span class="gps-menu-icone">🧹</span><span><span class="gps-menu-nom">Remise à zéro</span><span class="gps-menu-detail">Effacer les données de l'appli</span></span></button>
       </div>
@@ -243,6 +246,9 @@
 
 
       <div class="gps-carte-bloc" id="gps-bloc-domicile">
+        <label class="gps-champ">🔠 Taille de tout l'écran : <span id="gps-reglage-taille-globale-val" class="gps-valeur">100</span> %
+          <input type="range" min="85" max="125" step="5" value="100" id="gps-reglage-taille-globale" class="gps-curseur">
+        </label>
         <h3>Domicile et voix</h3>
         <label class="gps-champ">Adresse du travail (pour « Travail »)
           <input type="text" id="gps-reglage-travail" class="gps-input" placeholder="Ex : 3 rue de la Gare, Rennes">
@@ -255,6 +261,8 @@
 
       <div class="gps-carte-bloc" id="gps-bloc-navigation">
         <h3>🧭 Navigation</h3>
+        <label class="gps-champ">⛽ Consommation du véhicule (litres / 100 km) <input type="number" min="0" max="40" step="0.1" id="gps-reglage-conso" class="gps-input" placeholder="ex. 6,5"></label>
+        <label class="gps-champ">⛽ Prix du carburant (€ / litre) <input type="number" min="0" max="5" step="0.01" id="gps-reglage-prix-carburant" class="gps-input" placeholder="ex. 1,85"></label>
         <div class="gps-hint">Tout est déjà réglé comme conseillé ; ouvrez une rubrique pour changer.</div>
         <details class="gps-sous-menu">
           <summary>🖥️ Affichage</summary>
