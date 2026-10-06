@@ -1661,6 +1661,40 @@ function cablerRechercheBas() {
     toast(`${nomCourt(dest).split(",")[0]} retiré des raccourcis.`);
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
+  // Bouton « Enregistrer » du panneau Réglages : tous les champs restants, d'un coup.
+  $("gps-profil-save-btn").addEventListener("click", () => {
+    sauverReglages({
+      adresse_domicile: $("gps-reglage-domicile").value.trim(),
+      adresse_travail: $("gps-reglage-travail").value.trim(),
+      annonce_vocale: $("gps-reglage-annonce").checked,
+      carte_3d: $("gps-reglage-carte3d").value,
+      jour_nuit_auto: $("gps-reglage-jour-nuit").checked,
+      taille_bandeau: $("gps-reglage-taille-bandeau").value,
+      zoom_renforce: $("gps-reglage-zoom-renforce").checked,
+      voix_guidage: $("gps-reglage-voix").checked,
+      voix_voies: $("gps-reglage-voix-voies").checked,
+      voix_travaux: $("gps-reglage-voix-travaux").checked,
+      bip_vitesse: $("gps-reglage-bip").checked,
+      marge_vitesse: Number($("gps-reglage-marge-vitesse").value),
+      fenetre_voies: $("gps-reglage-fenetre-voies").checked,
+      vue_carrefour: $("gps-reglage-vue-carrefour").checked,
+      icone_voiture: $("gps-reglage-icone").value,
+      meteo_route: $("gps-reglage-meteo-route").checked,
+      ecran_epure: $("gps-reglage-epure").checked,
+      reponses_voix: $("gps-reglage-reponses-voix").checked,
+      taille_texte_nav: Number($("gps-reglage-taille-texte").value),
+      inclinaison_3d: Number($("gps-reglage-inclinaison").value),
+      inclinaison_ronds_points: Number($("gps-reglage-inclinaison-plate").value),
+      decalage_zoom_nav: Number($("gps-reglage-decalage-zoom").value),
+      vibration: $("gps-reglage-vibration").checked,
+      nuit_douce: $("gps-reglage-nuit-douce").checked,
+      notif_guidage: $("gps-reglage-notif").checked,
+      feux: $("gps-reglage-feux").checked,
+      zones_danger: $("gps-reglage-zones-danger").checked,
+      pause_mi_parcours: $("gps-reglage-pause-mi-parcours").checked,
+    });
+    toast("✅ Réglages enregistrés");
+  });
   $("gps-recherche-bas").addEventListener("click", () => {
     afficherVue("trajet");
     $("gps-destination-input").focus();
