@@ -1945,6 +1945,15 @@ async function commandeVocale() {
     case "partage":
       partagerArrivee();
       break;
+    case "essence":
+    case "repos": {
+      const liste = c.action === "essence" ? etat.servicesEssence : etat.servicesRepos;
+      const libelle = c.action === "essence" ? "station-service" : "aire de repos";
+      const prochaine = (liste || []).find((x) => x > etat.offset + 50);
+      if (prochaine === undefined) parler(`Aucune ${libelle} connue sur les 80 prochains kilomètres.`, true);
+      else parler(`La prochaine ${libelle} est ${distanceParlee(prochaine - etat.offset)}.`, true);
+      break;
+    }
     case "parkings":
       etat.parVoix = true;
       proposerParkings(true);
