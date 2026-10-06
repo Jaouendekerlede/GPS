@@ -1143,3 +1143,7 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 /* Services le long de la route : une ligne discrète (1.23.0) */
 .gps-nav-aires { display: inline-flex; gap: 6px; align-items: center; padding: 4px 9px; border-radius: 999px; background: rgb(13 18 27 / 55%); color: rgb(255 255 255 / 85%); font-size: 12px; font-weight: 700; box-shadow: none; border: 0; }
 .gps-nav-aires i { font-style: normal; opacity: .5; }
+
+/* Bandeau de mise à jour (1.24.0) */
+.gps-bandeau-maj { position: absolute; z-index: 1300; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 15px; border-radius: 12px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgb(0 0 0 / 30%); }
+.gps-bandeau-maj button { padding: 7px 12px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-weight: 800; cursor: pointer; }

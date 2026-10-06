@@ -72,19 +72,25 @@ window.addEventListener("pageshow", (e) => {
 const VERIFICATION_MAJ_MS = 30 * 60 * 1000;
 
 // Recharge avec la nouvelle version dès que le guidage est arrêté.
-function appliquerMiseAJour() {
-  if (navigationActive()) {
-    setTimeout(appliquerMiseAJour, 15000);
-    return;
-  }
-  location.reload();
+// Bandeau « Mettre à jour » : la mise à jour n'est plus automatique, vous la lancez quand vous voulez.
+function afficherBandeauMiseAJour() {
+  if (document.querySelector(".gps-bandeau-maj")) return;
+  const bandeau = document.createElement("div");
+  bandeau.className = "gps-bandeau-maj";
+  bandeau.setAttribute("role", "status");
+  bandeau.innerHTML = "<span>Nouvelle version disponible</span><button type=\"button\">Mettre à jour</button>";
+  bandeau.querySelector("button").addEventListener("click", () => {
+    if (navigationActive()) { toast("Terminez le guidage, puis mettez à jour."); return; }
+    location.reload();
+  });
+  document.querySelector(".app")?.appendChild(bandeau);
 }
 
 if ("serviceWorker" in navigator) {
   // Au tout premier lancement, l'installation n'est pas une « mise à jour ».
   let avaitUneVersion = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (avaitUneVersion) appliquerMiseAJour();
+    if (avaitUneVersion) afficherBandeauMiseAJour();
     else avaitUneVersion = true;
   });
   window.addEventListener("load", async () => {
