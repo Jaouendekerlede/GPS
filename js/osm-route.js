@@ -222,41 +222,6 @@ export async function routesAutourDe(points, rayonM) {
 // Aires de service, aires de repos et bornes sur les tronçons rapides
 // (morceaux de tracé [lon, lat][]). Renvoie { ok, lieux: [{ type, nom,
 // lat, lon, puissance_kw }] } ou { ok: false, erreur }.
-function puissanceOsm(tags) {
-  let max = null;
-  for (const [cle, v] of Object.entries(tags || {})) {
-    if (!/output|power/.test(cle)) continue;
-    const m = /([\d.,]+)\s*kW/i.exec(String(v));
-    if (m) max = Math.max(max || 0, parseFloat(m[1].replace(",", ".")));
-  }
-  return max;
-}
-
-export async function airesLeLongDe(morceaux) {
-  // Petits rectangles (~6 km de route) pour les aires, puis seulement les
-  // bornes situées dans ces aires : bien plus léger que toutes les bornes
-  // des villes traversées.
-  const rectangles = morceaux.filter((m) => m.length >= 2).flatMap((m) => rectanglesLeLongDu(m, 0.004, 40));
-  if (!rectangles.length) return { ok: true, lieux: [] };
-  const requete = `[out:json][timeout:25];(${rectangles.map((b) => `nwr["highway"~"^(services|rest_area)$"](${b});`).join("")})->.aires;.aires out center tags;nwr(around.aires:400)["amenity"="charging_station"];out center tags;`;
-  const r = await interrogerOverpass(requete);
-  if (!r.ok) return r;
-  const vus = new Set();
-  const lieux = [];
-  for (const e of r.elements) {
-    const cle = `${e.type}/${e.id}`;
-    if (vus.has(cle)) continue;
-    vus.add(cle);
-    const lat = e.lat ?? e.center?.lat;
-    const lon = e.lon ?? e.center?.lon;
-    if (lat == null) continue;
-    const t = e.tags || {};
-    const type = t.amenity === "charging_station" ? "recharge" : t.highway === "services" ? "service" : "repos";
-    lieux.push({ type, nom: t.name || t.operator || "", lat, lon, puissance_kw: type === "recharge" ? puissanceOsm(t) : null });
-  }
-  return { ok: true, lieux };
-}
-
 // Stations-service et aires de repos le long du tracé (pour l'affichage discret en navigation).
 export async function servicesLeLongDe(morceaux) {
   const rectangles = morceaux.filter((m) => m.length >= 2).flatMap((m) => rectanglesLeLongDu(m, 0.004, 40));

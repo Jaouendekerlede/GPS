@@ -20,34 +20,11 @@ const arrondi1 = (x) => Math.round(x * 10) / 10;
 // long (Saint-Nazaire → Bordeaux) -- aucune recharge n'était même prévue
 // à l'arrivée (0 arrêt), le détour ne servait donc littéralement à rien.
 
-function messageOcm(erreur) {
-  return erreur === "cle_manquante"
-    ? "Clé Open Charge Map manquante ou invalide (Menu › Clés API)."
-    : `Service de recherche de bornes indisponible (${erreur}).`;
-}
-
 function messageTomTom(erreur, fromName, toName) {
   if (erreur === "cle_manquante") return "Itinéraire routier indisponible : clé TomTom manquante (Menu › Clés API).";
   if (erreur === "http_403" || erreur === "http_401") return "Clé TomTom refusée : vérifie la clé et que l'« API de routage » est bien cochée sur developer.tomtom.com.";
   if (erreur === "reseau") return "Pas de connexion réseau : impossible de calculer l'itinéraire.";
   return `Aucun itinéraire routier trouvé entre "${fromName}" et "${toName}" (destination non joignable par la route, ou lieu mal identifié).`;
-}
-
-export async function obtenirCorrectionMeteo(lat, lon) {
-  const indisponible = { ok: false, multiplicateur: 1.0, description: "Météo indisponible" };
-  try {
-    const params = new URLSearchParams({ latitude: lat, longitude: lon, current: "temperature_2m" });
-    const resp = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-    if (!resp.ok) return indisponible;
-    const temp = (await resp.json())?.current?.temperature_2m;
-    if (typeof temp !== "number") return indisponible;
-    for (const [seuil, multiplicateur, description] of PALIERS_TEMPERATURE) {
-      if (temp < seuil) return { ok: true, multiplicateur, temperature_c: temp, description };
-    }
-    return { ok: true, multiplicateur: 1.05, temperature_c: temp, description: "chaleur, climatisation" };
-  } catch {
-    return indisponible;
-  }
 }
 
 async function calculerItineraire(depart, destination, opts) {

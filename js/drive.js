@@ -98,10 +98,6 @@ export async function lireSauvegarde(jetonAcces) {
 }
 
 // Pour les tests.
-export function oublierJeton() {
-  jeton = null;
-}
-
 // Garde-fou : remplacer une sauvegarde qui contient des clés API par des
 // données qui n'en ont pas (ordinateur ou téléphone neuf) effacerait
 // l'essentiel. Renvoie true si la locale est plus pauvre que la distante.

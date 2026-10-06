@@ -18,10 +18,6 @@ export function creerSujet() {
   return `tve-${[...octets].map((o) => o.toString(16).padStart(2, "0")).join("")}`;
 }
 
-export function estSujet(texte) {
-  return /^tve-[0-9a-f]{32}$/.test(texte || "");
-}
-
 // Lien à envoyer au proche : la page de suivi, l'adresse de partage après « # »
 // (cette partie n'est pas transmise au serveur du site).
 export function lienSuivi(sujet, base = location.href) {
@@ -47,16 +43,6 @@ export function messagePosition({ lat, lon, cap, kmh, arrivee_ms, restant_km, ba
   };
 }
 
-// Lit un message reçu ; null s'il n'est pas un message de position valide.
-export function lireMessage(texte) {
-  try {
-    const m = JSON.parse(texte);
-    return m && m.v === 1 && Number.isFinite(m.t) && typeof m.etat === "string" ? m : null;
-  } catch {
-    return null;
-  }
-}
-
 // Renvoie true si le relais a accepté le message.
 export async function publier(sujet, message) {
   try {
@@ -69,19 +55,3 @@ export async function publier(sujet, message) {
 
 // Messages publiés depuis `depuis` (identifiant du dernier message lu, ou une
 // durée comme "12h"), du plus ancien au plus récent : [{ id, message }].
-export async function lireMessages(sujet, depuis = "12h") {
-  const r = await fetch(`${RELAIS}/${sujet}/json?poll=1&since=${encodeURIComponent(depuis)}`);
-  if (!r.ok) throw new Error(`relais indisponible (${r.status})`);
-  return (await r.text())
-    .split("\n")
-    .filter(Boolean)
-    .map((ligne) => {
-      try {
-        const e = JSON.parse(ligne);
-        return e.event === "message" ? { id: e.id, message: lireMessage(e.message) } : null;
-      } catch {
-        return null;
-      }
-    })
-    .filter((e) => e?.message);
-}

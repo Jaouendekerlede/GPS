@@ -1390,16 +1390,6 @@ export function montrerBornes(visible) {
 
 let marqueurGaree = null;
 
-export function exploVoitureGaree(pos) {
-  marqueurGaree?.remove();
-  marqueurGaree = null;
-  if (!pos || !carte) return;
-  const el = document.createElement("div");
-  el.className = "gps-garee";
-  el.textContent = "🚗";
-  marqueurGaree = marqueur(el, pos.lat, pos.lon).addTo(carte);
-}
-
 // Point de l'écran (px dans la carte) → { lat, lon }.
 export function pointVersLatLon(x, y) {
   if (!carte) return null;

@@ -82,11 +82,6 @@ const listesAffichees = new Map();
 // apprise en roulant, sinon fiche constructeur corrigée de la saison), et
 // sur autoroute à 130 km/h (modèle physique).
 
-function dateFr(iso) {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? escapeHtml(iso) : d.toLocaleDateString("fr-FR");
-}
-
 function heure(ms) {
   return new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
@@ -547,15 +542,6 @@ async function positionDeDepart() {
 
 // ── Fiche borne ────────────────────────────────────────────────────────────
 
-function ligneInfo(label, valeurHtml) {
-  return valeurHtml ? `<div class="gps-ligne-info"><span class="label">${label}</span><span class="value">${valeurHtml}</span></div>` : "";
-}
-
-
-
-
-
-
 // ── Partage ────────────────────────────────────────────────────────────────
 
 async function partagerTexte(titre, texte) {
@@ -976,18 +962,6 @@ function echangeursHtml(p) {
 
 // Aire préférée qui rallonge nettement le trajet : on le dit, avec la sortie.
 const DETOUR_AIRE_ALERTE_KM = 8;
-
-function avertissementAireHtml(p) {
-  const a = p.aire_imposee;
-  const d = p.detour_arrets;
-  let html = "";
-  if (a && a.detour_km >= DETOUR_AIRE_ALERTE_KM) {
-    html += alerte(`⚠️ Votre aire ⭐ ${escapeHtml(nomCourt(a.nom))} rallonge le trajet de <strong>${nombre(a.detour_km)} km</strong> (+${formaterMinutes(Math.max(0, a.detour_min))}) : elle est sans doute de l'autre côté de la route pour ce sens.`) + `<button type="button" id="gps-sans-aire-btn" class="gps-btn gps-btn-plein">↩️ Recalculer sans cette aire</button>`;
-  } else if (d && d.km >= DETOUR_AIRE_ALERTE_KM) {
-    html += alerte(`⚠️ Passer par les bornes prévues rallonge la route réelle de <strong>${nombre(d.km)} km</strong> (+${formaterMinutes(Math.max(0, d.min))}) par rapport au trajet direct : une borne est peut-être de l'autre côté de l'autoroute. La batterie à l'arrivée sera plus basse que prévu.`);
-  }
-  return html;
-}
 
 function choisirItineraire(i) {
   const plan = itineraires.plans[i];
@@ -1454,21 +1428,6 @@ function cablerProfil() {
 
 // Raccourcis de l'icône de l'appli (appui long) : ?action=maison, bornes, voiture.
 // La veille (ou le jour même) d'un trajet prévu, le soir : « branchez ce soir ».
-export function proposerRechargeMaison() {
-  const t = trajetPrevu();
-  const maintenant = new Date();
-  if (!t || t.ts < Date.now() || t.ts - Date.now() > 36 * 3600000 || maintenant.getHours() < 17) return;
-  const jour = maintenant.toDateString();
-  if (lireReglages().conseil_recharge_vu === jour) return;
-  sauverReglages({ conseil_recharge_vu: jour });
-  const quand = new Date(t.ts).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
-  bandeau({
-    id: "gps-conseil-recharge",
-    texte: `🔌 Trajet ${quand} vers ${nomCourt(t.destination || "").split(",")[0]} (${nombre(t.distance_km)} km) : branchez ce soir en heures creuses pour partir à 100 %.`,
-    boutons: [{ libelle: "OK", action: () => {} }],
-  });
-}
-
 // « 💡 Travail ? » : destination souvent prise à cette heure-ci.
 // Suggestions masquées par l'utilisateur (✕) : mémorisées sur l'appareil.
 const CLE_SUGGESTIONS_MASQUEES = "gps_suggestions_masquees";

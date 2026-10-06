@@ -15,10 +15,6 @@ export async function avecMemoire(cle, dureeMs, calculer) {
   return valeur;
 }
 
-export function viderMemoire() {
-  MEMOIRE.clear();
-}
-
 // Hauteur du soleil (en degrés) à cet instant et à cet endroit — formules
 // astronomiques simplifiées, précises à quelques minutes près pour le
 // lever et le coucher, ce qui suffit pour basculer la carte nuit / jour.

@@ -156,10 +156,6 @@ export function initCarte(idElement, { fondInitial = "sombre", onDeplacement } =
 
 // ── Mode navigation ─────────────────────────────────────────────────────────
 
-export function rotationDisponible() {
-  return rotationDispo;
-}
-
 export function entrerNavigation({ onDeplacementManuel } = {}) {
   surDeplacementManuel = onDeplacementManuel;
   montrerBornes2D(false);
@@ -511,10 +507,6 @@ function iconeBorne(b) {
 }
 
 // La borne sélectionnée vit hors des groupes, pour rester toujours visible.
-function coucheDe(b) {
-  return b === selection ? coucheSelection : coucheBornes;
-}
-
 function afficherBornes2D(bornes, onClic) {
   coucheBornes.clearLayers();
   coucheSelection.clearLayers();
@@ -863,12 +855,6 @@ export function afficherTrafic(actif) {
 
 // 🚗 Voiture garée sur la carte des bornes (pos : { lat, lon } ou null).
 let marqueurGaree = null;
-
-export function marquerVoitureGaree(pos) {
-  marqueurGaree?.remove();
-  marqueurGaree = pos ? L.marker([pos.lat, pos.lon], { icon: L.divIcon({ className: "", iconSize: [40, 40], iconAnchor: [20, 20], html: `<div class="gps-garee">🚗</div>` }), interactive: false }).addTo(carte) : null;
-  c3d.exploVoitureGaree(pos);
-}
 
 // Appui long sur la carte (navigation) : cb(lat, lon), ou null.
 let appuiLongCb = null;

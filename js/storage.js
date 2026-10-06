@@ -244,20 +244,12 @@ export function ajouterAuJournal(entree) {
   ecrireJson(STORAGE_KEYS.journal, journal.slice(0, MAX_JOURNAL));
 }
 
-export function retirerDuJournal(id) {
-  ecrireJson(STORAGE_KEYS.journal, listerJournal().filter((e) => e.id !== id));
-}
-
 // ── Abonnements de recharge ────────────────────────────────────────────────
 // { reseau: "Ionity", prix: 0.39 } : sur les bornes de ce réseau, le prix
 // de l'abonnement remplace le tarif public (et les estimations).
 
 export function listerAbonnements() {
   return (lireReglages().abonnements || []).filter((a) => a.reseau && a.prix > 0);
-}
-
-export function sauverAbonnements(abonnements) {
-  sauverReglages({ abonnements });
 }
 
 export function appliquerAbonnements(bornes) {
@@ -384,12 +376,6 @@ export function ajouterRadarPersonnel(lat, lon, note = "") {
   return { deja: false, radars };
 }
 
-export function retirerRadarPersonnel(id) {
-  const radars = listerRadarsPersonnels().filter((r) => r.id !== id);
-  ecrireJson(STORAGE_KEYS.radarsPersonnels, radars);
-  return radars;
-}
-
 // Annule le dernier "Signaler un radar ici" (liste triée du plus récent au
 // plus ancien -- voir ajouterRadarPersonnel) : sert de correction rapide en
 // cas d'erreur, sans avoir à gérer une liste complète. Demande explicite de
@@ -449,14 +435,6 @@ const CLE_VOITURE_GAREE = "trajetve_voiture_garee";
 
 export function garerVoiture(lat, lon, lieu = "") {
   ecrireJson(CLE_VOITURE_GAREE, { lat, lon, lieu, date: Date.now() });
-}
-
-export function voitureGaree() {
-  return lireJson(CLE_VOITURE_GAREE, null);
-}
-
-export function oublierVoitureGaree() {
-  localStorage.removeItem(CLE_VOITURE_GAREE);
 }
 
 // ── Trajets faits en navigation (statistiques) ──────────────────────────────

@@ -1,5 +1,6 @@
 import { brancherCapture, noter } from "./journal-erreurs.js";
-import { initialiserUI, executerAction, proposerRechargeMaison, viderChampsTrajet } from "./ui.js";
+import { initialiserUI, executerAction, viderChampsTrajet } from "./ui.js";
+import { presentationOuverture } from "./presentation.js";
 import { navigationActive, navigationInterrompue } from "./navigation.js";
 import { restaurerDepuisAdresse, proposerRappelSauvegarde } from "./ui-sauvegarde.js";
 import { proposerInstallation } from "./ui-installation.js";
@@ -10,18 +11,15 @@ const DELAI_RAPPEL_SAUVEGARDE_MS = 8000;
 brancherCapture();
 noter("appli", "ouverture");
 
-// Présentation légère à l'ouverture (jamais devant une navigation à reprendre).
-// Mentions dans le Profil.
-
 // Ouverte par un lien de restauration : les données sont remises avant
 // que l'interface ne les lise.
 const restaures = await restaurerDepuisAdresse();
 initialiserUI();
+presentationOuverture();
 if (restaures) {
   toast(`✅ Données restaurées (${restaures} éléments)`);
   proposerInstallation({ insister: true });
 } else setTimeout(proposerRappelSauvegarde, DELAI_RAPPEL_SAUVEGARDE_MS);
-setTimeout(proposerRechargeMaison, 3000);
 // Bandeau « Sauvegarder sur Google Drive ? » retiré : son bouton « Plus
 // tard » ne mémorisait pas le report, donc il revenait à chaque ouverture
 // tant qu'aucune sauvegarde n'avait abouti -- demande explicite de
@@ -73,7 +71,7 @@ const VERIFICATION_MAJ_MS = 30 * 60 * 1000;
 
 // Recharge avec la nouvelle version dès que le guidage est arrêté.
 // Version de cette copie de l'application (à mettre à jour à chaque publication, avec le cache du service worker).
-const VERSION_EN_COURS = "gps-v30";
+const VERSION_EN_COURS = "gps-v31";
 
 // Bandeau « Mettre à jour » : la mise à jour n'est plus automatique, vous la lancez quand vous voulez.
 function afficherBandeauMiseAJour() {
