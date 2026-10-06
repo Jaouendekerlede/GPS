@@ -71,7 +71,7 @@ const VERIFICATION_MAJ_MS = 30 * 60 * 1000;
 
 // Recharge avec la nouvelle version dès que le guidage est arrêté.
 // Version de cette copie de l'application (à mettre à jour à chaque publication, avec le cache du service worker).
-const VERSION_EN_COURS = "gps-v41";
+const VERSION_EN_COURS = "gps-v42";
 
 // Bandeau « Mettre à jour » : la mise à jour n'est plus automatique, vous la lancez quand vous voulez.
 function afficherBandeauMiseAJour() {
@@ -84,7 +84,7 @@ function afficherBandeauMiseAJour() {
     if (navigationActive()) { toast("Terminez le guidage, puis mettez à jour."); return; }
     location.reload();
   });
-  document.querySelector(".app")?.appendChild(bandeau);
+  document.body.appendChild(bandeau);
 }
 
 if ("serviceWorker" in navigator) {
