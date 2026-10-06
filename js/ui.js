@@ -20,7 +20,6 @@ import { classeNumero } from "./panneau-nav.js";
 import { cablerSuggestions } from "./ui-suggestions.js";
 import { lignesEtat } from "./etat-appli.js";
 import { niveauPrecision } from "./recalage.js";
-import { remplirArretsImposes, cablerArretsImposes, arretImposeChoisi } from "./ui-arret-impose.js";
 import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
 import { boutonPartage, partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
@@ -39,7 +38,7 @@ const VUES = ["bornes", "borne", "trajet", "resultat", "menu", "favoris", "outil
 const ETAT_FEUILLE_PAR_VUE = { bornes: "bas", borne: "mi", trajet: "haut", resultat: "mi", menu: "haut", favoris: "haut", outils: "haut", profil: "haut" };
 const ONGLET_PAR_VUE = { bornes: "bornes", trajet: "trajet", resultat: "trajet", menu: "menu", favoris: "menu", outils: "menu", profil: "menu" };
 const LABELS_MODE = { rapide: "⚡ Rapide", economique: "💶 Économique", confort: "🛋️ Confort", prudent: "🛡️ Prudent" };
-const BOUTONS_CALCUL = ["ev-trajet-run-btn", "ev-aller-retour-btn", "ev-scenarios-btn"];
+const BOUTONS_CALCUL = ["ev-trajet-run-btn", "ev-aller-retour-btn"];
 const HAUTEUR_REPLIEE = 172;
 
 let vueCourante = "bornes";
@@ -76,36 +75,10 @@ const listesAffichees = new Map();
 
 // ── Petits utilitaires ─────────────────────────────────────────────────────
 
-function setSlider(prefixe, valeur) {
-  $(`${prefixe}-input`).value = String(valeur);
-  $(`${prefixe}-value`).textContent = String(valeur);
-  majKmCurseurs();
-}
 
 // Sous les curseurs de batterie : ce que ça fait en km réels (consommation
 // apprise en roulant, sinon fiche constructeur corrigée de la saison), et
 // sur autoroute à 130 km/h (modèle physique).
-function majKmCurseurs() {
-  if (!$("ev-charge-km")) return;
-  const p = obtenirProfilVehicule();
-  const mesuree = consoMesuree();
-  const conso = mesuree?.kwh_100km || p.consommation_kwh_100km * (MULTIPLICATEURS_SAISON[p.saison] ?? 1);
-  // Autoroute : consommation de référence (90 km/h) × effet de la vitesse,
-  // corrigée de la saison par rapport à la mi-saison (~20 kWh/100 à 130).
-  const multSaison = (MULTIPLICATEURS_SAISON[p.saison] ?? 1) / (MULTIPLICATEURS_SAISON.mi_saison ?? 1);
-  const consoAutoroute = consoParType().autoroute || p.consommation_kwh_100km * multSaison * 1;
-  const km = (pct, c = conso) => Math.max(0, ((p.capacite_kwh * pct) / 100 / c) * 100);
-  const deux = (pct) => `≈ ${nombre(km(pct))} km · ${nombre(km(pct, consoAutoroute))} km sur autoroute`;
-  const depart = Number($("ev-charge-pct-input").value);
-  const marge = Number($("ev-marge-pct-input").value);
-  const cible = Number($("ev-cible-pct-input").value);
-  $("ev-charge-km").textContent = `${deux(depart)} (jusqu'à 0 %)`;
-  $("ev-marge-km").textContent = `Réserve gardée ≈ ${nombre(km(marge))} km · ${nombre(km(marge, consoAutoroute))} km sur autoroute`;
-  $("ev-cible-km").textContent = `Entre deux recharges (${cible} − ${marge} = ${cible - marge} %) : ${deux(cible - marge)}`;
-  const aire = $("ev-arret-impose")?.selectedOptions?.[0];
-  $("ev-recharge-resume").textContent = `🔋 Recharges : marge ${marge}\u00a0% · jusqu'à\u00a0${cible}\u00a0%${aire?.value ? ` · ${aire.text}` : ""}`;
-  $("ev-charge-km").title = `Base : ${String(conso.toFixed(1)).replace(".", ",")} kWh/100 km ${mesuree ? "(appris en roulant)" : "(fiche constructeur, saison)"}`;
-}
 
 function dateFr(iso) {
   const d = new Date(iso);
@@ -272,7 +245,6 @@ function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
   for (const v of VUES) $(`vue-${v}`).classList.toggle("hidden", v !== vue);
   vueCourante = vue;
   if (vue === "trajet") {
-    remplirArretsImposes();
     majSuggestionTrajet();
   }
   // Appui long sur la carte pour imposer un point de passage : seulement
@@ -502,8 +474,7 @@ function cablerCarte() {
       localStorage.setItem("tve_essais", JSON.stringify(essais));
     });
   }
-  $("ev-urgence-btn").addEventListener("click", () => ouvrirSOS({ bornes: () => $("ev-urgence-bornes-interne").click() }));
-  $("ev-arret-impose").addEventListener("change", majKmCurseurs);
+  $("ev-urgence-btn").addEventListener("click", () => ouvrirSOS({}));
   $("ev-reglages-conseilles-btn").addEventListener("click", () => {
     if (!confirm("Revenir aux réglages de navigation conseillés ?")) return;
     const cles = ["taille_texte_nav", "taille_bandeau", "icone_voiture", "ecran_epure", "nuit_douce", "zoom_renforce", "vue_carrefour", "fenetre_voies", "voix_guidage", "reponses_voix", "voix_voies", "vibration", "notif_guidage", "voix_travaux", "zones_danger", "bip_vitesse", "meteo_route", "feux", "voix_bornes", "prechauffage", "aires_autoroute", "parking_arrivee", "pause_mi_parcours"];
@@ -536,13 +507,10 @@ function cablerCarte() {
     afficherTrajet({ coords: t.coords, arrets: [], bouchons: [] });
     toast(`🗺️ ${nomCourt(t.destination || "Trajet")} · ${nombre(t.km)} km`);
   });
-  cablerArretsImposes();
   $("ev-reglage-taille-texte").addEventListener("input", (e) => ($("ev-reglage-taille-texte-val").textContent = e.target.value));
   $("ev-reglage-inclinaison").addEventListener("input", (e) => ($("ev-reglage-inclinaison-val").textContent = e.target.value));
   $("ev-reglage-inclinaison-plate").addEventListener("input", (e) => ($("ev-reglage-inclinaison-plate-val").textContent = e.target.value));
   $("ev-reglage-decalage-zoom").addEventListener("input", (e) => ($("ev-reglage-decalage-zoom-val").textContent = e.target.value));
-  for (const id of ["ev-charge-pct-input", "ev-marge-pct-input", "ev-cible-pct-input"]) $(id).addEventListener("input", majKmCurseurs);
-  majKmCurseurs();
   // Autorisation des notifications demandée au moment où l'on coche.
   $("ev-reglage-notif").addEventListener("change", (e) => {
     if (e.target.checked && "Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {});
@@ -647,44 +615,12 @@ const CASES = {
   eviter_ferries: "ev-eviter-ferries-checkbox",
   eviter_zones_faibles_emissions: "ev-eviter-zfe-checkbox",
   eviter_routes_non_revetues: "ev-eviter-non-revetues-checkbox",
-  charge_lourde: "ev-charge-lourde-checkbox",
-  modele_detaille: "ev-modele-detaille-checkbox",
-  preferer_cb: "ev-preferer-cb-checkbox",
-  ajuster_meteo: "ev-ajuster-meteo-checkbox",
 };
 
 
-function activerModeVisuel(mode) {
-  document.querySelectorAll(".ev-charge-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
-}
 
-function appliquerPresetMode(mode) {
-  const preset = MODES_TRAJET[mode];
-  if (!preset) return;
-  setSlider("ev-marge-pct", preset.marge_pct);
-  setSlider("ev-cible-pct", preset.cible_pct);
-}
 
 function cablerFormulaire() {
-  $("ev-charge-pct-input").addEventListener("input", () => {
-    $("ev-charge-pct-value").textContent = $("ev-charge-pct-input").value;
-  });
-  for (const prefixe of ["ev-marge-pct", "ev-cible-pct"]) {
-    $(`${prefixe}-input`).addEventListener("input", () => {
-      $(`${prefixe}-value`).textContent = $(`${prefixe}-input`).value;
-      slidersModifiesManuellement = true;
-    });
-  }
-  document.querySelectorAll(".ev-charge-mode-btn").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      const mode = btn.dataset.mode || "confort";
-      if (slidersModifiesManuellement && !confirm("Tu as modifié la marge ou l'objectif de charge à la main. Choisir un mode remplace ces réglages par ses valeurs. Continuer ?")) return;
-      modeTrajet = mode;
-      slidersModifiesManuellement = false;
-      activerModeVisuel(mode);
-      appliquerPresetMode(mode);
-    }),
-  );
   $("ev-depart-gps-btn").addEventListener("click", () => ($("ev-depart-input").value = "Ma position"));
   $("ev-depart-clear-btn").addEventListener("click", () => {
     $("ev-depart-input").value = "";
@@ -713,7 +649,6 @@ function cablerFormulaire() {
   });
   $("ev-trajet-run-btn").addEventListener("click", lancerTrajet);
   $("ev-aller-retour-btn").addEventListener("click", lancerAllerRetour);
-  $("ev-scenarios-btn").addEventListener("click", lancerScenarios);
   $("ev-voir-resultat-btn").addEventListener("click", () => {
     if (dernierTrajet) afficherResultat(dernierTrajet);
   });
@@ -733,20 +668,7 @@ function chargerPrefs() {
   if (p) {
     if (p.depart) $("ev-depart-input").value = p.depart;
     if (p.destination) $("ev-destination-input").value = p.destination;
-    // Batterie au départ : toujours 100 % à l'ouverture (départ de la maison,
-    // chargée) ; à ajuster si besoin.
-    if (p.mode && MODES_TRAJET[p.mode]) {
-      modeTrajet = p.mode;
-      activerModeVisuel(p.mode);
-    }
-    if (p.marge_pct !== undefined) setSlider("ev-marge-pct", p.marge_pct);
-    if (p.cible_pct !== undefined) setSlider("ev-cible-pct", p.cible_pct);
     for (const [cle, id] of Object.entries(CASES)) if (p[cle] !== undefined) $(id).checked = !!p[cle];
-    if (p.puissance_min_kw !== undefined) $("ev-puissance-min-input").value = String(p.puissance_min_kw);
-    if (p.seuil_cout_eur !== undefined && p.seuil_cout_eur !== null) $("ev-seuil-cout-input").value = String(p.seuil_cout_eur);
-    const preset = MODES_TRAJET[modeTrajet];
-    slidersModifiesManuellement =
-      !!preset && (preset.marge_pct !== Number(p.marge_pct ?? preset.marge_pct) || preset.cible_pct !== Number(p.cible_pct ?? preset.cible_pct));
   }
 }
 
@@ -846,19 +768,9 @@ function cablerPointsPassage() {
 }
 
 function construireOptions() {
-  dernierChargeDepartPct = parseFloat($("ev-charge-pct-input").value);
-  const seuil = parseFloat($("ev-seuil-cout-input").value);
   const options = {
     depart: $("ev-depart-input").value.trim() || "Ma position",
     destination: $("ev-destination-input").value.trim(),
-    charge_pct: dernierChargeDepartPct,
-    marge_pct: parseFloat($("ev-marge-pct-input").value),
-    cible_pct: parseFloat($("ev-cible-pct-input").value),
-    mode: modeTrajet,
-    puissance_min_kw: parseFloat($("ev-puissance-min-input").value) || 0,
-    seuil_cout_eur: Number.isFinite(seuil) ? seuil : null,
-    depart_prevu: $("ev-depart-prevu-input").value || null,
-    arret_impose: arretImposeChoisi(),
     points_passage: pointsPassage.slice(),
   };
   for (const [cle, id] of Object.entries(CASES)) options[cle] = $(id).checked;
@@ -866,10 +778,11 @@ function construireOptions() {
   return options;
 }
 
+
 function sauverPrefsDepuis(options) {
-  const { depart_prevu: _ponctuel, arret_impose: _parDestination, ...aGarder } = options;
-  sauverPrefs({ ...aGarder, seuil_cout_eur: $("ev-seuil-cout-input").value.trim() });
+  sauverPrefs({ ...options });
 }
+
 
 // ── Calculs ────────────────────────────────────────────────────────────────
 
@@ -965,31 +878,10 @@ async function lancerAllerRetour() {
   });
 }
 
-async function lancerScenarios() {
-  await ajouterVia(false);
-  const options = construireOptions();
-  if (!exigerDestination(options)) return;
-  await avecVerrou("ev-scenarios-btn", "⏳ 4 modes…", async () => {
-    const table = $("ev-scenarios-table");
-    table.innerHTML = hint("Calcul des 4 modes en cours…");
-    table.classList.remove("hidden");
-    table.scrollIntoView({ behavior: "smooth", block: "start" });
-    sauverPrefsDepuis(options);
-  });
-}
 
 function annoncer(r) {
   if (!lireReglages().annonce_vocale || !("speechSynthesis" in window)) return;
-  let phrase = `Trajet de ${nomCourt(r.from_name)} à ${nomCourt(r.to_name)} : ${Math.round(r.distance_km)} kilomètres, environ ${r.duree_text} de route.`;
-  if (r.nb_arrets === 0) {
-    phrase += ` Vous arrivez avec ${Math.round(r.pct_batterie_arrivee)} pour cent de batterie, pas besoin de recharger.`;
-  } else {
-    const premier = r.arrets[0];
-    phrase +=
-      ` Il vous faudra ${r.nb_arrets} arrêt${r.nb_arrets > 1 ? "s" : ""} de recharge, le premier à ${premier.nom_borne}` +
-      ` après ${Math.round(premier.km_depuis_depart)} kilomètres, environ ${premier.temps_charge_min} minutes de charge.` +
-      ` Vous arriverez avec ${Math.round(r.pct_batterie_arrivee)} pour cent de batterie.`;
-  }
+  const phrase = `Trajet de ${nomCourt(r.from_name)} à ${nomCourt(r.to_name)} : ${Math.round(r.distance_km)} kilomètres, environ ${r.duree_text} de route.`;
   const voix = new SpeechSynthesisUtterance(phrase);
   voix.lang = "fr-FR";
   speechSynthesis.cancel();
@@ -1028,13 +920,10 @@ function afficherResultat(p) {
     : "";
   $("ev-trajet-summary").innerHTML = `<div class="ev-tuiles">${tuiles}</div>${peage}`;
 
-  $("ev-cout-alerte").classList.add("hidden");
   $("ev-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
   $("ev-partager-trajet-btn").addEventListener("click", () => partagerTrajet(p));
   $("ev-quand-partir-btn").addEventListener("click", () => quandPartir(p));
 
-  $("ev-domicile-box").classList.add("hidden");
-  $("ev-confiance-box").innerHTML = "";
   $("ev-maps-link").href = lienGoogleMaps(p.to_lat, p.to_lon);
   $("ev-qrcode-box").classList.add("hidden");
   $("ev-qrcode-box").innerHTML = "";
@@ -1328,17 +1217,7 @@ function chargerEtLancerTrajet(depart, destination, reglages, etapes) {
   pointsPassage = (etapes || reglages?.points_passage || []).map(({ lat, lon, nom }) => ({ lat, lon, nom }));
   rendrePointsPassage();
   if (reglages) {
-    if (reglages.mode && MODES_TRAJET[reglages.mode]) {
-      modeTrajet = reglages.mode;
-      activerModeVisuel(reglages.mode);
-    }
-    if (reglages.marge_pct !== undefined) setSlider("ev-marge-pct", reglages.marge_pct);
-    if (reglages.cible_pct !== undefined) setSlider("ev-cible-pct", reglages.cible_pct);
-    if (reglages.charge_pct !== undefined) {
-      setSlider("ev-charge-pct", reglages.charge_pct);
-    }
     if (reglages.eviter_peages !== undefined) $("ev-eviter-peages-checkbox").checked = !!reglages.eviter_peages;
-    if (reglages.puissance_min_kw !== undefined) $("ev-puissance-min-input").value = String(reglages.puissance_min_kw);
   }
   afficherVue("trajet");
   lancerTrajet();

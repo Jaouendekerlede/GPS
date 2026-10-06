@@ -142,41 +142,10 @@
         <button id="ev-inverser-btn" class="ev-mini-btn ev-inverser" type="button" title="Inverser départ et destination">⇅</button>
       </div>
 
-      <div class="ev-carte-bloc">
-        <label class="ev-champ"><span class="ev-champ-titre">Batterie au départ : <span id="ev-charge-pct-value" class="ev-valeur">100</span> %</span>
-          <div class="ev-jauge"><div id="ev-charge-pct-fill" class="ev-jauge-remplissage"></div></div>
-          <input type="range" min="1" max="100" value="100" id="ev-charge-pct-input" class="ev-curseur">
-          <span id="ev-charge-km" class="ev-km-estime"></span>
-        </label>
-        <div class="ev-charge-mode-row">
-          <button type="button" class="ev-charge-mode-btn" data-mode="rapide">⚡<span>Rapide</span></button>
-          <button type="button" class="ev-charge-mode-btn" data-mode="economique">💶<span>Éco</span></button>
-          <button type="button" class="ev-charge-mode-btn active" data-mode="confort">🛋️<span>Confort</span></button>
-          <button type="button" class="ev-charge-mode-btn" data-mode="prudent">🛡️<span>Prudent</span></button>
-        </div>
-        <details class="ev-sous-menu ev-recharge-details">
-          <summary id="ev-recharge-resume">🔋 Recharges</summary>
-        <label class="ev-champ">🔌 Recharger à
-          <select id="ev-arret-impose" class="ev-input"><option value="">Automatique (le meilleur arrêt)</option></select>
-        </label>
-        <div id="ev-arret-impose-aide" class="ev-hint"></div>
-        <label class="ev-champ"><span class="ev-champ-titre">Marge de sécurité (mini à l'arrivée à une borne) : <span id="ev-marge-pct-value" class="ev-valeur">15</span> %</span>
-          <input type="range" min="5" max="30" value="15" id="ev-marge-pct-input" class="ev-curseur">
-          <span id="ev-marge-km" class="ev-km-estime"></span>
-        </label>
-        <label class="ev-champ"><span class="ev-champ-titre">Recharger jusqu'à : <span id="ev-cible-pct-value" class="ev-valeur">80</span> %</span>
-          <input type="range" min="50" max="100" value="80" id="ev-cible-pct-input" class="ev-curseur">
-          <span id="ev-cible-km" class="ev-km-estime"></span>
-        </label>
-        </details>
-      </div>
 
       <details class="ev-accordeon">
         <summary>⚙️ Options avancées</summary>
         <div class="ev-colonne">
-          <label class="ev-check"><input type="checkbox" id="ev-preferer-cb-checkbox" checked> 💳 Privilégier les bornes qui acceptent la carte bancaire</label>
-          <label class="ev-check"><input type="checkbox" id="ev-modele-detaille-checkbox" checked> 📈 Calcul détaillé : vitesse réelle et relief (décoché : conso constante, comme JARVIS)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-ajuster-meteo-checkbox"> 🌦️ Météo réelle sur le trajet : froid, chaleur, pluie, vent</label>
           <div class="ev-zones-evitees">
             <div class="ev-hint">🚧 Routes coupées à éviter (travaux connus avant de partir) :</div>
             <div id="ev-zones-evitees-liste"></div>
@@ -188,15 +157,11 @@
           <label class="ev-check"><input type="checkbox" id="ev-eviter-ferries-checkbox"> ⛴️ Éviter les ferries</label>
           <label class="ev-check"><input type="checkbox" id="ev-eviter-zfe-checkbox"> 🚫 Éviter les zones à faibles émissions</label>
           <label class="ev-check"><input type="checkbox" id="ev-eviter-non-revetues-checkbox"> 🪨 Éviter les routes non revêtues</label>
-          <label class="ev-check"><input type="checkbox" id="ev-charge-lourde-checkbox"> 🚲 Remorque / charge lourde (+35 % de conso)</label>
           <label class="ev-champ">🕐 Départ prévu (vide = maintenant)
-            <input type="datetime-local" id="ev-depart-prevu-input" class="ev-input">
           </label>
           <label class="ev-champ">Puissance mini aux arrêts (kW, 0 = indifférent)
-            <input type="number" min="0" step="10" value="0" id="ev-puissance-min-input" class="ev-input" inputmode="numeric">
           </label>
           <label class="ev-champ">Alerte si le coût total dépasse (€, vide = aucune)
-            <input type="number" min="0" step="1" id="ev-seuil-cout-input" class="ev-input" placeholder="Ex : 15" inputmode="decimal">
           </label>
         </div>
       </details>
@@ -205,11 +170,9 @@
       <div id="ev-trajet-erreur" class="ev-alerte hidden"></div>
       <div class="ev-grille-2">
         <button id="ev-aller-retour-btn" class="ev-btn" type="button">↩️ Avec le retour</button>
-        <button id="ev-scenarios-btn" class="ev-btn" type="button">📊 Comparer les modes</button>
         <button id="ev-favori-trajet-btn" class="ev-btn" type="button">☆ Trajet favori</button>
         <button id="ev-voir-resultat-btn" class="ev-btn hidden" type="button">🗺️ Dernier résultat</button>
       </div>
-      <div id="ev-scenarios-table" class="ev-scenarios hidden"></div>
     </div>
 
     <!-- ══ Résultat du trajet ══ -->
@@ -225,16 +188,9 @@
       <div id="ev-itineraires" class="ev-carte-bloc ev-itineraires hidden"></div>
       <button id="ev-nav-demarrer-btn" class="ev-btn-principal ev-btn-go" type="button">▶ Démarrer la navigation</button>
       <button id="ev-nav-demo-btn" class="ev-lien ev-lien-centre" type="button">🎬 Essayer en mode démo (trajet simulé)</button>
-      <div id="ev-cout-alerte" class="ev-alerte hidden"></div>
-      <div class="ev-carte-bloc">
-        <button id="ev-vitesse-btn" class="ev-btn" type="button">🐢 Et si je roulais à 110 km/h maximum ?</button>
-        <div id="ev-vitesse-resultat" class="ev-hint hidden"></div>
-      </div>
 
       <div id="ev-etapes" class="ev-etapes"></div>
 
-      <div id="ev-domicile-box" class="ev-domicile hidden"></div>
-      <div id="ev-confiance-box" class="ev-carte-bloc"></div>
 
       <div id="ev-result-actions" class="ev-actions-rangee">
         <a id="ev-maps-link" class="ev-action" href="#" target="_blank" rel="noopener"><span>🧭</span>Maps</a>
@@ -246,20 +202,6 @@
       <div id="ev-qrcode-box" class="ev-qrcode hidden"></div>
 
 
-      <div id="ev-time-slider-row" class="ev-carte-bloc hidden">
-        <h3>🕐 Où serai-je sur la route ?</h3>
-        <div class="ev-frise-entete">
-          <span id="ev-time-slider-value" class="ev-frise-valeur">Départ</span>
-          <span id="ev-timeline-battery-estimate"></span>
-        </div>
-        <div id="ev-timeline-track" class="ev-frise-piste">
-          <div id="ev-timeline-fill" class="ev-frise-remplissage"></div>
-          <div id="ev-timeline-stops" class="ev-frise-arrets"></div>
-          <div id="ev-timeline-puck" class="ev-frise-curseur"></div>
-        </div>
-        <div class="ev-frise-labels"><span>🏁 Départ</span><span>🏆 Arrivée</span></div>
-        <div id="ev-time-slider-stations" class="ev-liste"></div>
-      </div>
 
       <div class="ev-hint">ℹ️ Statuts et tarifs déclarés (Open Charge Map, base officielle IRVE) : l'occupation d'une borne en temps réel n'est pas disponible gratuitement.</div>
     </div>

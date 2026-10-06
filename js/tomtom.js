@@ -115,12 +115,33 @@ export async function diagnostiquerCleTomTom(cle) {
 // l'API), donc ignorée s'il y en a.
 // options.zonesEvitees : rectangles { southWestCorner, northEastCorner }
 // ({ latitude, longitude }) que la route ne doit pas traverser (10 au plus).
-export async function calculerItineraireTomTom(apiKey, lat1, lon1, lat2, lon2, options = {}) {
-  if (!apiKey) {
-    return { erreur: "cle_manquante" };
+// Sans clé TomTom : itinéraire OpenStreetMap (OSRM), renvoyé dans la même forme.
+async function itineraireOsm(points, options) {
+  const coords = points.map((p) => `${p.lon},${p.lat}`).join(";");
+  const alternatives = options.maxAlternatives === 0 ? "false" : "true";
+  const url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=${alternatives}`;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return { erreur: `osm_${resp.status}` };
+    const data = await resp.json();
+    const routes = (data.routes || []).map((r) => ({
+      coords: r.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+      summary: { lengthInMeters: r.distance, travelTimeInSeconds: r.duration, trafficDelayInSeconds: 0 },
+      sections: [],
+      guidance: { instructions: [] },
+    }));
+    if (!routes.length) return { erreur: "aucun_itineraire" };
+    return { ...routes[0], alternatives: routes.slice(1), traceSuivie: false, erreur: null };
+  } catch (e) {
+    console.warn("[OSM] Erreur calcul itinéraire", e);
+    return { erreur: "reseau" };
   }
+}
+
+export async function calculerItineraireTomTom(apiKey, lat1, lon1, lat2, lon2, options = {}) {
   const etapes = options.etapes || [];
   const points = [{ lat: lat1, lon: lon1 }, ...etapes, { lat: lat2, lon: lon2 }];
+  if (!apiKey) return itineraireOsm(points, options);
   const support = !etapes.length && options.traceImposee?.length >= 2 ? allegerTrace(options.traceImposee) : null;
   try {
     // Filets de sécurité : sans les sections de vitesse (requête d'origine

@@ -7,6 +7,7 @@ import { obtenirProfilVehicule, enregistrerHistoriqueTrajet, lireReglages, appli
 import { resoudreLieu, estMaPosition, pointADistanceSurTrace, haversineKm } from "./geo.js";
 import { calculerItineraireTomTom } from "./tomtom.js";
 import { echangeursDuTrajet } from "./panneau-nav.js";
+import { formaterMinutes, kmSurTrace } from "./planner.js";
 
 const arrondi1 = (x) => Math.round(x * 10) / 10;
 
@@ -50,8 +51,8 @@ export async function obtenirCorrectionMeteo(lat, lon) {
 }
 
 async function calculerItineraire(depart, destination, opts) {
+  // Sans clé TomTom, l'itinéraire passe par OpenStreetMap (voir tomtom.js).
   const { tomtom } = getApiKeys();
-  if (!tomtom) return { ok: false, erreur: messageTomTom("cle_manquante") };
   const domicile = lireReglages().adresse_domicile;
 
   // Séquentiel exprès : Nominatim demande au plus 1 requête/seconde. Un
