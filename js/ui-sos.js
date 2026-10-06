@@ -74,8 +74,4 @@ export function cablerSOS() {
   });
   $("ev-sos-partager").addEventListener("click", partager);
   $("ev-sos-lire").addEventListener("click", () => infoActuelle && lire(phraseSOS(infoActuelle)));
-  $("ev-sos-bornes").addEventListener("click", () => {
-    $("ev-sos").classList.add("hidden");
-    surBornes?.();
-  });
 }

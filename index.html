@@ -245,18 +245,6 @@
       </div>
       <div id="ev-qrcode-box" class="ev-qrcode hidden"></div>
 
-      <div id="ev-profil-trajet" class="ev-carte-bloc hidden">
-        <h3>📈 Profil du trajet</h3>
-        <div id="ev-profil-stats" class="ev-stats"></div>
-        <div class="ev-segments">
-          <button type="button" class="ev-courbe-btn active" data-vue="batterie">🔋 Batterie &amp; relief</button>
-          <button type="button" class="ev-courbe-btn" data-vue="vitesse">🚗 Vitesse &amp; conso</button>
-          <button type="button" class="ev-courbe-btn" data-vue="meteo">🌦️ Météo</button>
-        </div>
-        <div class="ev-courbe-wrap"><canvas id="ev-courbe-canvas"></canvas></div>
-        <div id="ev-courbe-vide" class="ev-hint hidden"></div>
-        <div id="ev-profil-note" class="ev-hint"></div>
-      </div>
 
       <div id="ev-time-slider-row" class="ev-carte-bloc hidden">
         <h3>🕐 Où serai-je sur la route ?</h3>
@@ -914,14 +902,6 @@
     <div id="ev-nav-recherche-res" class="ev-nav-resultats"></div>
   </div>
 
-  <div id="ev-nav-borne-perso" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">🔌 Signaler une borne ici <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
-    <div class="ev-nav-carte-sous">Puissance et type de prise, si tu les connais (optionnel).</div>
-    <div id="ev-borne-perso-kw" class="ev-chips"></div>
-    <div id="ev-borne-perso-connecteur" class="ev-chips"></div>
-    <input type="text" id="ev-borne-perso-note" class="ev-input" placeholder="Nom / remarque (optionnel)">
-    <button type="button" id="ev-borne-perso-enregistrer-btn" class="ev-btn-principal">Enregistrer</button>
-  </div>
 
   <div id="ev-nav-ecoute" class="ev-nav-ecoute hidden" aria-live="polite">🎤 J'écoute…</div>
 
@@ -948,23 +928,8 @@
     <div id="ev-nav-parkings-liste" class="ev-nav-resultats"></div>
   </div>
 
-  <div id="ev-nav-batterie-panneau" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre">🔋 Batterie réelle</div>
-    <div class="ev-batt-legende"><span><i class="trait-prevue"></i>Prévue</span><span><i class="point-reelle"></i>Réelle (vos corrections)</span></div>
-    <div id="ev-nav-batt-graph" class="ev-batt-graph"></div>
-    <div id="ev-nav-batt-info" class="ev-nav-carte-sous" aria-live="polite"></div>
-    <details class="ev-batt-details"><summary>Voir les valeurs</summary><div id="ev-nav-batt-table"></div></details>
-    <label class="ev-champ">Pourcentage affiché par la voiture : <span id="ev-nav-batt-val" class="ev-valeur">50</span> %
-      <input type="range" id="ev-nav-batt-input" class="ev-curseur" min="1" max="100" value="50">
-    </label>
-    <div class="ev-grille-2">
-      <button id="ev-nav-batt-ok" class="ev-btn" type="button">✅ Corriger</button>
-      <button id="ev-nav-replan-btn" class="ev-btn" type="button">🔄 Recalculer les recharges</button>
-    </div>
-  </div>
 
   <div class="ev-nav-bas">
-    <div id="ev-nav-borne" class="ev-nav-borne hidden"></div>
     <button id="ev-nav-stop-btn" class="ev-nav-stop" type="button" title="Arrêter la navigation">✕</button>
     <div class="ev-nav-infos">
       <div><strong id="ev-nav-eta">--:--</strong><span>arrivée</span></div>
@@ -991,7 +956,6 @@
       <button id="ev-sos-partager" type="button" class="ev-btn">📤 Envoyer ma position</button>
       <button id="ev-sos-lire" type="button" class="ev-btn">🔊 Lire à voix haute</button>
     </div>
-    <button id="ev-sos-bornes" type="button" class="ev-btn ev-btn-plein">🔋 Batterie vide : bornes les plus proches</button>
     <details class="ev-sous-menu">
       <summary>⚠️ Sur autoroute ou voie express</summary>
       <ul class="ev-aide-liste">
@@ -1012,6 +976,5 @@
     <div class="ev-hint">Numéros : 112 (urgences), 15 (SAMU), 17 (police), 18 (pompiers), 114 (par SMS).</div>
   </div>
 </div>
-<button id="ev-urgence-bornes-interne" type="button" class="hidden" aria-hidden="true"></button>
 </body>
 </html>
