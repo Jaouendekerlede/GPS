@@ -260,3 +260,16 @@ export async function alertesLeLongDu(coords) {
   });
   return { ok: true, points };
 }
+
+// Routes dont la vitesse maximale est indiquée dans OpenStreetMap, le long du tracé.
+// Renvoie { ok, routes } avec routes = [{ id, maxspeed, geometry: [{ lat, lon }] }].
+export async function limitesLeLongDu(coords) {
+  const rectangles = rectanglesLeLongDu(coords);
+  const requete = `[out:json][timeout:25];(${rectangles.map((b) => `way["maxspeed"](${b});`).join("")});out geom tags;`;
+  const r = await interrogerOverpass(requete);
+  if (!r.ok) return r;
+  const routes = r.elements
+    .filter((e) => e.geometry?.length >= 2)
+    .map((e) => ({ id: e.id, maxspeed: e.tags.maxspeed, geometry: e.geometry }));
+  return { ok: true, routes };
+}

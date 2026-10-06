@@ -90,3 +90,52 @@ export function alertesSurTrace(points, route) {
   return retour;
 }
 
+
+// Vitesse maximale en km/h d'après le tag OpenStreetMap « maxspeed » (null si inconnue).
+export function vitesseMaxOsm(valeur) {
+  if (!valeur) return null;
+  if (valeur === "FR:urban") return 50;
+  if (valeur === "FR:rural") return 80;
+  if (valeur === "FR:motorway") return 130;
+  const m = /^(\d+)(\s*mph)?$/.exec(String(valeur).trim());
+  if (!m) return null;
+  return m[2] ? Math.round(Number(m[1]) * 1.609) : Number(m[1]);
+}
+
+// Remplit route.limites (une valeur par point du tracé) avec les vitesses OSM.
+// Chaque point de route est rattaché au nœud OSM le plus proche (200 m au plus) ;
+// les points entre deux nœuds d'une même route héritent de sa vitesse. Ne remplace
+// jamais une limite déjà connue (TomTom).
+export function appliquerLimitesOsm(route, routes) {
+  const { coords } = route;
+  if (!route.limites) route.limites = new Array(coords.length).fill(null);
+  const grille = new Map();
+  coords.forEach((c, i) => {
+    const cle = `${Math.floor(c[0] * 1000)},${Math.floor(c[1] * 1000)}`;
+    if (!grille.has(cle)) grille.set(cle, []);
+    grille.get(cle).push(i);
+  });
+  const plusProche = (p) => {
+    const x = Math.floor(p.lon * 1000), y = Math.floor(p.lat * 1000);
+    const kx = Math.cos((p.lat * Math.PI) / 180);
+    let meilleur = -1, dmin = Infinity;
+    for (let dx = -1; dx <= 1; dx++)
+      for (let dy = -1; dy <= 1; dy++)
+        for (const i of grille.get(`${x + dx},${y + dy}`) || []) {
+          const ex = (coords[i][0] - p.lon) * kx, ey = coords[i][1] - p.lat;
+          const d = ex * ex + ey * ey;
+          if (d < dmin) { dmin = d; meilleur = i; }
+        }
+    // 200 m environ (1° de latitude ≈ 111 km) : au-delà, la route n'est pas celle du tracé.
+    return dmin <= (0.002 / 111) ** 2 ? meilleur : -1;
+  };
+  for (const r of routes) {
+    const v = vitesseMaxOsm(r.maxspeed);
+    if (!v) continue;
+    const idx = r.geometry.map(plusProche).filter((i) => i >= 0);
+    for (let k = 1; k < idx.length; k++) {
+      const [a, b] = [Math.min(idx[k - 1], idx[k]), Math.max(idx[k - 1], idx[k])];
+      for (let i = a; i <= b; i++) if (route.limites[i] == null) route.limites[i] = v;
+    }
+  }
+}

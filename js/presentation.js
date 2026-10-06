@@ -4,7 +4,7 @@
 import { navigationActive, navigationInterrompue } from "./navigation.js";
 
 export const MENTIONS_LEGALES =
-  "GPS est une application de navigation gratuite, sans publicité. " +
+  "GPS est une application de navigation gratuite, sans publicité, réalisée par Jean-Luc Rio avec l'aide de Claude (IA, Anthropic). " +
   "Cartes et routes : © contributeurs OpenStreetMap (licence ODbL). " +
   "Radars fixes : données officielles data.gouv.fr. Météo : Open-Meteo. " +
   "Itinéraire indicatif : respectez toujours le Code de la route et la signalisation.";

@@ -26,8 +26,8 @@ import { heure, distanceAffichee, distanceParlee, messageCourt, minusculeInitial
 // Réexportés pour les autres modules (ui.js, essais).
 export { traceRestante, dessinVoies } from "./nav-outils.js";
 
-import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, servicesLeLongDe, alertesLeLongDu, LABELS_TYPE_RADAR } from "./osm-route.js";
-import { virages, texteVirage, alertesSurTrace } from "./aide-conduite.js";
+import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, servicesLeLongDe, alertesLeLongDu, limitesLeLongDu, LABELS_TYPE_RADAR } from "./osm-route.js";
+import { virages, texteVirage, alertesSurTrace, appliquerLimitesOsm } from "./aide-conduite.js";
 import { textesPanneau, classeNumero, estAutoroute, svgCarrefour } from "./panneau-nav.js";
 import { zonesDeDanger, radarsSurTrace, positionsSurTrace, compterFeux, messageAvecFeu, partDifferente, projeterSurTrace, airesSurRoute } from "./alertes-route.js";
 import { haversineKm, carresSurTrace, traceTraverseCarres, flecheManoeuvre } from "./geo.js";
@@ -232,6 +232,14 @@ function installerRoute(route) {
   chercherFeux(route);
   route.alertesConduite = virages(route).map((v) => ({ offset: v.offset, type: "virage", angle: v.angle }));
   chercherAlertesConduite(route);
+  chercherLimitesOsm(route);
+}
+
+// Vitesses maximales OpenStreetMap le long du tracé (quand TomTom n'en donne pas).
+async function chercherLimitesOsm(route) {
+  const r = await limitesLeLongDu(route.coords);
+  if (!etat?.route || etat.route !== route || !r.ok) return;
+  appliquerLimitesOsm(route, r.routes);
 }
 
 // Passages à niveau, stops et cédez-le-passage du tracé (une requête par tracé).
@@ -484,8 +492,9 @@ function majEcran() {
   const limite = route.limites[etat.idx];
   $("gps-nav-vitesse").innerHTML = `<strong>${kmh}</strong><span>km/h</span>`;
   $("gps-nav-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
-  $("gps-nav-limite").textContent = limite || "";
-  $("gps-nav-limite").classList.toggle("hidden", !limite);
+  // Le panneau reste toujours visible ; un tiret si la limite n'est pas connue.
+  $("gps-nav-limite").textContent = limite || "–";
+  $("gps-nav-limite").classList.toggle("inconnue", !limite);
   surveillerVitesse(kmh, limite);
   if (document.body.classList.contains("gps-hud")) majHud(kmh, limite);
 
@@ -1521,6 +1530,21 @@ let cable = false;
 function cablerBoutons() {
   if (cable) return;
   cable = true;
+  // Stations et aires : dérouler ou replier la fenêtre (choix retenu sur cet appareil).
+  const bascule = $("gps-nav-aires-bascule");
+  const appliquerRepli = (replie) => {
+    document.body.classList.toggle("gps-aires-replie", replie);
+    bascule.textContent = replie ? "⛽🌳" : "▾";
+    bascule.setAttribute("aria-expanded", String(!replie));
+  };
+  let repliePrecedent = false;
+  try { repliePrecedent = localStorage.getItem("gps_aires_replie") === "1"; } catch { /* navigation privée : choix non retenu */ }
+  appliquerRepli(repliePrecedent);
+  bascule.addEventListener("click", () => {
+    const replie = !document.body.classList.contains("gps-aires-replie");
+    try { localStorage.setItem("gps_aires_replie", replie ? "1" : "0"); } catch { /* sans stockage : le choix vaut pour cette fois */ }
+    appliquerRepli(replie);
+  });
   $("gps-nav-stop-btn").addEventListener("click", () => {
     if (confirm("Arrêter la navigation ?")) arreterNavigation();
   });

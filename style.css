@@ -1176,3 +1176,11 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 .gps-nav-aires > span { display: flex; align-items: center; gap: 8px; font-size: 16px; }
 .gps-nav-aires i { display: none; }
 .gps-nav-services-bas { font-size: 15px; }
+
+/* Panneau de limite toujours visible (tiret si inconnue) ; fenêtre stations/aires
+   plus étroite, dépliable */
+.gps-nav-limite.inconnue { color: #6b7280; font-size: 18px; }
+.gps-nav-aires { width: max-content; min-width: 0; padding: 6px 10px; gap: 3px; font-size: 13px; border-radius: 12px; }
+.gps-nav-aires > span { font-size: 13px; gap: 6px; }
+.gps-nav-aires-bascule { align-self: flex-start; min-width: 34px; height: 26px; padding: 0 8px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 15%); background: rgb(15 23 42 / 82%); color: #fff; font-size: 13px; font-weight: 800; line-height: 1; }
+body.gps-aires-replie .gps-nav-aires { display: none !important; }
