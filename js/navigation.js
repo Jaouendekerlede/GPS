@@ -1194,7 +1194,8 @@ function surPosition(p) {
   }
   etat.posBrute = { lat: p.lat, lon: p.lon, precision: p.precision, t: p.t, cap: p.cap, vitesse: p.vitesse };
   const precedent = etat.pos;
-  if (!Number.isFinite(p.vitesse) && precedent) {
+  // Vitesse GPS absente ou nulle (certains appareils ne la donnent pas) : on la déduit du déplacement.
+  if (!(p.vitesse > 0) && precedent) {
     const dt = (p.t - precedent.t) / 1000;
     p.vitesse = dt > 0 ? (haversineKm(precedent.lat, precedent.lon, p.lat, p.lon) * 1000) / dt : 0;
   }

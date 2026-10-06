@@ -20,8 +20,8 @@
 <link rel="manifest" href="./manifest.json" />
 <link rel="icon" href="./icons/gps-192.png" />
 <link rel="apple-touch-icon" href="./icons/gps-apple.png" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+<link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css" />
 <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -172,7 +172,8 @@
           <button type="button" class="gps-menu-ligne" data-vue="favoris"><span class="gps-menu-icone">⭐</span><span><span class="gps-menu-nom">Favoris et historique</span><span class="gps-menu-detail">Trajets favoris et trajets calculés</span></span></button>
       </div>
       <div class="gps-menu-titre">Outils</div>
-      <div class="gps-menu-groupe">
+      <details class="gps-menu-groupe gps-menu-deroule">
+        <summary class="gps-menu-ligne"><span class="gps-menu-icone">🧰</span><span><span class="gps-menu-nom">Outils et options</span><span class="gps-menu-detail">Recherches, rendez-vous, réglages rapides</span></span><span class="gps-menu-fleche" aria-hidden="true">▾</span></summary>
           <button type="button" class="gps-menu-ligne" data-pres="pharmacie"><span class="gps-menu-icone">💊</span><span><span class="gps-menu-nom">Pharmacie la plus proche</span><span class="gps-menu-detail">Recherche autour de moi</span></span></button>
           <button type="button" class="gps-menu-ligne" data-pres="urgences"><span class="gps-menu-icone">🏥</span><span><span class="gps-menu-nom">Urgences la plus proche</span><span class="gps-menu-detail">Hôpital avec urgences, autour de moi</span></span></button>
           <button type="button" class="gps-menu-ligne" data-action="importer-rdv"><span class="gps-menu-icone">📅</span><span><span class="gps-menu-nom">Rendez-vous (.ics)</span><span class="gps-menu-detail">Itinéraire et heure de départ conseillée</span></span></button>
@@ -189,7 +190,7 @@
           <button type="button" class="gps-menu-ligne" data-basculer="alerte_stops" data-id="gps-reglage-alerte-stops"><span class="gps-menu-icone">🛑</span><span><span class="gps-menu-nom">Stops et cédez-le-passage</span><span class="gps-menu-detail">Activés</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="zones_danger" data-id="gps-reglage-zones-danger"><span class="gps-menu-icone">⚠️</span><span><span class="gps-menu-nom">Zones de danger</span><span class="gps-menu-detail">Activées</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="feux" data-id="gps-reglage-feux"><span class="gps-menu-icone">🚦</span><span><span class="gps-menu-nom">Feux tricolores</span><span class="gps-menu-detail">Activés</span></span></button>
-      </div>
+      </details>
       <div class="gps-menu-titre">Profil et réglages</div>
       <div class="gps-menu-groupe">
           <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-navigation"><span class="gps-menu-icone">🧭</span><span><span class="gps-menu-nom">Navigation</span><span class="gps-menu-detail">Affichage, voix, alertes</span></span></button>
@@ -595,9 +596,9 @@
 
 <div id="gps-toast" class="gps-toast"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/leaflet/leaflet-rotate.js"></script>
+<script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script type="module" src="./js/main.js"></script>
 <!-- 🆘 SOS : position exacte, 112, consignes -->
 <div id="gps-sos" class="gps-sos hidden" role="dialog" aria-label="SOS">

@@ -9,7 +9,7 @@ import { calculerItineraireTomTom } from "./tomtom.js";
 import { haversineKm } from "./geo.js";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
-const MAPLIBRE = "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl";
+const MAPLIBRE = "vendor/maplibre/maplibre-gl";
 const POLICES = ["Noto Sans Regular", "Noto Sans Bold", "Noto Sans Italic"];
 // Latin de base et accents, puis ponctuation (’ « »…).
 const PLAGES_GLYPHES = ["0-255", "256-511", "8192-8447"];

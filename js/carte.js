@@ -429,7 +429,8 @@ export function fondSuivant() {
 }
 
 function definirDecalageBas2D(px) {
-  decalageBas = Math.max(0, px);
+  // Une mesure absente (undefined, NaN) donnerait NaN partout : on retient 0.
+  decalageBas = Number.isFinite(px) ? Math.max(0, px) : 0;
 }
 
 // Centre de la partie visible (au-dessus du panneau)

@@ -1190,3 +1190,10 @@ body.gps-daltonien .gps-nav-vitesse.exces { background: #c2410c; border-color: #
 body.gps-daltonien .gps-nav-vitesse.exces span { color: #fff; }
 body.gps-daltonien .gps-nav-limite { border-color: #1d4ed8; }
 body.gps-daltonien .gps-nav-danger { background: #c2410c; }
+
+/* Outils et options : un seul élément de menu qui se déplie */
+.gps-menu-deroule > summary { list-style: none; cursor: pointer; }
+.gps-menu-deroule > summary::-webkit-details-marker { display: none; }
+.gps-menu-fleche { margin-left: auto; opacity: .6; transition: transform .2s; }
+.gps-menu-deroule[open] > summary .gps-menu-fleche { transform: rotate(180deg); }
+.gps-menu-deroule > .gps-menu-ligne { padding-left: 28px; }

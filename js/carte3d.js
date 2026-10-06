@@ -13,7 +13,7 @@ import { lireRefusTomTom } from "./tomtom.js";
 import { svgVoiture } from "./icones-voiture.js";
 import { icone } from "./icones.js";
 
-const MAPLIBRE = "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl";
+const MAPLIBRE = "vendor/maplibre/maplibre-gl";
 const DELAI_CHARGEMENT_MS = 30000;
 // Inclinaison de la caméra en navigation (degrés) : plus elle est grande,
 // plus on voit loin devant, jusqu'à l'horizon. Réglable dans le Profil.
