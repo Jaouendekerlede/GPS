@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101820">
+  <title>Actualiser Trajet VE</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #101820; color: #f5f7f8; font: 16px system-ui, sans-serif; }
+    main { width: min(100%, 440px); }
+    h1 { font-size: 1.5rem; }
+    p { line-height: 1.5; }
+    #status { min-height: 3em; }
+    button { border: 0; border-radius: 10px; padding: 14px 18px; background: #35c878; color: #07140d; font: inherit; font-weight: 700; }
+    button:disabled { opacity: .65; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Actualiser Trajet VE</h1>
+    <p id="status" role="status" aria-live="polite">Vérification de la version en ligne…</p>
+    <button id="retry" type="button" hidden>Réessayer</button>
+  </main>
+  <script>
+    const status = document.getElementById("status");
+    const retry = document.getElementById("retry");
+    const VERSION_ATTENDUE = 98;
+
+    function versionEnCache(noms) {
+      const versions = noms
+        .map((nom) => /^trajetve-v(\d+)$/.exec(nom))
+        .filter(Boolean)
+        .map((match) => Number(match[1]));
+      return versions.length ? Math.max(...versions) : 0;
+    }
+
+    async function attendreActivation(inscription) {
+      const travailleur = inscription.installing || inscription.waiting;
+      if (!travailleur || travailleur.state === "activated") return;
+      await new Promise((resolve, reject) => {
+        const delai = setTimeout(() => {
+          travailleur.removeEventListener("statechange", verifier);
+          reject(new Error("La nouvelle version met trop de temps à s’installer."));
+        }, 60000);
+        function verifier() {
+          if (travailleur.state === "activated") {
+            clearTimeout(delai);
+            resolve();
+          } else if (travailleur.state === "redundant") {
+            clearTimeout(delai);
+            reject(new Error("Le navigateur a interrompu l’installation."));
+          }
+        }
+        travailleur.addEventListener("statechange", verifier);
+        verifier();
+      });
+    }
+
+    async function actualiser() {
+      retry.hidden = true;
+      retry.disabled = true;
+      status.textContent = "Téléchargement de la mise à jour…";
+      try {
+        if (!navigator.onLine) throw new Error("Connecte le téléphone à Internet puis réessaie.");
+        if (!("serviceWorker" in navigator)) throw new Error("Ce navigateur ne prend pas en charge l’application installée.");
+        const inscription = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+        await inscription.update();
+        await attendreActivation(inscription);
+        const version = versionEnCache(await caches.keys());
+        if (version < VERSION_ATTENDUE) throw new Error(`La mise à jour n’est pas encore installée (version locale ${version || "inconnue"}). Réessaie dans un instant.`);
+        status.textContent = `Version ${version} installée. Ouvre maintenant l’application Trajet VE.`;
+      } catch (erreur) {
+        console.error("[MAJ] Échec de l’actualisation", erreur);
+        status.textContent = `Échec de la mise à jour : ${erreur.message}`;
+        retry.hidden = false;
+      } finally {
+        retry.disabled = false;
+      }
+    }
+
+    retry.addEventListener("click", actualiser);
+    actualiser();
+  </script>
+</body>
+</html>

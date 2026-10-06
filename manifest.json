@@ -1,28 +1,35 @@
 {
-  "id": "./",
-  "name": "GPS — navigation",
+  "name": "GPS",
   "short_name": "GPS",
+  "description": "Planification de trajet en véhicule électrique avec recherche de bornes réelles",
   "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#171b20",
-  "theme_color": "#171b20",
-  "description": "Itinéraires, carte et guidage GPS sans compte ni clé API.",
-  "orientation": "any",
   "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "fr",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./trajet-waze-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "./trajet-waze-512.png",
+      "src": "./icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./trajet-waze-maskable-512.png",
+      "src": "./icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -30,24 +37,38 @@
   ],
   "shortcuts": [
     {
-      "name": "Favoris",
-      "short_name": "Favoris",
-      "url": "./index.html?action=favoris",
+      "name": "Trajet vers la maison",
+      "short_name": "Chez moi",
+      "url": "./index.html?action=maison",
       "icons": [
         {
-          "src": "./trajet-waze-192.png",
-          "sizes": "192x192"
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
     {
-      "name": "Démo",
-      "short_name": "Démo",
-      "url": "./index.html?action=demo",
+      "name": "Bornes autour de moi",
+      "short_name": "Bornes",
+      "url": "./index.html?action=bornes",
       "icons": [
         {
-          "src": "./trajet-waze-192.png",
-          "sizes": "192x192"
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Où est garée ma voiture",
+      "short_name": "Ma voiture",
+      "url": "./index.html?action=voiture",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }

@@ -1,0 +1,16 @@
+Copyright (c) 2026 Jean-Luc RIO. Tous droits reserves. / All rights reserved.
+
+Ce logiciel (code source, conception, textes, graphismes) est la propriete
+exclusive de Jean-Luc RIO. Aucune licence n'est accordee : il est interdit de
+copier, reproduire, modifier, adapter, distribuer, publier, decompiler ou
+reutiliser tout ou partie de ce logiciel sans l'autorisation ecrite prealable
+de l'auteur (articles L.122-4 et L.335-2 du Code de la propriete
+intellectuelle).
+
+This software is the exclusive property of Jean-Luc RIO. No licence is
+granted. Any copying, modification, distribution or reuse, in whole or in
+part, without prior written permission of the author is prohibited.
+
+Composants et donnees tiers (Leaflet, MapLibre GL JS, leaflet-rotate,
+Leaflet.markercluster, Chart.js, OpenStreetMap, OpenFreeMap, TomTom, Open
+Charge Map...) : ils restent soumis a leurs propres licences et conditions.

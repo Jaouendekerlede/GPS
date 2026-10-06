@@ -1,270 +1,1017 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#181c22" />
-    <meta name="description" content="Planifiez votre itinéraire sur une carte, au bureau ou sur votre téléphone." />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>GPS — itinéraires</title>
-    <link rel="manifest" href="./manifest.json" />
-    <link rel="icon" href="./trajet-waze.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./trajet-waze.png" />
-    <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main class="app">
-      <div id="map" aria-label="Carte interactive"></div>
-      <div id="map3d" aria-label="Carte 3D"></div>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+<meta name="author" content="Jean-Luc RIO">
+<meta name="copyright" content="© 2026 Jean-Luc RIO — Tous droits réservés">
+<title>GPS</title>
+<meta name="theme-color" content="#05080e" />
+<script>
+  // Thème appliqué avant l'affichage (évite un flash sombre en thème clair).
+  try {
+    var choix = JSON.parse(localStorage.getItem("trajetve_reglages") || "{}").theme || "sombre";
+    if (choix === "auto") choix = matchMedia("(prefers-color-scheme: light)").matches ? "clair" : "sombre";
+    document.documentElement.dataset.theme = choix;
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://api.tomtom.com" />
+<link rel="preconnect" href="https://tile.openstreetmap.org" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icons/icon-192.png" />
+<link rel="apple-touch-icon" href="./icons/icon-192.png" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<div id="ev-presentation" class="ev-presentation hidden" role="dialog" aria-label="Présentation">
+  <img src="./icons/icon-192.png" alt="" width="96" height="96">
+  <h1>GPS</h1>
+  <p class="ev-presentation-sous">Vos trajets et recharges en voiture électrique</p>
+  <p class="ev-presentation-mention"></p>
+  <p class="ev-presentation-legal"></p>
+  <p class="ev-presentation-suite">Toucher pour continuer</p>
+</div>
 
-      <header class="topbar">
-        <button class="install-button" id="installBtn" type="button" hidden>Installer l’app</button>
-        <button class="top-action" id="menuBtn" type="button" aria-label="Paramètres du GPS" title="Paramètres">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.2 13.6 1.2.9-1.5 2.6-1.4-.5a7.5 7.5 0 0 1-1.6.9l-.2 1.5h-3l-.3-1.5a7.5 7.5 0 0 1-1.6-.9l-1.4.5-1.5-2.6 1.2-.9a7.2 7.2 0 0 1 0-1.8l-1.2-.9 1.5-2.6 1.4.5a7.5 7.5 0 0 1 1.6-.9l.3-1.5h3l.2 1.5a7.5 7.5 0 0 1 1.6.9l1.4-.5 1.5 2.6-1.2.9a7.2 7.2 0 0 1 0 1.8Z"/></svg>
-        </button>
-      </header>
+<!-- Carte plein écran -->
+<div id="ev-carte" class="ev-carte"></div>
+<!-- Carte 3D de la navigation (MapLibre), chargée à la demande -->
+<div id="ev-carte-3d" class="ev-carte ev-carte-3d hidden"></div>
 
-      <section class="direction-sign" id="directionSign" aria-live="polite" aria-label="Panneau de direction" hidden>
-        <div class="sign-panel sign-local" id="signPanel">
-          <span class="sign-kicker" id="signKicker">PROCHAINE DIRECTION</span>
-          <span class="sign-arrow" id="signArrow" aria-hidden="true">↑</span>
-          <strong id="signRoad">Calcul de l’itinéraire</strong>
-          <span class="sign-destination" id="signDestination">Les panneaux apparaîtront avec le guidage</span>
-          <strong class="sign-distance" id="signDistance"></strong>
-          <span class="sign-exit" id="signExit" hidden></span>
-        </div>
-      </section>
+<!-- Barre du haut : recherche + filtres -->
+<header class="ev-haut">
+  <div class="ev-haut-ligne">
+    <button id="ev-recherche-rapide" class="ev-barre-recherche" type="button">
+      <span class="ev-loupe">🔍</span><span>Où allez-vous ?</span>
+    </button>
+  </div>
+  <div class="ev-chips" id="ev-filtres">
+    <button class="ev-chip" type="button" data-filtre="rapide">⚡ Rapide</button>
+    <button class="ev-chip" type="button" data-filtre="cb">💳 Carte bancaire</button>
+    <button class="ev-chip" type="button" data-filtre="payable" title="Bornes où tes moyens de paiement passent (Menu › Payer aux bornes)">✅ Je peux payer</button>
+    <button class="ev-chip" type="button" data-filtre="compatible">🔌 Mes prises</button>
+    <button class="ev-chip" type="button" data-filtre="h24">🕐 24h/24</button>
+    <button class="ev-chip" type="button" data-filtre="gratuit">🎁 Gratuit</button>
+    <button class="ev-chip" type="button" id="ev-parkings-chip" title="Afficher les parkings (OpenStreetMap)">🅿️ Parkings</button>
+    <button class="ev-chip" type="button" id="ev-trafic-chip" title="Trafic en couleur sur les routes (TomTom)">🚦 Trafic</button>
+    <button class="ev-chip" type="button" id="ev-autonomie-chip" title="Jusqu'où je peux aller avec la batterie">🔋 Autonomie</button>
+    <button class="ev-chip hidden" type="button" id="ev-voiture-chip" title="Où est garée ma voiture">🚗 Ma voiture</button>
+  </div>
+  <button type="button" id="ev-cles-manquantes" class="ev-bandeau hidden">⚠️ Clés API manquantes : touche ici pour les ajouter (Menu › Clés API).</button>
+</header>
 
-      <section class="nearby-services card" id="nearbyServices" aria-label="Services à proximité" aria-live="polite" hidden>
-        <div class="nearby-row">
-          <span aria-hidden="true">⛽</span>
-          <div><small>Station-service</small><strong id="nearbyFuel">Recherche…</strong></div>
-        </div>
-        <div class="nearby-row">
-          <span aria-hidden="true">🅿️</span>
-          <div><small>Aire de repos</small><strong id="nearbyRest">Recherche…</strong></div>
-        </div>
-      </section>
+<!-- Boutons flottants sur la carte -->
+<div class="ev-fabs">
+  <button id="ev-urgence-btn" class="ev-fab ev-fab-urgence" type="button" title="Mode urgence : bornes les plus proches"><span class="ev-fab-sos">SOS</span></button>
+  <button id="ev-fond-btn" class="ev-fab" type="button" title="Changer le fond de carte"></button>
+  <button id="ev-carte3d-btn" class="ev-fab ev-fab-texte" type="button" title="Carte en 3D / 2D">3D</button>
+  <button id="ev-localiser-btn" class="ev-fab" type="button" title="Me localiser" data-icone="localiser"></button>
+</div>
 
-      <section class="lane-guidance card" id="laneGuidance" aria-label="Positionnement sur les voies" hidden>
-        <div class="lane-guidance-head"><span>VOIES À SUIVRE</span><span id="laneRoad">Guidage</span></div>
-        <div class="lane-track" id="laneTrack" aria-live="polite">
-          <span class="lane-unknown">Données de voies non disponibles</span>
-        </div>
-        <div class="lane-caption" id="laneCaption">Les informations de voies dépendent de la carte locale.</div>
-      </section>
+<!-- Point choisi sur la carte en planification (appui long) -->
+<div id="ev-plan-point" class="ev-nav-carte hidden">
+  <div class="ev-nav-carte-titre ev-titre-fermer">📍 Point choisi <button type="button" class="ev-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
+  <button type="button" class="ev-btn" data-point="etape">➕ Passer par ici</button>
+</div>
 
-      <section class="planner card" aria-label="Calculer un itinéraire">
-        <div class="planner-topline">
-          <span class="eyebrow">VOTRE TRAJET</span>
-          <span class="secure-label"><i></i> Planification</span>
-        </div>
-        <div class="place-fields">
-          <div class="place-row">
-            <span class="place-marker origin" aria-hidden="true"><i></i></span>
-            <input id="fromInput" type="text" value="Ma position" autocomplete="off" aria-label="Point de départ" />
-            <button class="input-action" id="locateBtn" type="button" title="Utiliser ma position" aria-label="Utiliser ma position">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
-            </button>
-          </div>
-          <div id="viaFields"></div>
-          <div class="field-connector" aria-hidden="true"><span></span></div>
-          <div class="place-row">
-            <span class="place-marker destination" aria-hidden="true"><i></i></span>
-            <input id="toInput" type="text" value="" autocomplete="off" aria-label="Destination" list="recentList" />
-            <datalist id="recentList"></datalist>
-            <button class="input-action" id="swapBtn" type="button" title="Inverser départ et destination" aria-label="Inverser départ et destination">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v15m0 0-4-4m4 4 4-4M17 20V5m0 0 4 4m-4-4-4 4"/></svg>
-            </button>
-          </div>
-        </div>
-        <button class="add-via-button" id="addViaBtn" type="button">＋ Ajouter une étape via</button>
-        <div class="planner-footer">
-          <label class="transport-mode" for="profileSelect"><span aria-hidden="true">◉</span>
-            <select id="profileSelect" aria-label="Mode de déplacement">
-              <option value="driving">En voiture</option>
-              <option value="cycling">À vélo</option>
-              <option value="foot">À pied</option>
-            </select>
-          </label>
-          <button class="route-button" id="routeBtn" type="button">
-            <span>Calculer le trajet</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-          </button>
-        </div>
-        <p class="status" id="routeStatus" role="status" aria-live="polite">Saisissez vos adresses pour calculer le trajet.</p>
-      </section>
+<!-- Panneau coulissant -->
+<section id="ev-feuille" class="ev-feuille" data-etat="bas">
+  <div id="ev-poignee" class="ev-poignee-zone"><div class="ev-poignee"></div></div>
+  <div id="ev-feuille-corps" class="ev-feuille-corps">
 
-      <section class="route-options card" id="routeOptions" aria-label="Choisir parmi les itinéraires" hidden>
-        <div class="options-heading"><span>ITINÉRAIRES</span><span id="routeCount">—</span></div>
-        <div class="route-choice-list" id="routeChoiceList"></div>
-      </section>
+    <!-- ══ Bornes autour ══ -->
+    <div id="vue-bornes" class="ev-vue">
+      <div class="ev-vue-entete">
+        <h2 id="ev-bornes-titre">📍 Bornes à proximité</h2>
+        <button id="ev-recherche-effacer" class="ev-lien hidden" type="button">✕ Effacer la recherche</button>
+      </div>
+      <div class="ev-legende">
+        <span><i class="ev-point ultra"></i>≥150 kW</span>
+        <span><i class="ev-point rapide"></i>50–149</span>
+        <span><i class="ev-point acc"></i>22–49</span>
+        <span><i class="ev-point lent"></i>&lt;22</span>
+        <span><b class="ev-mini-cb">CB</b> carte acceptée</span>
+      </div>
+      <div id="ev-bornes-liste" class="ev-liste"></div>
+    </div>
 
-      <div class="map-tools" aria-label="Outils de carte">
-        <div class="style-tools" aria-label="Style de carte">
-          <button class="poi-tool mode-tool" type="button" data-style="standard" aria-pressed="true" title="Carte de jour"><span aria-hidden="true">☀️</span><small>Jour</small></button>
-          <button class="poi-tool mode-tool" type="button" data-style="dark" aria-pressed="false" title="Carte de nuit"><span aria-hidden="true">🌙</span><small>Nuit</small></button>
-          <button class="poi-tool mode-tool" type="button" data-style="satellite" aria-pressed="false" title="Vue satellite"><span aria-hidden="true">🛰️</span><small>Satellite</small></button>
-          <button class="poi-tool mode-3d-tool" id="mapModeBtn" type="button" aria-pressed="false" title="Activer la vue 3D">3D</button>
-        </div>
-        <a class="poi-tool sos-tool" href="tel:112" title="Appeler le 112"><span aria-hidden="true">🆘</span><small>SOS</small></a>
-        <button class="map-tool location-tool" id="recenterBtn" type="button" title="Recentrer la carte" aria-label="Recentrer la carte">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
-        </button>
+    <!-- ══ Fiche borne ══ -->
+    <div id="vue-borne" class="ev-vue hidden">
+      <button id="ev-borne-retour" class="ev-retour" type="button">‹ Retour</button>
+      <div id="ev-borne-contenu"></div>
+      <div class="ev-carte-bloc">
+        <label class="ev-champ">📝 Note personnelle
+          <textarea id="ev-station-note-input" class="ev-input" rows="2" placeholder="Ex : accès difficile, souvent occupée…"></textarea>
+        </label>
+        <button id="ev-station-note-save-btn" class="ev-btn-secondaire" type="button">Enregistrer la note</button>
+      </div>
+    </div>
+
+    <!-- ══ Préparer un trajet ══ -->
+    <div id="vue-trajet" class="ev-vue hidden">
+      <div class="ev-vue-entete">
+        <h2>🧭 Planifier un trajet <span id="ev-vehicule-badge" class="ev-vehicule-badge"></span></h2>
       </div>
 
-      <section class="route-card card" id="routeCard" aria-label="Résumé de l'itinéraire" data-expanded="false">
-        <button class="sheet-grip" id="sheetToggle" type="button" aria-label="Afficher le détail du trajet"><span></span></button>
-        <div class="route-card-head">
-          <div class="arrival">
-            <span class="arrival-time" id="arrivalTime">--:--</span>
-            <span class="arrival-label">Arrivée estimée</span>
+      <div class="ev-itineraire-champs">
+        <div class="ev-itineraire-points"><i class="ev-pt-depart"></i><i class="ev-pt-ligne"></i><i class="ev-pt-arrivee"></i></div>
+        <div class="ev-itineraire-saisies">
+          <span class="ev-input-row">
+            <input type="text" id="ev-depart-input" class="ev-input" placeholder="Départ (vide = ma position)" aria-label="Départ">
+            <button id="ev-depart-clear-btn" class="ev-mini-btn" type="button" title="Effacer le départ">🧹</button>
+            <button id="ev-depart-gps-btn" class="ev-mini-btn" type="button" title="Ma position">📍</button>
+          </span>
+          <span class="ev-input-row">
+            <input type="text" id="ev-via-input" class="ev-input" placeholder="Via (étape facultative)" enterkeyhint="done" aria-label="Étape : passer par">
+            <button id="ev-via-ajouter-btn" class="ev-mini-btn" type="button" title="Ajouter cette étape">➕</button>
+          </span>
+          <span class="ev-input-row">
+            <input type="text" id="ev-destination-input" class="ev-input" placeholder="Destination (ville, adresse…)" enterkeyhint="go" aria-label="Destination">
+            <button id="ev-destination-clear-btn" class="ev-mini-btn" type="button" title="Effacer la destination">🧹</button>
+            <button id="ev-destination-micro" class="ev-mini-btn" type="button" title="Dicter la destination">🎤</button>
+          </span>
+          <div class="ev-raccourcis-dest">
+            <button type="button" class="ev-chip" data-dest="Chez moi">🏠 Chez moi</button>
+            <button type="button" class="ev-chip" data-dest="Travail">💼 Travail</button>
+            <button type="button" class="ev-chip hidden" id="ev-suggestion-trajet"></button>
           </div>
-          <div class="trip-stats">
-            <strong id="routeDuration">—</strong>
-            <span id="routeDistance">En attente de l’itinéraire</span>
-          </div>
-          <button class="go-button" id="startDriveBtn" type="button" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 5.2 6a2 2 0 0 1 1.9-1.3h9.8A2 2 0 0 1 18.8 6l2.2 5.5V19h-2v-2H5v2H3zm3.2-.5h11.6l-1.3-4h-9zM6.5 14a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4m11 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4"/></svg>
-            <span>Partir</span>
-          </button>
-          <button class="demo-button" id="demoBtn" type="button" disabled title="Simuler le trajet sans GPS">🎬 Démo</button>
+          <div class="ev-chips hidden" id="ev-points-passage-liste"></div>
+          <p class="ev-hint">💡 Pour passer par une ville, écris-la dans « Via ». Un appui long sur la carte ajoute aussi une étape. La flèche ⬆ fait passer une étape avant la précédente.</p>
         </div>
-        <div class="route-detail">
-          <div class="detail-heading">
-            <div><span class="eyebrow">ITINÉRAIRE CONSEILLÉ</span><span class="source-tag">OpenStreetMap</span></div>
-            <button class="save-button" id="saveRouteBtn" type="button" aria-label="Enregistrer ce trajet" title="Enregistrer ce trajet">☆</button>
-          </div>
-          <div class="route-line-summary">
-            <span class="route-bullet"></span>
-            <div><strong id="routeName">Calculé à la demande</strong><small id="routeNote">Temps indicatif — trafic en direct non disponible</small></div>
-          </div>
-          <div class="steps-heading">Étapes principales</div>
-          <ol class="steps-list" id="stepsList"><li>Les étapes apparaîtront après le calcul du trajet.</li></ol>
-          <div class="data-note">
-            <span aria-hidden="true">ⓘ</span>
-            <span>Carte © OpenStreetMap · Temps de trajet estimé, sans données de trafic en direct.</span>
-          </div>
+        <button id="ev-inverser-btn" class="ev-mini-btn ev-inverser" type="button" title="Inverser départ et destination">⇅</button>
+      </div>
+
+      <div class="ev-carte-bloc">
+        <label class="ev-champ"><span class="ev-champ-titre">Batterie au départ : <span id="ev-charge-pct-value" class="ev-valeur">100</span> %</span>
+          <div class="ev-jauge"><div id="ev-charge-pct-fill" class="ev-jauge-remplissage"></div></div>
+          <input type="range" min="1" max="100" value="100" id="ev-charge-pct-input" class="ev-curseur">
+          <span id="ev-charge-km" class="ev-km-estime"></span>
+        </label>
+        <div class="ev-charge-mode-row">
+          <button type="button" class="ev-charge-mode-btn" data-mode="rapide">⚡<span>Rapide</span></button>
+          <button type="button" class="ev-charge-mode-btn" data-mode="economique">💶<span>Éco</span></button>
+          <button type="button" class="ev-charge-mode-btn active" data-mode="confort">🛋️<span>Confort</span></button>
+          <button type="button" class="ev-charge-mode-btn" data-mode="prudent">🛡️<span>Prudent</span></button>
         </div>
-      </section>
+        <details class="ev-sous-menu ev-recharge-details">
+          <summary id="ev-recharge-resume">🔋 Recharges</summary>
+        <label class="ev-champ">🔌 Recharger à
+          <select id="ev-arret-impose" class="ev-input"><option value="">Automatique (le meilleur arrêt)</option></select>
+        </label>
+        <div id="ev-arret-impose-aide" class="ev-hint"></div>
+        <label class="ev-champ"><span class="ev-champ-titre">Marge de sécurité (mini à l'arrivée à une borne) : <span id="ev-marge-pct-value" class="ev-valeur">15</span> %</span>
+          <input type="range" min="5" max="30" value="15" id="ev-marge-pct-input" class="ev-curseur">
+          <span id="ev-marge-km" class="ev-km-estime"></span>
+        </label>
+        <label class="ev-champ"><span class="ev-champ-titre">Recharger jusqu'à : <span id="ev-cible-pct-value" class="ev-valeur">80</span> %</span>
+          <input type="range" min="50" max="100" value="80" id="ev-cible-pct-input" class="ev-curseur">
+          <span id="ev-cible-km" class="ev-km-estime"></span>
+        </label>
+        </details>
+      </div>
 
-      <nav class="bottom-nav" aria-label="Navigation">
-        <button class="nav-item active" type="button" data-action="map"><span aria-hidden="true">⌖</span>Carte</button>
-        <button class="nav-item" id="savedRoutesBtn" type="button"><span aria-hidden="true">☆</span>Favoris</button>
-        <button class="nav-item" id="shareBtn" type="button"><span aria-hidden="true">↗</span>Partager</button>
-      </nav>
-      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <details class="ev-accordeon">
+        <summary>⚙️ Options avancées</summary>
+        <div class="ev-colonne">
+          <label class="ev-check"><input type="checkbox" id="ev-preferer-cb-checkbox" checked> 💳 Privilégier les bornes qui acceptent la carte bancaire</label>
+          <label class="ev-check"><input type="checkbox" id="ev-modele-detaille-checkbox" checked> 📈 Calcul détaillé : vitesse réelle et relief (décoché : conso constante, comme JARVIS)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-ajuster-meteo-checkbox"> 🌦️ Météo réelle sur le trajet : froid, chaleur, pluie, vent</label>
+          <div class="ev-zones-evitees">
+            <div class="ev-hint">🚧 Routes coupées à éviter (travaux connus avant de partir) :</div>
+            <div id="ev-zones-evitees-liste"></div>
+            <button id="ev-zone-eviter-btn" class="ev-btn" type="button">🚧 Marquer une route coupée sur la carte</button>
+          </div>
+          <label class="ev-check"><input type="checkbox" id="ev-plus-court-checkbox"> 📏 Itinéraire le plus court (au lieu du plus rapide)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-eviter-autoroutes-checkbox"> 🚗 Éviter les autoroutes</label>
+          <label class="ev-check"><input type="checkbox" id="ev-eviter-peages-checkbox"> 🛣️ Éviter les péages</label>
+          <label class="ev-check"><input type="checkbox" id="ev-eviter-ferries-checkbox"> ⛴️ Éviter les ferries</label>
+          <label class="ev-check"><input type="checkbox" id="ev-eviter-zfe-checkbox"> 🚫 Éviter les zones à faibles émissions</label>
+          <label class="ev-check"><input type="checkbox" id="ev-eviter-non-revetues-checkbox"> 🪨 Éviter les routes non revêtues</label>
+          <label class="ev-check"><input type="checkbox" id="ev-charge-lourde-checkbox"> 🚲 Remorque / charge lourde (+35 % de conso)</label>
+          <label class="ev-champ">🕐 Départ prévu (vide = maintenant)
+            <input type="datetime-local" id="ev-depart-prevu-input" class="ev-input">
+          </label>
+          <label class="ev-champ">Puissance mini aux arrêts (kW, 0 = indifférent)
+            <input type="number" min="0" step="10" value="0" id="ev-puissance-min-input" class="ev-input" inputmode="numeric">
+          </label>
+          <label class="ev-champ">Alerte si le coût total dépasse (€, vide = aucune)
+            <input type="number" min="0" step="1" id="ev-seuil-cout-input" class="ev-input" placeholder="Ex : 15" inputmode="decimal">
+          </label>
+        </div>
+      </details>
 
-      <dialog class="app-dialog" id="savedDialog">
-        <form method="dialog">
-          <div class="dialog-kicker">VOS TRAJETS</div>
-          <h2>Favoris enregistrés</h2>
-          <div class="saved-routes" id="savedRoutesList"></div>
-          <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>
-        </form>
-      </dialog>
+      <button id="ev-trajet-run-btn" class="ev-btn-principal" type="button">Calculer le trajet</button>
+      <div id="ev-trajet-erreur" class="ev-alerte hidden"></div>
+      <div class="ev-grille-2">
+        <button id="ev-aller-retour-btn" class="ev-btn" type="button">↩️ Avec le retour</button>
+        <button id="ev-scenarios-btn" class="ev-btn" type="button">📊 Comparer les modes</button>
+        <button id="ev-favori-trajet-btn" class="ev-btn" type="button">☆ Trajet favori</button>
+        <button id="ev-voir-resultat-btn" class="ev-btn hidden" type="button">🗺️ Dernier résultat</button>
+      </div>
+      <div id="ev-scenarios-table" class="ev-scenarios hidden"></div>
+    </div>
 
-      <dialog class="app-dialog settings-dialog" id="settingsDialog">
-        <form method="dialog">
-          <div class="dialog-kicker">PERSONNALISATION</div>
-          <h2>Paramètres du GPS</h2>
-          <p class="settings-intro">Réglez l’affichage et le guidage de GPS.</p>
+    <!-- ══ Résultat du trajet ══ -->
+    <div id="vue-resultat" class="ev-vue hidden">
+      <div class="ev-vue-entete">
+        <h2 id="ev-resultat-titre">🧭 Itinéraire</h2>
+        <span class="ev-entete-btns">
+          <button id="ev-modifier-btn" class="ev-lien" type="button">✏️ Modifier</button>
+          <button id="ev-quitter-trajet-btn" class="ev-lien" type="button">✕ Quitter</button>
+        </span>
+      </div>
+      <div id="ev-trajet-summary"></div>
+      <div id="ev-itineraires" class="ev-carte-bloc ev-itineraires hidden"></div>
+      <button id="ev-nav-demarrer-btn" class="ev-btn-principal ev-btn-go" type="button">▶ Démarrer la navigation</button>
+      <button id="ev-nav-demo-btn" class="ev-lien ev-lien-centre" type="button">🎬 Essayer en mode démo (trajet simulé)</button>
+      <div id="ev-cout-alerte" class="ev-alerte hidden"></div>
+      <div class="ev-carte-bloc">
+        <button id="ev-vitesse-btn" class="ev-btn" type="button">🐢 Et si je roulais à 110 km/h maximum ?</button>
+        <div id="ev-vitesse-resultat" class="ev-hint hidden"></div>
+      </div>
 
-          <div class="menu-titre">Mes trajets</div>
-          <button type="button" class="menu-ligne" id="menuFavoris"><span aria-hidden="true">⭐</span><span><strong>Favoris et trajets enregistrés</strong><small>Retrouver et relancer un trajet</small></span></button>
-          <button type="button" class="menu-ligne" id="settingsShareBtn"><span aria-hidden="true">↗</span><span><strong>Partager le trajet</strong><small>Envoyer l’itinéraire à un proche</small></span></button>
-          <div class="menu-titre">Aide</div>
-          <button type="button" class="menu-ligne" id="menuAide"><span aria-hidden="true">❓</span><span><strong>Aide et astuces</strong><small>Comment utiliser GPS</small></span></button>
-          <p class="menu-aide" id="menuAideTexte" hidden>Recherchez une adresse de départ et d’arrivée, puis « Calculer le trajet ». « Partir » lance le guidage vocal. Les stations-service et aires de repos les plus proches s’affichent pendant la conduite. Les données viennent d’OpenStreetMap : le temps de trajet est estimé, sans trafic en direct.</p>
-          <div class="menu-titre">Mes données</div>
-          <button type="button" class="menu-ligne" id="exportDataBtn"><span aria-hidden="true">💾</span><span><strong>Sauvegarder mes réglages et favoris</strong><small>Télécharge un fichier (sans la clé TomTom)</small></span></button>
-          <button type="button" class="menu-ligne" id="importDataBtn"><span aria-hidden="true">📂</span><span><strong>Restaurer une sauvegarde</strong><small>Choisir un fichier de sauvegarde</small></span></button>
-          <input type="file" id="importFile" accept="application/json" hidden />
-          <button type="button" class="menu-ligne" id="copyLogBtn"><span aria-hidden="true">🩺</span><span><strong>Copier le journal de diagnostic</strong><small>Erreurs récentes, à envoyer en cas de problème</small></span></button>
-          <p class="menu-version" id="appVersion"></p>
+      <div id="ev-etapes" class="ev-etapes"></div>
 
-          <label class="setting-select-row" for="unitsSetting">
-            <span><strong>Unités de distance</strong><small>Distances de trajet et indications</small></span>
-            <select id="unitsSetting"><option value="km">Kilomètres</option><option value="mi">Miles</option></select>
-          </label>
-          <label class="setting-select-row" for="mapStyleSetting">
-            <span><strong>Style de carte</strong><small>Jour, nuit, satellite ou TomTom</small></span>
-            <select id="mapStyleSetting"><option value="standard">Clair</option><option value="dark">Sombre</option><option value="satellite">Satellite</option><option value="tomtom">Clair (TomTom)</option><option value="tomtom-night">Nuit (TomTom)</option></select>
-          </label>
-          <label class="setting-text-row" for="tomtomKeySetting">
-            <span><strong>Clé API TomTom</strong><small>Pour les fonds TomTom. Gardée seulement sur cet appareil.</small></span>
-            <input id="tomtomKeySetting" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Collez votre clé" />
-          </label>
+      <div id="ev-domicile-box" class="ev-domicile hidden"></div>
+      <div id="ev-confiance-box" class="ev-carte-bloc"></div>
 
-          <div class="menu-titre">Affichage sur la carte</div>
-          <label class="setting-toggle">
-            <span><strong>Stations-service</strong><small>Visibles sur la carte et sur le trajet</small></span>
-            <input id="poiFuelSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Feux de circulation</strong><small>Visibles sur la carte et sur le trajet</small></span>
-            <input id="poiSignalsSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Radars cartographiés</strong><small>Visibles sur la carte et sur le trajet</small></span>
-            <input id="poiCamerasSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Mode nuit automatique</strong><small>Carte sombre de 20 h à 7 h</small></span>
-            <input id="autoNightSetting" type="checkbox" /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Zoom intelligent</strong><small>Adapte le zoom à la vitesse et aux intersections</small></span>
-            <input id="autoZoomSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Vue orientée dans le sens du trajet</strong><small>Suit le cap GPS en vue 3D pendant le guidage</small></span>
-            <input id="headingSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Instructions vocales</strong><small>Lecture des prochaines manœuvres si disponible</small></span>
-            <input id="voiceSetting" type="checkbox" /><i></i>
-          </label>
-          <label class="setting-select-row" for="voiceVolumeSetting">
-            <span><strong>Volume de la voix</strong><small>Niveau des annonces vocales</small></span>
-            <select id="voiceVolumeSetting"><option value="1">Fort</option><option value="0.6">Moyen</option><option value="0.3">Faible</option></select>
-          </label>
-          <label class="setting-select-row" for="voiceFrequencySetting">
-            <span><strong>Annonces</strong><small>Toutes les manœuvres, ou seulement les carrefours</small></span>
-            <select id="voiceFrequencySetting"><option value="all">Toutes</option><option value="crossroads">Carrefours seulement</option></select>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Vibration aux manœuvres</strong><small>Vibre à chaque changement de direction</small></span>
-            <input id="vibrationSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-select-row" for="demoSpeedSetting">
-            <span><strong>Vitesse de la démo</strong><small>Rythme de la simulation de trajet</small></span>
-            <select id="demoSpeedSetting"><option value="2">Lente</option><option value="4">Normale</option><option value="8">Rapide</option></select>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Garder l’écran allumé</strong><small>Uniquement pendant le guidage, si pris en charge</small></span>
-            <input id="wakeLockSetting" type="checkbox" checked /><i></i>
-          </label>
-          <label class="setting-toggle">
-            <span><strong>Vue 3D</strong><small>Carte en perspective avec les bâtiments. Se règle aussi ici, à tout moment</small></span>
-            <input id="default3dSetting" type="checkbox" /><i></i>
-          </label>
-          <label class="setting-select-row" for="map3dSourceSetting">
-            <span><strong>Fond de la vue 3D</strong><small>TomTom si la clé est enregistrée, sinon OpenFreeMap</small></span>
-            <select id="map3dSourceSetting"><option value="openfreemap">OpenFreeMap</option><option value="tomtom">TomTom</option></select>
-          </label>
+      <div id="ev-result-actions" class="ev-actions-rangee">
+        <a id="ev-maps-link" class="ev-action" href="#" target="_blank" rel="noopener"><span>🧭</span>Maps</a>
+        <button id="ev-partager-btn" class="ev-action" type="button"><span>📤</span>Partager</button>
+        <button id="ev-export-btn" class="ev-action" type="button"><span>⬇️</span>Exporter</button>
+        <button id="ev-qrcode-btn" class="ev-action" type="button"><span>📱</span>QR code</button>
+        <button id="ev-hors-ligne-btn" class="ev-action" type="button" title="Télécharger la carte et le guidage de ce trajet pour rouler sans réseau"><span>📥</span>Hors ligne</button>
+      </div>
+      <div id="ev-qrcode-box" class="ev-qrcode hidden"></div>
 
-          <div class="settings-note">Le zoom et les indications s’appuient sur le GPS et les détails présents dans OpenStreetMap. Les cartes et le guidage nécessitent une connexion Internet.</div>
-          <div class="dialog-actions"><button class="dialog-cancel" value="close">Fermer</button></div>
-        </form>
-      </dialog>
-    </main>
+      <div id="ev-profil-trajet" class="ev-carte-bloc hidden">
+        <h3>📈 Profil du trajet</h3>
+        <div id="ev-profil-stats" class="ev-stats"></div>
+        <div class="ev-segments">
+          <button type="button" class="ev-courbe-btn active" data-vue="batterie">🔋 Batterie &amp; relief</button>
+          <button type="button" class="ev-courbe-btn" data-vue="vitesse">🚗 Vitesse &amp; conso</button>
+          <button type="button" class="ev-courbe-btn" data-vue="meteo">🌦️ Météo</button>
+        </div>
+        <div class="ev-courbe-wrap"><canvas id="ev-courbe-canvas"></canvas></div>
+        <div id="ev-courbe-vide" class="ev-hint hidden"></div>
+        <div id="ev-profil-note" class="ev-hint"></div>
+      </div>
 
-    <script
-      src="./vendor/leaflet/leaflet.js"
-    ></script>
-    <script src="./app.js"></script>
-  </body>
+      <div id="ev-time-slider-row" class="ev-carte-bloc hidden">
+        <h3>🕐 Où serai-je sur la route ?</h3>
+        <div class="ev-frise-entete">
+          <span id="ev-time-slider-value" class="ev-frise-valeur">Départ</span>
+          <span id="ev-timeline-battery-estimate"></span>
+        </div>
+        <div id="ev-timeline-track" class="ev-frise-piste">
+          <div id="ev-timeline-fill" class="ev-frise-remplissage"></div>
+          <div id="ev-timeline-stops" class="ev-frise-arrets"></div>
+          <div id="ev-timeline-puck" class="ev-frise-curseur"></div>
+        </div>
+        <div class="ev-frise-labels"><span>🏁 Départ</span><span>🏆 Arrivée</span></div>
+        <div id="ev-time-slider-stations" class="ev-liste"></div>
+      </div>
+
+      <div class="ev-hint">ℹ️ Statuts et tarifs déclarés (Open Charge Map, base officielle IRVE) : l'occupation d'une borne en temps réel n'est pas disponible gratuitement.</div>
+    </div>
+
+    <!-- ══ Favoris ══ -->
+    <!-- ══ Menu : tout le reste, rangé par rubrique ══ -->
+    <div id="vue-menu" class="ev-vue hidden">
+      <div class="ev-vue-entete"><h2>☰ Menu</h2></div>
+      <div class="ev-menu-titre">Mes trajets</div>
+      <div class="ev-menu-groupe">
+          <button type="button" class="ev-menu-ligne" data-vue="favoris"><span class="ev-menu-icone">⭐</span><span><span class="ev-menu-nom">Favoris et historique</span><span class="ev-menu-detail">Trajets favoris, trajets calculés, bornes favorites</span></span></button>
+      </div>
+      <div class="ev-menu-titre">Outils</div>
+      <div class="ev-menu-groupe">
+          <button type="button" class="ev-menu-ligne" data-vue="outils" data-bloc="ev-bloc-stats"><span class="ev-menu-icone">📊</span><span><span class="ev-menu-nom">Mes statistiques</span><span class="ev-menu-detail">Kilomètres, coût, anciens trajets</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="outils" data-bloc="ev-bloc-journal"><span class="ev-menu-icone">📒</span><span><span class="ev-menu-nom">Journal des recharges</span><span class="ev-menu-detail">Recharges faites, ajout à la main</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="outils" data-bloc="ev-bloc-recherche"><span class="ev-menu-icone">🔍</span><span><span class="ev-menu-nom">Rechercher des bornes</span><span class="ev-menu-detail">Par ville, enseigne, puissance</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="outils" data-bloc="ev-bloc-calculateur"><span class="ev-menu-icone">⏱️</span><span><span class="ev-menu-nom">Calculateur de recharge</span><span class="ev-menu-detail">Temps et coût d'une recharge</span></span></button>
+      </div>
+      <div class="ev-menu-titre">Profil et réglages</div>
+      <div class="ev-menu-groupe">
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-vehicule"><span class="ev-menu-icone">🚗</span><span><span class="ev-menu-nom">Véhicule</span><span class="ev-menu-detail">Batterie, consommation, prises</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-navigation"><span class="ev-menu-icone">🧭</span><span><span class="ev-menu-nom">Navigation</span><span class="ev-menu-detail">Affichage, voix, alertes</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-cartes"><span class="ev-menu-icone">🗺️</span><span><span class="ev-menu-nom">Cartes</span><span class="ev-menu-detail">Carte hors ligne, carte 3D</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-domicile"><span class="ev-menu-icone">🏠</span><span><span class="ev-menu-nom">Domicile et voix</span><span class="ev-menu-detail">Adresses du domicile et du travail</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-electricite"><span class="ev-menu-icone">💡</span><span><span class="ev-menu-nom">Électricité à domicile</span><span class="ev-menu-detail">Heures creuses, heures pleines</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-abonnements"><span class="ev-menu-icone">💳</span><span><span class="ev-menu-nom">Abonnements de recharge</span><span class="ev-menu-detail">Tes prix par réseau</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-apparence"><span class="ev-menu-icone">🎨</span><span><span class="ev-menu-nom">Apparence</span><span class="ev-menu-detail">Sombre, clair ou automatique</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-cles"><span class="ev-menu-icone">🔑</span><span><span class="ev-menu-nom">Clés API</span><span class="ev-menu-detail">TomTom et Open Charge Map</span></span></button>
+      </div>
+      <div class="ev-menu-titre">Mes données</div>
+      <div class="ev-menu-groupe">
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-sauvegarde"><span class="ev-menu-icone">💾</span><span><span class="ev-menu-nom">Sauvegarde</span><span class="ev-menu-detail">Lien de restauration, Google Drive</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-raz"><span class="ev-menu-icone">🧹</span><span><span class="ev-menu-nom">Remise à zéro</span><span class="ev-menu-detail">Effacer les données de l'appli</span></span></button>
+      </div>
+      <div class="ev-menu-titre">Aide</div>
+      <div class="ev-menu-groupe">
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-paiement"><span class="ev-menu-icone">💳</span><span><span class="ev-menu-nom">Payer aux bornes</span><span class="ev-menu-detail">Carte bancaire, applis, badges, liens des réseaux</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-etat"><span class="ev-menu-icone">🩺</span><span><span class="ev-menu-nom">État de l'appli</span><span class="ev-menu-detail">GPS, réseau, clés, données des bornes, hors ligne</span></span></button>
+          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-aide"><span class="ev-menu-icone">❓</span><span><span class="ev-menu-nom">Aide et astuces</span><span class="ev-menu-detail">Mode d'emploi, signaler un problème, version</span></span></button>
+      </div>
+    </div>
+
+    <div id="vue-favoris" class="ev-vue hidden">
+      <div class="ev-vue-entete"><h2>⭐ Favoris</h2></div>
+      <div class="ev-segments">
+        <button type="button" class="ev-fav-onglet active" data-onglet="trajets">⭐ Trajets</button>
+        <button type="button" class="ev-fav-onglet" data-onglet="historique">🕘 Historique</button>
+        <button type="button" class="ev-fav-onglet" data-onglet="bornes">🔌 Bornes</button>
+      </div>
+      <div id="ev-favoris-list" class="ev-liste"></div>
+      <div id="ev-historique-bloc" class="hidden">
+        <button id="ev-historique-clear-btn" class="ev-lien" type="button">🗑️ Effacer tout l'historique</button>
+        <div id="ev-historique-list" class="ev-liste"></div>
+      </div>
+      <div id="ev-bornes-favorites-list" class="ev-liste hidden"></div>
+    </div>
+
+    <!-- ══ Outils ══ -->
+    <div id="vue-outils" class="ev-vue hidden">
+      <div class="ev-vue-entete"><h2>⚡ Outils</h2></div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-stats">
+        <h3>📊 Mes statistiques</h3>
+        <div class="ev-segments ev-stats-periodes">
+          <button type="button" data-periode="mois" class="active">Ce mois</button>
+          <button type="button" data-periode="annee">Cette année</button>
+          <button type="button" data-periode="tout">Depuis le début</button>
+        </div>
+        <div id="ev-stats-tuiles" class="ev-tuiles"></div>
+        <details class="ev-details">
+          <summary>🗺️ Revoir mes derniers trajets</summary>
+          <div id="ev-traces-liste" class="ev-journal-liste"></div>
+        </details>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-journal">
+        <h3>📒 Journal des recharges</h3>
+        <div class="ev-hint">Rempli tout seul en navigation (à « Reprendre la route »), ou à la main ci-dessous.</div>
+        <div id="ev-journal-bilan"></div>
+        <details class="ev-details">
+          <summary>➕ Ajouter une recharge à la main</summary>
+          <div class="ev-grille-2">
+            <label class="ev-champ">Lieu <input type="text" id="ev-journal-lieu" class="ev-input" placeholder="Domicile"></label>
+            <label class="ev-champ">Énergie (kWh) <input type="number" id="ev-journal-kwh" class="ev-input" min="0" step="0.1"></label>
+            <label class="ev-champ">Coût (€) <input type="number" id="ev-journal-cout" class="ev-input" min="0" step="0.01"></label>
+            <button id="ev-journal-ajouter-btn" class="ev-btn" type="button">Ajouter</button>
+          </div>
+        </details>
+        <div id="ev-journal-liste" class="ev-journal-liste"></div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-recherche">
+        <h3>🔍 Rechercher des bornes</h3>
+        <div class="ev-colonne">
+          <label class="ev-champ">Zone (ville, adresse, « Ma position »…)
+            <span class="ev-input-row">
+              <input type="text" id="ev-recherche-lieu-input" class="ev-input" value="Ma position">
+              <button id="ev-recherche-gps-btn" class="ev-mini-btn" type="button" title="Ma position">📍</button>
+            </span>
+          </label>
+          <label class="ev-champ">Enseigne / opérateur
+            <select id="ev-recherche-operateur-select" class="ev-input">
+              <option value="">Toutes les enseignes</option>
+              <option value="TotalEnergies">TotalEnergies</option>
+              <option value="Electra">Electra</option>
+              <option value="Ionity">Ionity</option>
+              <option value="Fastned">Fastned</option>
+              <option value="Freshmile">Freshmile</option>
+              <option value="IZIVIA">IZIVIA (EDF)</option>
+              <option value="Tesla">Tesla</option>
+              <option value="Allego">Allego</option>
+              <option value="Powerdot">Powerdot</option>
+              <option value="Leclerc">E.Leclerc</option>
+              <option value="Carrefour">Carrefour</option>
+              <option value="Lidl">Lidl</option>
+              <option value="Bouygues">Bouygues</option>
+              <option value="Engie">Engie</option>
+              <option value="__autre__">Autre (saisir ci-dessous)</option>
+            </select>
+            <input type="text" id="ev-recherche-operateur-input" class="ev-input hidden" placeholder="Nom de l'enseigne…">
+          </label>
+          <label class="ev-champ">Type d'accès
+            <select id="ev-recherche-acces-select" class="ev-input">
+              <option value="">Tous types d'accès</option>
+              <option value="Pay At Location">Paiement sur place</option>
+              <option value="Membership Required">Abonnement requis</option>
+              <option value="Notice Required">Réservation / préavis requis</option>
+              <option value="Private">Privé</option>
+            </select>
+          </label>
+          <label class="ev-champ">Rayon : <span id="ev-recherche-rayon-value" class="ev-valeur">20</span> km
+            <input type="range" min="5" max="50" value="20" id="ev-recherche-rayon-input" class="ev-curseur">
+          </label>
+          <label class="ev-check"><input type="checkbox" id="ev-recherche-cb-checkbox"> 💳 Uniquement celles qui acceptent la carte bancaire</label>
+          <button id="ev-recherche-run-btn" class="ev-btn-principal" type="button">Afficher sur la carte</button>
+          <div id="ev-recherche-etat" class="ev-hint"></div>
+        </div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-calculateur">
+        <h3>⏱️ Calculateur de recharge</h3>
+        <div class="ev-colonne">
+          <label class="ev-champ"><span class="ev-champ-titre">Batterie actuelle : <span id="ev-calc-debut-val" class="ev-valeur">20</span> %</span>
+            <input type="range" min="0" max="100" step="1" value="20" id="ev-calc-debut-input" class="ev-curseur">
+          </label>
+          <label class="ev-champ"><span class="ev-champ-titre">Recharger jusqu'à : <span id="ev-calc-cible-val" class="ev-valeur">80</span> %</span>
+            <input type="range" min="0" max="100" step="1" value="80" id="ev-calc-cible-input" class="ev-curseur">
+          </label>
+          <label class="ev-champ"><span class="ev-champ-titre">Énergie à ajouter : <span id="ev-calc-kwh-val" class="ev-valeur">40</span> kWh</span>
+            <input type="range" min="0" max="65" step="0.5" value="40" id="ev-calc-kwh-input" class="ev-curseur">
+          </label>
+          <label class="ev-champ">Type de charge
+            <select id="ev-calc-type-select" class="ev-input">
+              <option value="lente">Lente (prise domestique)</option>
+              <option value="domicile">Borne à domicile</option>
+              <option value="normale">Normale (borne AC)</option>
+              <option value="rapide" selected>Rapide (borne DC)</option>
+            </select>
+          </label>
+          <div id="ev-calc-result" class="ev-resultat-calc"></div>
+          <button id="ev-calc-minuteur-btn" class="ev-btn" type="button">🔔 Me prévenir à la fin de cette recharge</button>
+          <div id="ev-calc-minuteur" class="ev-hint hidden"></div>
+        </div>
+      </div>
+
+      <div class="ev-hint">ℹ️ Paiement CB, tarifs, horaires et accès : Base nationale officielle des bornes (IRVE, data.gouv.fr), déclarée par les opérateurs. « CB probable (non confirmé) » = borne non déclarée mais ≥50 kW, où le terminal CB est obligatoire sur les bornes neuves depuis avril 2024. En cas de doute, vérifie sur place.</div>
+    </div>
+
+    <!-- ══ Profil ══ -->
+    <div id="vue-profil" class="ev-vue hidden">
+      <div class="ev-vue-entete"><h2>🚗 Profil et réglages</h2></div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-apparence">
+        <h3>🎨 Apparence</h3>
+        <div class="ev-segments" id="ev-theme-choix">
+          <button type="button" data-theme-choix="sombre">🌙 Sombre</button>
+          <button type="button" data-theme-choix="clair">☀️ Clair</button>
+          <button type="button" data-theme-choix="auto">📱 Auto</button>
+        </div>
+        <div class="ev-hint">« Auto » suit le réglage clair/sombre de ton téléphone. S'applique tout de suite.</div>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-contraste"> 🔆 Contraste renforcé (textes et contours plus marqués)</label>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-vehicule">
+        <h3>Véhicule</h3>
+        <div class="ev-grille-champs">
+          <label class="ev-champ ev-large">Nom<input type="text" id="ev-profil-nom" class="ev-input"></label>
+          <label class="ev-champ">Batterie (kWh)<input type="number" step="0.1" id="ev-profil-capacite" class="ev-input" inputmode="decimal"></label>
+          <label class="ev-champ">Conso (kWh/100 km)<input type="number" step="0.1" id="ev-profil-conso" class="ev-input" inputmode="decimal"><small id="ev-conso-mesuree" class="ev-aide-champ"></small></label>
+          <label class="ev-champ">Charge AC max (kW)<input type="number" step="0.1" id="ev-profil-ac" class="ev-input" inputmode="decimal"></label>
+          <label class="ev-champ">Charge DC max (kW)<input type="number" step="0.1" id="ev-profil-dc" class="ev-input" inputmode="decimal"><small class="ev-aide-champ">Puissance max réelle (Kona 64 kWh : 77)</small></label>
+          <label class="ev-champ">Borne à domicile (kW)<input type="number" step="0.1" id="ev-profil-domicile" class="ev-input" inputmode="decimal"><small class="ev-aide-champ">Borne « 7 kW » = 7,4</small></label>
+          <label class="ev-champ ev-large">Prises acceptées<input type="text" id="ev-profil-connecteurs" class="ev-input" placeholder="CCS, Type 2"></label>
+          <label class="ev-champ ev-large">Saison (si la météo réelle n'est pas utilisée)
+            <select id="ev-profil-saison" class="ev-input">
+              <option value="ete">Été (consommation normale)</option>
+              <option value="mi_saison">Mi-saison (+10 %)</option>
+              <option value="hiver">Hiver (+25 %, chauffage)</option>
+            </select>
+          </label>
+        </div>
+        <a href="https://jaouendekerlede.github.io/noticekona/" target="_blank" rel="noopener" class="ev-btn-secondaire" style="display:inline-block;text-decoration:none;text-align:center;margin-top:10px;">📖 Notice Kona (fonctions, commandes, sécurité — hors-ligne)</a>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-electricite">
+        <h3>Électricité à domicile</h3>
+        <div class="ev-grille-champs">
+          <label class="ev-champ">Heures creuses (€/kWh)<input type="number" step="0.0001" min="0.01" id="ev-profil-prix-hc" class="ev-input" inputmode="decimal"></label>
+          <label class="ev-champ">Heures pleines (€/kWh)<input type="number" step="0.0001" min="0.01" id="ev-profil-prix-hp" class="ev-input" inputmode="decimal"></label>
+          <label class="ev-champ ev-large">Part rechargée en heures creuses (%)<input type="number" step="5" min="0" max="100" id="ev-profil-part-hc" class="ev-input" inputmode="numeric"></label>
+        </div>
+        <div class="ev-hint">Prix TTC du kWh sur ta facture. Sans option heures creuses, mets le même prix dans les deux cases.</div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-domicile">
+        <h3>Domicile et voix</h3>
+        <label class="ev-champ">Adresse du travail (pour « Travail »)
+          <input type="text" id="ev-reglage-travail" class="ev-input" placeholder="Ex : 3 rue de la Gare, Rennes">
+        </label>
+        <label class="ev-champ">Adresse du domicile (pour « Chez moi »)
+          <input type="text" id="ev-reglage-domicile" class="ev-input" placeholder="Ex : 12 rue des Lilas, Rennes">
+        </label>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-annonce"> 🔊 Annoncer le résultat à voix haute</label>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-navigation">
+        <h3>🧭 Navigation</h3>
+        <div class="ev-hint">Tout est déjà réglé comme conseillé ; ouvrez une rubrique pour changer.</div>
+        <details class="ev-sous-menu">
+          <summary>🖥️ Affichage</summary>
+          <label class="ev-champ">🔠 Taille du texte en navigation : <span id="ev-reglage-taille-texte-val" class="ev-valeur">100</span> %
+            <input type="range" min="80" max="130" step="5" value="100" id="ev-reglage-taille-texte" class="ev-curseur">
+          </label>
+          <label class="ev-champ">📐 Inclinaison de la vue 3D : <span id="ev-reglage-inclinaison-val" class="ev-valeur">70</span>°
+          <input type="range" min="40" max="78" step="2" value="70" id="ev-reglage-inclinaison" class="ev-curseur">
+          <span class="ev-km-estime">Plus incliné : on voit plus loin devant, jusqu'à l'horizon.</span>
+        </label>
+        <label class="ev-champ">📐 Inclinaison aux ronds-points/carrefours : <span id="ev-reglage-inclinaison-plate-val" class="ev-valeur">40</span>°
+          <input type="range" min="15" max="60" step="5" value="40" id="ev-reglage-inclinaison-plate" class="ev-curseur">
+          <span class="ev-km-estime">Vue réduite pour mieux distinguer les routes qui se croisent (redémarrer la navigation pour appliquer).</span>
+        </label>
+        <label class="ev-champ">🔍 Zoom en navigation : <span id="ev-reglage-decalage-zoom-val" class="ev-valeur">0</span>
+          <input type="range" min="-2" max="2" step="0.5" value="0" id="ev-reglage-decalage-zoom" class="ev-curseur">
+          <span class="ev-km-estime">Ajout par-dessus le zoom automatique (vitesse, manœuvres) : négatif pour voir plus loin, positif pour voir plus près.</span>
+        </label>
+        <label class="ev-champ">🪧 Affichage en navigation
+            <select id="ev-reglage-taille-bandeau" class="ev-input">
+              <option value="compact">Compact : la carte reste bien visible (conseillé)</option>
+              <option value="grand">Grand : flèche, rue et infos en très gros</option>
+            </select>
+          </label>
+          <label class="ev-champ">Icône de la voiture
+            <select id="ev-reglage-icone" class="ev-input">
+              <option value="fleche_bleue">Flèche bleue</option>
+              <option value="fleche_verte">Flèche verte</option>
+              <option value="fleche_orange">Flèche orange</option>
+              <option value="fleche_rouge">Flèche rouge</option>
+              <option value="voiture">Voiture vue de dessus</option>
+              <option value="point">Point avec direction</option>
+            </select>
+          </label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-epure"> 🧘 Écran épuré en longue ligne droite (bandeau replié, autoroute : l'essentiel)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-nuit-douce"> 🌙 Écran moins lumineux la nuit</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-zoom-renforce"> 🔍 Zoom renforcé aux ronds-points, grands carrefours, sorties et entrées de voie rapide</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-vue-carrefour"> 🗺️ Dessin du vrai carrefour dans le panneau (ronds-points, carrefours à plusieurs routes)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-fenetre-voies"> 🛣️ Fenêtre des voies (comme Sygic) quand il faut choisir sa file</label>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>🗣️ Voix et mains libres</summary>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix"> 🔊 Guidage vocal (on peut aussi le couper en route avec 🔊)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-reponses-voix"> 🗣️ Mains sur le volant : répondre à la voix (« oui », « non », « le premier »…) aux propositions</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-voies"> 🛣️ Dire quelle voie prendre (« prenez la voie de droite »)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-vibration"> 📳 Vibrer avant chaque manœuvre</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-notif"> 🔔 Guidage visible écran verrouillé (notification)</label>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>⚠️ Alertes</summary>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-travaux"> 🚧 Annoncer les travaux, routes fermées et ralentissements</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-zones-danger"> ⚠️ Zones de danger (radars fixes, comme la loi l'autorise : zone sans emplacement précis)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur, avec les bornes à proximité</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-bip"> 🔔 Bip en cas d'excès de vitesse</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>🔋 Voiture électrique</summary>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-bornes"> 🔋 Annoncer les bornes de recharge prévues</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-prechauffage"> 🌡️ Rappeler de préchauffer la batterie avant une borne rapide</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-aires"> 🛣️ Sur autoroute et voie express : prochaine borne et aires (en bas à gauche)</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-parking-arrivee"> 🅿️ Proposer des parkings à 2 km de l'arrivée</label>
+        </details>
+        <button id="ev-reglages-conseilles-btn" class="ev-lien ev-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-cartes">
+        <h3>Cartes</h3>
+        <div class="ev-region-bloc">
+          <div class="ev-champ-titre"><strong>📥 Carte hors ligne de ma région</strong></div>
+          <div class="ev-hint">Télécharge la carte 3D autour de chez vous : elle s'affichera partout dans la région sans réseau. À faire en Wi-Fi. (Le guidage sans réseau reste celui des trajets préparés avec « Hors ligne ».)</div>
+          <label class="ev-champ">Rayon autour de la maison
+            <select id="ev-region-rayon" class="ev-input"></select>
+          </label>
+          <button id="ev-region-btn" class="ev-btn ev-btn-plein" type="button">📥 Télécharger ma région</button>
+          <div id="ev-region-info" class="ev-hint"></div>
+        </div>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-mode-eco"> 🔋 Mode éco (économise la batterie du téléphone) : navigation en 2D, tracé et guidage toujours aussi visibles</label>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-mode-voiture"> 🚗 Mode voiture : grands boutons et textes pendant la navigation</label>
+        <label class="ev-champ">Fournisseur de la carte 3D
+          <select id="ev-reglage-carte3d" class="ev-input">
+            <option value="libre">OpenFreeMap — gratuite, sans clé ni limite</option>
+            <option value="tomtom">TomTom — utilise ta clé TomTom</option>
+          </select>
+        </label>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-relief"> ⛰️ Relief du terrain (collines, vallées) — utile en montagne ; en ville, les bâtiments peuvent masquer le tracé, et un peu plus de batterie. Ordinateur uniquement : trop gourmand en 3D sur téléphone</label>
+        <div class="ev-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-abonnements">
+        <h3>💳 Mes abonnements de recharge</h3>
+        <label class="ev-check"><input type="checkbox" id="ev-reglage-privilegier-abos"> ⭐ Privilégier ces réseaux dans le choix des arrêts</label>
+        <div class="ev-hint">Réseau tel qu'il apparaît sur les bornes (ex. Ionity, Tesla, Electra) et ton prix au kWh avec l'abonnement : il remplace le tarif public dans les calculs.</div>
+        <div id="ev-abonnements-liste" class="ev-journal-liste"></div>
+        <div class="ev-grille-2">
+          <input type="text" id="ev-abo-reseau" class="ev-input" placeholder="Réseau (ex. Ionity)">
+          <input type="number" id="ev-abo-prix" class="ev-input" min="0" step="0.01" placeholder="Prix €/kWh" inputmode="decimal">
+        </div>
+        <button id="ev-abo-ajouter-btn" class="ev-btn" type="button">➕ Ajouter l'abonnement</button>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-cles">
+        <h3>Clés API</h3>
+        <div class="ev-hint">Gratuites. Elles restent uniquement dans ce téléphone.</div>
+        <label class="ev-champ">Clé TomTom (itinéraires) — <a href="https://developer.tomtom.com/user/register" target="_blank" rel="noopener">créer</a>
+          <span class="ev-input-row">
+            <input type="text" id="ev-cle-tomtom" class="ev-input ev-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
+            <button type="button" id="ev-cle-tomtom-voir" class="ev-mini-btn" aria-label="Afficher la clé">👁️</button>
+          </span>
+        </label>
+        <button id="ev-tester-tomtom-btn" class="ev-btn" type="button">🔍 Tester ma clé TomTom</button>
+        <div id="ev-tester-tomtom-resultat" class="ev-diagnostic hidden"></div>
+        <div id="ev-quota-tomtom" class="ev-hint"></div>
+        <label class="ev-champ">Clé Open Charge Map (bornes) — <a href="https://openchargemap.org/site/signup" target="_blank" rel="noopener">créer</a>
+          <span class="ev-input-row">
+            <input type="text" id="ev-cle-ocm" class="ev-input ev-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
+            <button type="button" id="ev-cle-ocm-voir" class="ev-mini-btn" aria-label="Afficher la clé">👁️</button>
+          </span>
+        </label>
+      </div>
+
+      <button id="ev-profil-save-btn" class="ev-btn-principal" type="button">Enregistrer</button>
+
+      <div class="ev-carte-bloc" id="ev-bloc-sauvegarde">
+        <h3>💾 Sauvegarde de mes données</h3>
+        <div class="ev-hint">Envoie-toi ce lien par e-mail (Gmail…). Sur un nouveau téléphone, il suffit de le toucher : l'appli s'ouvre avec tes clés, ta voiture, tes favoris, ton journal et tes réglages. Le lien contient tes clés : ne le transfère à personne.</div>
+        <button id="ev-lien-sauvegarde-btn" class="ev-btn-principal" type="button">📧 M'envoyer le lien de restauration</button>
+        <div id="ev-lien-sauvegarde-info" class="ev-hint ev-lien-centre"></div>
+        <button id="ev-installer-btn" class="ev-btn ev-btn-plein hidden" type="button">📲 Installer l'appli sur ce téléphone</button>
+        <details class="ev-details" id="ev-drive-bloc">
+          <summary>☁️ Google Drive (sauvegarde automatique)</summary>
+          <div class="ev-hint">Compte Google gratuit suffisant. La sauvegarde va dans un dossier caché réservé à l'appli ; elle se refait seule en fin de trajet. Sur un nouveau téléphone : « Restaurer depuis Drive ».</div>
+          <label class="ev-champ">Identifiant client Google (avancé : laisser vide, celui de l'appli est déjà réglé)
+            <input type="text" id="ev-drive-client" class="ev-input" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+          </label>
+          <div class="ev-grille-2">
+            <button id="ev-drive-sauver-btn" class="ev-btn" type="button">☁️ Sauvegarder maintenant</button>
+            <button id="ev-drive-restaurer-btn" class="ev-btn" type="button">⬇️ Restaurer depuis Drive</button>
+          </div>
+          <div id="ev-drive-info" class="ev-hint"></div>
+        </details>
+        <div class="ev-hint">Ou avec un fichier :</div>
+        <div class="ev-grille-2">
+          <button id="ev-export-donnees-btn" class="ev-btn" type="button">⬆️ Exporter mes données</button>
+          <button id="ev-import-donnees-btn" class="ev-btn" type="button">⬇️ Importer une sauvegarde</button>
+        </div>
+        <input type="file" id="ev-import-donnees-fichier" accept=".json,application/json" class="hidden">
+      </div>
+      <div class="ev-carte-bloc" id="ev-bloc-raz">
+        <h3>🧹 Remise à zéro</h3>
+        <div class="ev-hint">Si l'appli se comporte bizarrement : efface réglages, favoris, historique, journal des recharges, trajets et données apprises. <strong>Reste en place</strong> : votre voiture (Kona 65 kWh et ses données), vos clés, la carte de la région téléchargée.</div>
+        <button id="ev-remise-zero-btn" class="ev-btn ev-btn-plein" type="button">🧹 Remettre à zéro</button>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-paiement">
+        <h3>💳 Payer aux bornes</h3>
+        <div class="ev-hint">Pas besoin de tout avoir. Pour partir tranquille : <strong>ta carte bancaire sans contact</strong>, <strong>un badge multi-réseaux</strong> pour les bornes qui ne prennent pas la carte, et l'appli du réseau que tu utilises le plus.</div>
+        <details class="ev-sous-menu" open>
+          <summary>Mes moyens de paiement</summary>
+          <div class="ev-hint">Coche ce que tu as. La fiche de chaque borne te dit alors si tu peux y payer, et le filtre « ✅ Je peux payer » de la carte ne garde que ces bornes.</div>
+          <div id="ev-moyens-paiement" class="ev-colonne"></div>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Les façons de payer</summary>
+          <ul class="ev-aide-liste">
+            <li><strong>💳 Carte bancaire sans contact</strong> : le plus simple, comme à la pompe. Obligatoire sur les bornes rapides (50 kW et plus) installées depuis avril 2024. Les bornes plus anciennes et les bornes lentes n'en ont pas toujours.</li>
+            <li><strong>📱 QR code sur la borne</strong> : tu le scannes avec l'appareil photo, une page de paiement s'ouvre et tu saisis ta carte. Sans compte ni appli, mais il faut du réseau.</li>
+            <li><strong>📲 Appli du réseau</strong> : tu crées un compte une fois, avec ta carte. Tu lances la recharge depuis le téléphone. C'est souvent là que le prix est le plus bas, surtout avec un abonnement.</li>
+            <li><strong>🪪 Badge (carte de recharge)</strong> : une carte en plastique à passer devant la borne. Un seul badge marche sur des dizaines de réseaux. Indispensable sur les bornes de ville et de parking sans lecteur de carte bancaire. Le prix peut être un peu plus élevé qu'en direct.</li>
+            <li><strong>🔌 Brancher et c'est tout</strong> (« Plug &amp; Charge ») : la voiture est reconnue au branchement. Seulement sur certains réseaux et certaines voitures.</li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Les réseaux de recharge rapide</summary>
+          <div class="ev-hint">« Site » ouvre le site du réseau, « Appli » la cherche dans le Play Store.</div>
+          <ul class="ev-aide-liste">
+            <li><strong>Ionity</strong> : aires d'autoroute, bornes très puissantes. <a href="https://www.ionity.eu/fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=IONITY&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>TotalEnergies</strong> : stations-service et autoroutes. <a href="https://www.totalenergies.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=TotalEnergies%20recharge%20%C3%A9lectrique&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Tesla Superchargeur</strong> : une partie des stations est ouverte aux autres marques, avec l'appli Tesla. <a href="https://www.tesla.com/fr_fr/supercharger" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Tesla&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Electra</strong> : villes et grands axes. <a href="https://www.go-electra.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Electra%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Fastned</strong> : aires et sorties d'autoroute (toit jaune). <a href="https://www.fastnedcharging.com/fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Fastned&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Power Dot</strong> : parkings de commerces et de restaurants. <a href="https://www.powerdot.eu/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Power%20Dot%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Lidl</strong> : parkings des magasins. <a href="https://www.lidl.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Lidl%20Plus&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Engie Vianeo</strong> : aires d'autoroute. <a href="https://www.vianeo.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Engie%20Vianeo&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Allego</strong> : commerces, hôtels, grands axes. <a href="https://www.allego.eu/fr-fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Allego%20Smoov&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Zunder</strong> : grands axes, surtout dans le sud. <a href="https://www.zunder.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Zunder&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Atlante</strong> : grands axes et parkings. <a href="https://atlante.energy/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Atlante%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Izivia (EDF)</strong> : villes, parkings, commerces. <a href="https://izivia.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Izivia&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Les badges multi-réseaux</summary>
+          <div class="ev-hint">Un seul suffit. Ils se commandent sur le site ou dans l'appli et arrivent par la poste : à prévoir avant un long trajet.</div>
+          <ul class="ev-aide-liste">
+            <li><strong>Chargemap Pass</strong> : badge payant à l'achat, sans abonnement, très répandu. <a href="https://chargemap.com/fr-fr/pass" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Chargemap&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Freshmile</strong> : badge peu cher, sans abonnement. <a href="https://www.freshmile.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Freshmile&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Shell Recharge</strong> : badge gratuit, sans abonnement. <a href="https://www.shell.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Shell%20Recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Fulli</strong> : petit abonnement mensuel, sans commission par recharge. <a href="https://www.fulli.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Fulli&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Ulys Electric</strong> : le badge de télépéage qui paie aussi la recharge. <a href="https://ulys.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Ulys&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Octopus Electroverse</strong> : badge gratuit, sans abonnement. <a href="https://electroverse.com/fr-FR" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Electroverse&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+            <li><strong>Charge myHyundai</strong> : le badge proposé par Hyundai pour ses voitures. <a href="https://chargemyhyundai.com/web/fr/hyundai-fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Charge%20myHyundai&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Les pièges à connaître</summary>
+          <ul class="ev-aide-liste">
+            <li><strong>Somme bloquée</strong> : en payant par carte bancaire, la borne réserve d'abord quelques dizaines d'euros sur ton compte. Seul le vrai montant est débité, le reste est libéré quelques jours plus tard.</li>
+            <li><strong>Prix au kWh ou à la minute</strong> : le prix est affiché sur la borne ou dans l'appli. À la minute, une recharge lente coûte cher.</li>
+            <li><strong>Frais de stationnement</strong> : certains réseaux font payer chaque minute passée branché après la fin de la recharge. Débranche dès que c'est fini.</li>
+            <li><strong>Même borne, prix différents</strong> : carte bancaire, appli du réseau et badge ne donnent pas le même prix sur une même borne.</li>
+            <li><strong>Pas de réseau mobile</strong> : en sous-sol, QR code et appli ne marchent pas. Le badge et la carte bancaire, si.</li>
+            <li><strong>Facture</strong> : par carte bancaire, pense à demander le reçu sur la borne ou à noter le numéro de la recharge.</li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Dans GPS</summary>
+          <ul class="ev-aide-liste">
+            <li>Sur la carte, la pastille <strong>CB</strong> sur une borne indique qu'elle accepte la carte bancaire.</li>
+            <li>Le filtre <strong>💳 Carte bancaire</strong>, en haut de la carte, ne montre que ces bornes.</li>
+            <li>Le filtre <strong>✅ Je peux payer</strong> ne garde que les bornes où tes moyens de paiement (cochés ci-dessus) passent.</li>
+            <li>Sur la fiche d'une borne, <strong>« Signaler cette borne en panne »</strong> l'écarte de tes trajets pendant trois jours.</li>
+            <li>Dans Trajet › Options avancées, <strong>« Privilégier les bornes qui acceptent la carte bancaire »</strong> choisit ces bornes pour tes arrêts.</li>
+            <li>Si tu as un abonnement, indique ton prix dans <strong>Menu › Abonnements de recharge</strong> : le coût du trajet en tient compte.</li>
+          </ul>
+        </details>
+        <div class="ev-hint">Informations vérifiées en octobre 2026. Les prix et les offres changent souvent : vérifie-les dans l'appli ou sur le site du réseau.</div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-etat">
+        <h3>🩺 État de l'appli</h3>
+        <div class="ev-hint">Ce qui marche et ce qui manque en ce moment. Rien n'est envoyé : tout est lu sur ce téléphone.</div>
+        <div id="ev-etat-liste" class="ev-etat-liste"></div>
+        <div class="ev-grille-2">
+          <button id="ev-etat-gps-btn" class="ev-btn" type="button">📍 Tester le GPS</button>
+          <button id="ev-etat-actualiser-btn" class="ev-btn" type="button">🔄 Actualiser</button>
+        </div>
+      </div>
+
+      <div class="ev-carte-bloc" id="ev-bloc-aide">
+        <h3>❓ Aide et astuces</h3>
+        <details class="ev-sous-menu">
+          <summary>Sans réseau : ce qui marche, ce qui ne marche pas</summary>
+          <ul class="ev-aide-liste">
+            <li><strong>Toujours</strong> : l'appli s'ouvre, tes réglages, favoris, journal et statistiques.</li>
+            <li><strong>Si le trajet a été préparé</strong> (bouton « 📥 Hors ligne » du résultat, en Wi-Fi) : la carte 3D le long du trajet, le guidage et ses consignes vocales.</li>
+            <li><strong>Si la région a été téléchargée</strong> (Menu › Cartes) : la carte 3D autour de chez toi.</li>
+            <li><strong>Jamais sans réseau</strong> : calculer ou recalculer un itinéraire, chercher une adresse ou des bornes, l'état des bornes, le trafic, la météo, la carte à plat (2D).</li>
+            <li>Si tu quittes la route prévue sans réseau, l'appli ne peut pas te recalculer un chemin : elle garde l'itinéraire enregistré.</li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu" id="ev-aide">
+          <summary>En navigation, mains sur le volant</summary>
+          <ul class="ev-aide-liste">
+            <li><strong>🎤 Micro</strong> : « prochaine borne ? », « combien de temps ? », « batterie », « trouve une boulangerie », « où me garer », « autre borne », « la route est barrée », « coupe le son », « préviens que j'arrive ».</li>
+            <li><strong>Questions de l'appli</strong> (itinéraire plus rapide, parking, borne en panne) : répondez « oui » ou « non » ; pour une liste : « le premier », « la deuxième »… Sans réponse, rien ne change.</li>
+            <li><strong>Toucher le bandeau</strong> : les prochaines étapes. <strong>Appui long sur la carte</strong> : y aller ou en faire une étape.</li>
+            <li><strong>Menu ⋯</strong> : aperçu, partage de l'arrivée, batterie prévue / réelle, changer de borne, tête haute, le long du trajet, parkings.</li>
+            <li><strong>Bouton barrière</strong> : route barrée devant, un autre chemin est cherché.</li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Préparer un trajet</summary>
+          <ul class="ev-aide-liste">
+            <li>Sous chaque curseur : les km réels (et sur autoroute) que cela représente.</li>
+            <li><strong>Recharger à</strong> : imposer votre aire préférée (mettez sa borne en ⭐ favori sur la carte).</li>
+            <li><strong>🏠 Chez moi / 💼 Travail</strong> : adresses dans le Profil. <strong>🎤</strong> : dicter la destination.</li>
+            <li>Résumé du trajet : sorties et échangeurs, « Quand partir ? », partager le trajet.</li>
+          </ul>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>✅ Essais à faire sur la route</summary>
+          <div class="ev-hint">Cochez au fil de vos trajets (à l'arrêt). Ce qui ne marche pas : dites-le-moi, avec une capture si possible.</div>
+          <div class="ev-colonne">
+            <label class="ev-check"><input type="checkbox" data-essai="0"> Voix : consignes claires, « Puis… » lisible dans le bandeau</label>
+            <label class="ev-check"><input type="checkbox" data-essai="1"> Ronds-points : tracé et voiture bien sur la route (carte 3D)</label>
+            <label class="ev-check"><input type="checkbox" data-essai="2"> Proposition (itinéraire plus rapide ou parking) : répondre « oui » à la voix</label>
+            <label class="ev-check"><input type="checkbox" data-essai="3"> 🎤 « prochaine borne ? », « trouve un café » : réponse correcte</label>
+            <label class="ev-check"><input type="checkbox" data-essai="4"> Écran verrouillé : la notification de guidage s'affiche</label>
+            <label class="ev-check"><input type="checkbox" data-essai="5"> Vibration avant une manœuvre (si activée dans le Profil)</label>
+            <label class="ev-check"><input type="checkbox" data-essai="6"> Autoroute : tuiles ⚡ 🍴 🌳 en bas à gauche, distances justes</label>
+            <label class="ev-check"><input type="checkbox" data-essai="7"> Préchauffage rappelé ~20 min avant une borne rapide</label>
+            <label class="ev-check"><input type="checkbox" data-essai="8"> À la borne : minuteur, puis notification « recharge terminée »</label>
+            <label class="ev-check"><input type="checkbox" data-essai="9"> À « Reprendre la route » : la recharge arrive dans le journal (Outils)</label>
+            <label class="ev-check"><input type="checkbox" data-essai="10"> 🆘 SOS : route, sens et lieu corrects</label>
+            <label class="ev-check"><input type="checkbox" data-essai="11"> Arrivée : bilan, puis « 🚗 Ma voiture » sur la carte</label>
+          </div>
+        </details>
+        <details class="ev-sous-menu" id="ev-diag-bloc">
+          <summary>🛟 Signaler un problème</summary>
+          <div class="ev-hint">Quelque chose n'a pas marché ? En roulant, dites <strong>« signale un problème »</strong> : l'instant est noté. À l'arrêt, envoyez le rapport ci-dessous. Il contient l'état de l'appli et les derniers événements, <strong>sans vos clés ni vos adresses</strong>.</div>
+          <div class="ev-grille-2">
+            <button id="ev-diag-envoyer" type="button" class="ev-btn">📤 Envoyer le rapport</button>
+            <button id="ev-diag-effacer" type="button" class="ev-btn">🗑️ Effacer le journal</button>
+          </div>
+          <div id="ev-diag-info" class="ev-hint"></div>
+        </details>
+        <details class="ev-sous-menu">
+          <summary>Sur la carte et dans Outils</summary>
+          <ul class="ev-aide-liste">
+            <li>Puces 🅿️ Parkings, 🚦 Trafic, 🚗 Ma voiture (position enregistrée à l'arrivée).</li>
+            <li>Outils : statistiques, journal des recharges, anciens trajets à revoir.</li>
+            <li>Changer de téléphone : Profil › Sauvegarde (lien par e-mail, ou Google Drive).</li>
+          </ul>
+        </details>
+      </div>
+      <button id="ev-revoir-accueil-btn" class="ev-lien ev-lien-centre" type="button">❓ Revoir la présentation de l'appli</button>
+      <div class="ev-hint ev-lien-centre" id="ev-mention-profil"></div>
+      <details class="ev-sous-menu"><summary>⚖️ Mentions légales</summary><p class="ev-hint" id="ev-mention-legale"></p></details>
+      <div class="ev-hint ev-lien-centre">Version 98 : itinéraire le plus court ou sans autoroute, écran « État de l'appli », contraste renforcé</div>
+    </div>
+  </div>
+</section>
+
+<!-- Navigation -->
+<nav class="ev-nav">
+  <button type="button" class="ev-nav-btn actif" data-vue="bornes"><span>🗺️</span>Carte</button>
+  <button type="button" class="ev-nav-btn" data-vue="trajet"><span>🧭</span>Trajet</button>
+  <button type="button" class="ev-nav-btn" data-vue="menu"><span>☰</span>Menu</button>
+</nav>
+
+<!-- Mode urgence -->
+<div id="ev-urgence-panel" class="ev-urgence hidden">
+  <div class="ev-urgence-entete">
+    <span>🆘 URGENCE — AUTONOMIE CRITIQUE</span>
+    <button id="ev-urgence-close-btn" class="ev-urgence-fermer" type="button">✖️ Fermer</button>
+  </div>
+  <div id="ev-urgence-body" class="ev-urgence-corps"></div>
+</div>
+
+<!-- Navigation GPS -->
+<div id="ev-navigation" class="ev-navigation hidden">
+  <div class="ev-nav-haut">
+    <div id="ev-nav-manoeuvre" class="ev-nav-manoeuvre">
+      <div class="ev-nav-manoeuvre-gauche">
+        <div id="ev-nav-fleche" class="ev-nav-fleche">⏳</div>
+        <div id="ev-nav-distance" class="ev-nav-distance"></div>
+      </div>
+      <div class="ev-nav-manoeuvre-texte">
+        <div id="ev-nav-rue" class="ev-nav-rue hidden"></div>
+        <div id="ev-nav-panneau" class="ev-nav-panneau hidden"></div>
+        <div id="ev-nav-instruction" class="ev-nav-instruction">Calcul du guidage…</div>
+        <div id="ev-nav-ensuite" class="ev-nav-ensuite hidden"></div>
+      </div>
+    </div>
+    <div id="ev-nav-voies" class="ev-nav-voies hidden" aria-label="Voies à prendre"></div>
+    <div id="ev-nav-danger" class="ev-nav-danger hidden"></div>
+    <div id="ev-nav-vue-voies" class="ev-nav-vue-voies hidden" aria-label="Voie à prendre">
+      <div id="ev-nav-vue-voies-instruction" class="ev-nav-vue-voies-instruction"></div>
+      <div id="ev-nav-vue-voies-distance" class="ev-nav-vue-voies-distance"></div>
+      <div id="ev-nav-vue-voies-dessin"></div>
+    </div>
+    <div id="ev-nav-alerte" class="ev-nav-alerte hidden"></div>
+    <div id="ev-nav-gps" class="ev-nav-gps hidden" role="status"></div>
+  </div>
+
+  <div class="ev-nav-vitesse-bloc">
+    <div id="ev-nav-aires" class="ev-nav-aires hidden" aria-label="Aires et bornes devant"></div>
+    <div id="ev-nav-limite" class="ev-nav-limite hidden"></div>
+    <div id="ev-nav-vitesse" class="ev-nav-vitesse"><strong>0</strong><span>km/h</span></div>
+  </div>
+
+  <div class="ev-nav-boutons">
+    <button id="ev-nav-voix-btn" class="ev-fab" type="button" title="Couper / remettre la voix"></button>
+    <button id="ev-nav-micro-btn" class="ev-fab" type="button" title="Commande vocale" data-icone="micro"></button>
+    <button id="ev-nav-3d-btn" class="ev-fab ev-fab-texte" type="button" title="Vue 3D / 2D">3D</button>
+    <button id="ev-nav-barree-btn" class="ev-fab" type="button" title="Route barrée devant : chercher un autre chemin" data-icone="barriere"></button>
+    <button id="ev-nav-menu-btn" class="ev-fab ev-fab-texte" type="button" title="Plus d'options" data-icone="menu"></button>
+  </div>
+  <button id="ev-nav-recentrer-btn" class="ev-nav-recentrer hidden" type="button">🎯 Recentrer</button>
+
+  <div id="ev-nav-etape-borne" class="ev-nav-carte hidden"></div>
+
+  <div id="ev-nav-menu" class="ev-nav-carte ev-nav-menu hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">Options <button type="button" class="ev-fermer ev-fermer-grand" data-fermer aria-label="Fermer les options">✕ Fermer</button></div>
+    <div class="ev-nav-menu-grille">
+      <button type="button" data-nav-action="sos" class="ev-menu-sos">🆘<span>SOS / urgence</span></button>
+      <button id="ev-nav-apercu-btn" type="button">🗺️<span>Aperçu du trajet</span></button>
+      <button id="ev-nav-orientation-btn" type="button">🧭<span>Nord en haut</span></button>
+      <button type="button" data-nav-action="partage">📤<span>Partager mon arrivée</span></button>
+      <button type="button" data-nav-action="suivi" id="ev-nav-suivi-btn">📡<span>Position en direct</span></button>
+      <button type="button" data-nav-action="batterie">🔋<span>Batterie prévue / réelle</span></button>
+      <button type="button" data-nav-action="secours">🔌<span>Changer de borne</span></button>
+      <button type="button" data-nav-action="aide">❓<span>Astuces (à l'arrêt)</span></button>
+      <button type="button" data-nav-action="signaler">🛟<span>Signaler un problème</span></button>
+      <button type="button" data-nav-action="radar">📍<span>Signaler un radar ici</span></button>
+      <button type="button" data-nav-action="oublier-radar">🗑️<span>Oublier le dernier radar signalé</span></button>
+      <button type="button" data-nav-action="borne-perso">🔌<span>Signaler une borne ici</span></button>
+      <button type="button" data-nav-action="oublier-borne">🗑️<span>Oublier la dernière borne signalée</span></button>
+      <button type="button" data-nav-action="hud">🪞<span>Tête haute</span></button>
+      <button type="button" data-nav-action="recherche">🔍<span>Le long du trajet</span></button>
+      <button type="button" data-nav-action="parkings">🅿️<span>Parkings à l'arrivée</span></button>
+    </div>
+  </div>
+
+  <div id="ev-nav-hud" class="ev-nav-hud" aria-label="Mode tête haute">
+    <div class="ev-hud-contenu">
+      <div id="ev-hud-fleche" class="ev-hud-fleche"></div>
+      <div id="ev-hud-distance" class="ev-hud-distance"></div>
+      <div id="ev-hud-texte" class="ev-hud-texte"></div>
+      <div class="ev-hud-vitesses"><span id="ev-hud-vitesse" class="ev-hud-vitesse">0</span><span id="ev-hud-limite" class="ev-hud-limite hidden"></span></div>
+    </div>
+  </div>
+
+  <div id="ev-nav-frise" class="ev-nav-frise hidden" aria-label="Trajet restant"></div>
+
+  <div id="ev-nav-recherche" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">🔍 Le long du trajet <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div class="ev-nav-carte-sous">🎤 En roulant, dites plutôt « trouve une boulangerie » : je vous lis les résultats.</div>
+    <div id="ev-nav-recherche-cats" class="ev-nav-menu-grille"></div>
+    <div id="ev-nav-recherche-res" class="ev-nav-resultats"></div>
+  </div>
+
+  <div id="ev-nav-borne-perso" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">🔌 Signaler une borne ici <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div class="ev-nav-carte-sous">Puissance et type de prise, si tu les connais (optionnel).</div>
+    <div id="ev-borne-perso-kw" class="ev-chips"></div>
+    <div id="ev-borne-perso-connecteur" class="ev-chips"></div>
+    <input type="text" id="ev-borne-perso-note" class="ev-input" placeholder="Nom / remarque (optionnel)">
+    <button type="button" id="ev-borne-perso-enregistrer-btn" class="ev-btn-principal">Enregistrer</button>
+  </div>
+
+  <div id="ev-nav-ecoute" class="ev-nav-ecoute hidden" aria-live="polite">🎤 J'écoute…</div>
+
+  <div id="ev-nav-feuille" class="ev-nav-feuille hidden" aria-label="Feuille de route">
+    <div class="ev-nav-carte-titre">🧾 Prochaines étapes <small>(toucher pour fermer)</small></div>
+    <div id="ev-nav-feuille-liste" class="ev-feuille-liste"></div>
+  </div>
+
+  <div id="ev-nav-point" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">📍 Point choisi sur la carte <button type="button" class="ev-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
+    <div class="ev-grille-2">
+      <button type="button" class="ev-btn" data-point="etape">➕ Ajouter comme étape</button>
+      <button type="button" class="ev-btn" data-point="aller">🏁 Y aller</button>
+    </div>
+  </div>
+
+  <div id="ev-nav-secours" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">🔌 Autre borne <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div id="ev-nav-secours-liste" class="ev-nav-resultats"></div>
+  </div>
+
+  <div id="ev-nav-parkings" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre ev-titre-fermer">🅿️ Parkings près de l'arrivée <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div id="ev-nav-parkings-liste" class="ev-nav-resultats"></div>
+  </div>
+
+  <div id="ev-nav-batterie-panneau" class="ev-nav-carte hidden">
+    <div class="ev-nav-carte-titre">🔋 Batterie réelle</div>
+    <div class="ev-batt-legende"><span><i class="trait-prevue"></i>Prévue</span><span><i class="point-reelle"></i>Réelle (vos corrections)</span></div>
+    <div id="ev-nav-batt-graph" class="ev-batt-graph"></div>
+    <div id="ev-nav-batt-info" class="ev-nav-carte-sous" aria-live="polite"></div>
+    <details class="ev-batt-details"><summary>Voir les valeurs</summary><div id="ev-nav-batt-table"></div></details>
+    <label class="ev-champ">Pourcentage affiché par la voiture : <span id="ev-nav-batt-val" class="ev-valeur">50</span> %
+      <input type="range" id="ev-nav-batt-input" class="ev-curseur" min="1" max="100" value="50">
+    </label>
+    <div class="ev-grille-2">
+      <button id="ev-nav-batt-ok" class="ev-btn" type="button">✅ Corriger</button>
+      <button id="ev-nav-replan-btn" class="ev-btn" type="button">🔄 Recalculer les recharges</button>
+    </div>
+  </div>
+
+  <div class="ev-nav-bas">
+    <div id="ev-nav-borne" class="ev-nav-borne hidden"></div>
+    <button id="ev-nav-stop-btn" class="ev-nav-stop" type="button" title="Arrêter la navigation">✕</button>
+    <div class="ev-nav-infos">
+      <div><strong id="ev-nav-eta">--:--</strong><span>arrivée</span></div>
+      <div><strong id="ev-nav-reste-temps">—</strong><span>restant</span></div>
+      <div><strong id="ev-nav-reste-km">—</strong><span>km</span></div>
+      <button id="ev-nav-batt-btn" class="ev-nav-batt" type="button"><strong id="ev-nav-batt">—</strong><span>batterie ✎</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="ev-toast" class="ev-toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script type="module" src="./js/main.js"></script>
+<!-- 🆘 SOS : position exacte, 112, consignes -->
+<div id="ev-sos" class="ev-sos hidden" role="dialog" aria-label="SOS">
+  <div class="ev-sos-carte">
+    <div class="ev-sos-tete"><strong>🆘 SOS — ma position</strong><button id="ev-sos-fermer" type="button" class="ev-fermer" aria-label="Fermer">✕</button></div>
+    <div id="ev-sos-position" class="ev-sos-position"></div>
+    <a class="ev-sos-appel" href="tel:112">📞 Appeler le 112</a>
+    <div class="ev-grille-2">
+      <button id="ev-sos-partager" type="button" class="ev-btn">📤 Envoyer ma position</button>
+      <button id="ev-sos-lire" type="button" class="ev-btn">🔊 Lire à voix haute</button>
+    </div>
+    <button id="ev-sos-bornes" type="button" class="ev-btn ev-btn-plein">🔋 Batterie vide : bornes les plus proches</button>
+    <details class="ev-sous-menu">
+      <summary>⚠️ Sur autoroute ou voie express</summary>
+      <ul class="ev-aide-liste">
+        <li>Feux de détresse, puis <strong>gilet avant de sortir</strong>, par la droite.</li>
+        <li>Tous les passagers <strong>derrière la glissière</strong>, loin des voies. Pas de triangle sur autoroute.</li>
+        <li>Appelez depuis une <strong>borne orange</strong> (tous les 2 km : elle vous localise) ou le <strong>112</strong> en donnant route, sens et PR ci-dessus.</li>
+        <li>Sur autoroute, le dépannage se fait <strong>uniquement par les dépanneurs agréés</strong>, envoyés par ces appels.</li>
+      </ul>
+    </details>
+    <details class="ev-sous-menu">
+      <summary>🔋 Voiture électrique</summary>
+      <ul class="ev-aide-liste">
+        <li>Dites aux secours que c'est une <strong>voiture électrique</strong>.</li>
+        <li>Après un choc, ou en cas de fumée, de bruit ou d'odeur anormale : <strong>éloignez-vous</strong> du véhicule (risque batterie).</li>
+        <li>Batterie vide : ne pas pousser sur la voie ; le dépanneur la remorque sur plateau.</li>
+      </ul>
+    </details>
+    <div class="ev-hint">Numéros : 112 (urgences), 15 (SAMU), 17 (police), 18 (pompiers), 114 (par SMS).</div>
+  </div>
+</div>
+<button id="ev-urgence-bornes-interne" type="button" class="hidden" aria-hidden="true"></button>
+</body>
 </html>

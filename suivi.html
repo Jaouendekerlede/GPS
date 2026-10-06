@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101820">
+  <meta name="robots" content="noindex">
+  <title>Suivi du trajet · Trajet VE</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #101820; color: #f5f7f8; font: 16px system-ui, sans-serif; }
+    body { display: flex; flex-direction: column; }
+    #carte { flex: 1; min-height: 40vh; background: #0b1017; }
+    #panneau { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 6px; }
+    h1 { margin: 0; font-size: 1.15rem; }
+    #etat { font-size: 1.05rem; font-weight: 700; }
+    #details, #fraicheur, .note { color: #b9c4cc; font-size: 0.92rem; line-height: 1.4; }
+    #fraicheur.ancien { color: #ffb74d; font-weight: 700; }
+    .voiture { width: 26px; height: 26px; border-radius: 50%; background: #35c878; border: 3px solid #fff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.6); }
+    .voiture.inactif { background: #8a97a3; }
+  </style>
+</head>
+<body>
+  <div id="carte"></div>
+  <div id="panneau">
+    <h1>🚗 Suivi du trajet</h1>
+    <div id="etat" role="status" aria-live="polite">Recherche de la position…</div>
+    <div id="details"></div>
+    <div id="fraicheur"></div>
+    <div class="note">Position envoyée toutes les deux minutes environ pendant le guidage, et seulement tant que le conducteur partage son trajet. Elle peut être en retard ou imprécise : ne t'y fie pas pour une urgence.</div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    import { estSujet, lireMessages } from "./js/partage-position.js";
+
+    const $ = (id) => document.getElementById(id);
+    const sujet = location.hash.slice(1);
+    const LIBELLES = { en_route: "En route", a_la_borne: "🔋 En recharge à une borne", signal_perdu: "📡 Signal GPS perdu : dernière position connue", arrive: "🏁 Arrivé à destination", termine: "Partage terminé" };
+    const heure = (ms) => new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    let carte = null;
+    let marqueur = null;
+    let dernier = null;
+    let dernierId = "12h";
+
+    function afficher(m) {
+      dernier = m;
+      const fini = m.etat === "arrive" || m.etat === "termine";
+      $("etat").textContent = LIBELLES[m.etat] || "En route";
+      const details = [];
+      if (m.destination) details.push(`Vers ${m.destination}`);
+      if (!fini && m.arrivee) details.push(`arrivée prévue vers ${heure(m.arrivee)}`);
+      if (!fini && m.restant_km != null) details.push(`${m.restant_km} km restants`);
+      if (!fini && m.kmh != null) details.push(`${m.kmh} km/h`);
+      if (m.batterie != null) details.push(`batterie ~${m.batterie} %`);
+      $("details").textContent = details.join(" · ");
+      if (m.lat == null || m.lon == null) return;
+      if (!carte) {
+        carte = L.map("carte", { zoomControl: true }).setView([m.lat, m.lon], 13);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(carte);
+      }
+      const icone = L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 13], html: `<div class="voiture${fini ? " inactif" : ""}"></div>` });
+      if (marqueur) marqueur.setLatLng([m.lat, m.lon]).setIcon(icone);
+      else marqueur = L.marker([m.lat, m.lon], { icon: icone }).addTo(carte);
+      carte.panTo([m.lat, m.lon]);
+    }
+
+    // L'âge de la position est toujours affiché : une position ancienne ne doit pas passer pour actuelle.
+    function majFraicheur() {
+      if (!dernier) return;
+      const minutes = Math.round((Date.now() - dernier.t) / 60000);
+      const fini = dernier.etat === "arrive" || dernier.etat === "termine";
+      $("fraicheur").textContent = minutes < 1 ? "Position reçue à l'instant" : `Position reçue il y a ${minutes} min (à ${heure(dernier.t)})`;
+      $("fraicheur").classList.toggle("ancien", !fini && minutes >= 6);
+      if (!fini && minutes >= 6) $("fraicheur").textContent += " : pas de nouvelle depuis, le conducteur n'a peut-être plus de réseau.";
+    }
+
+    async function actualiser() {
+      try {
+        const recus = await lireMessages(sujet, dernierId);
+        if (recus.length) {
+          dernierId = recus[recus.length - 1].id;
+          afficher(recus[recus.length - 1].message);
+        } else if (!dernier) {
+          $("etat").textContent = "Aucune position reçue pour ce lien.";
+          $("details").textContent = "Le partage n'a pas commencé, est terminé depuis plus de douze heures, ou le lien est incomplet.";
+        }
+      } catch (e) {
+        if (!dernier) $("etat").textContent = "Service de suivi injoignable : nouvel essai dans une minute.";
+        console.warn("[SUIVI]", e);
+      }
+      majFraicheur();
+    }
+
+    if (!estSujet(sujet)) {
+      $("etat").textContent = "Lien de suivi incomplet.";
+      $("details").textContent = "Demande au conducteur de te renvoyer le lien entier.";
+    } else {
+      actualiser();
+      setInterval(() => {
+        if (dernier?.etat === "termine" || dernier?.etat === "arrive") return majFraicheur();
+        actualiser();
+      }, 45000);
+      setInterval(majFraicheur, 20000);
+      document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && actualiser());
+    }
+    // Un autre lien de suivi ouvert dans le même onglet : on repart de zéro.
+    window.addEventListener("hashchange", () => location.reload());
+  </script>
+</body>
+</html>
