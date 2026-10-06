@@ -1313,6 +1313,7 @@ function rendreReglagesProfil() {
   $("gps-reglage-voix-voies").checked = reglages.voix_voies !== false;
   $("gps-reglage-voix-travaux").checked = reglages.voix_travaux !== false;
   $("gps-reglage-bip").checked = reglages.bip_vitesse !== false;
+  $("gps-reglage-marge-vitesse").value = String(reglages.marge_vitesse ?? 5);
   $("gps-reglage-fenetre-voies").checked = reglages.fenetre_voies !== false;
   $("gps-reglage-vue-carrefour").checked = reglages.vue_carrefour !== false;
   $("gps-reglage-icone").value = reglages.icone_voiture || "fleche_bleue";
@@ -1628,6 +1629,7 @@ function majInfoRegion() {
 
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
 function cablerRechercheBas() {
+  $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
   $("gps-recherche-bas").addEventListener("click", () => {
     afficherVue("trajet");
     $("gps-destination-input").focus();

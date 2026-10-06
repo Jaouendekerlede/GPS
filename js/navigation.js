@@ -774,7 +774,7 @@ const DUREE_AVANT_BIP_MS = 2000;
 
 // Un seul bip par dépassement, après 2 s au-dessus (pas pour un pic de GPS).
 function surveillerVitesse(kmh, limite) {
-  const exces = !!limite && kmh > limite + TOLERANCE_VITESSE_KMH;
+  const exces = !!limite && kmh > limite + (etat.prefs.margeVitesse ?? TOLERANCE_VITESSE_KMH);
   if (!exces) {
     etat.excesDepuis = null;
     etat.bipFait = false;
@@ -2297,6 +2297,7 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
       voixTravaux: reglages.voix_travaux !== false,
       voixBornes: reglages.voix_bornes !== false,
       bip: reglages.bip_vitesse !== false,
+      margeVitesse: reglages.marge_vitesse ?? TOLERANCE_VITESSE_KMH,
       zoomRenforce: reglages.zoom_renforce !== false,
       dangers: reglages.zones_danger !== false,
       feux: reglages.feux !== false,
