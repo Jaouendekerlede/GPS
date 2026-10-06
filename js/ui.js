@@ -5,29 +5,21 @@
 
 import { MULTIPLICATEURS_SAISON, getApiKeys, setApiKeys, MODES_TRAJET } from "./config.js";
 import { obtenirProfilVehicule, definirProfilVehicule, listerHistoriqueTrajets, supprimerTrajetHistorique, effacerHistoriqueTrajets, listerTrajetsFavoris, ajouterTrajetFavori, retirerTrajetFavori, listerBornesFavorites, estBorneFavorite, basculerFavoriBorne, obtenirNoteBorne, definirNoteBorne, lirePrefs, sauverPrefs, lireReglages, sauverReglages, consoMesuree, appliquerAbonnements, noterTrajetPrevu, trajetPrevu, consoParType, listerTraces, borneEnPanneJusqua, basculerBorneEnPanne, JOURS_BORNE_EN_PANNE, supprimerTrace, destinationHabituelle, facteurChargeAppris, remiseAZero } from "./storage.js";
-import { planifierTrajet, simulerVitesseMax, planifierAlternative, planifierAllerRetour, comparerScenarios, bornesADistance, rechercherBornesAutour, bornesUrgence } from "./trajet.js";
+import { planifierTrajet, planifierAlternative, planifierAllerRetour } from "./trajet.js";
 import { diagnostiquerCleTomTom } from "./tomtom.js";
 
-import { typesDeCharge, calculerTempsCharge, exporterTrajetTexte, exporterScenariosTexte, formaterMinutes } from "./planner.js";
+import { exporterTrajetTexte, formaterMinutes } from "./planner.js";
 import { initCarte, afficherAutonomie, fondSuivant, choisirFond, rechargerFond, activerCarte3D, carte3DActive, fondCourant, derniereErreur3D, definirDecalageBas, centreVisible, rayonVisibleKm, zoomActuel, centrer, classePuissance, puissanceBorne, afficherBornes, rafraichirBorne, selectionnerBorne, montrerBornes, afficherPosition, afficherTrajet, afficherAlternatives, effacerTrajet, placerCurseur, definirAppuiLong, afficherPointsPassage } from "./carte.js";
-import { afficherCourbe, detruireCourbe } from "./courbe.js";
-import { rechercherBornesZone, borneCompatible } from "./ocm.js";
 import { resoudreLieu, haversineKm } from "./geo.js";
 import { escapeHtml, lienGoogleMaps, lienWaze, estNuit } from "./util.js";
 import { $, toast, bandeau, euros, nombre, nomCourt, nombreOuUndefined, hint, alerte, tuile, telechargerTexte, badgeOperateur } from "./ui-commun.js";
-import { rendreJournal, cablerJournal } from "./ui-journal.js";
-import { rendreAbonnements, cablerAbonnements } from "./ui-abonnements.js";
 import { exporterSauvegarde, importerSauvegarde, envoyerLienRestauration, majInfoLien } from "./ui-sauvegarde.js";
 import { installerAppli, majBoutonInstallation } from "./ui-installation.js";
 import { cablerZonesEvitees } from "./ui-zones.js";
-import { facteurVitesse } from "./energie.js";
 import { classeNumero } from "./panneau-nav.js";
 import { cablerSuggestions } from "./ui-suggestions.js";
-import { RESEAUX_PAIEMENT, lireMoyens, facilitePaiement } from "./paiement.js";
 import { lignesEtat } from "./etat-appli.js";
 import { niveauPrecision } from "./recalage.js";
-import { cablerVoitureGaree } from "./ui-voiture.js";
-import { rendreStats, cablerStats } from "./ui-stats.js";
 import { remplirArretsImposes, cablerArretsImposes, arretImposeChoisi } from "./ui-arret-impose.js";
 import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
 import { boutonPartage, partagerTrajet } from "./ui-partage.js";
@@ -38,7 +30,6 @@ import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
 import { reconnaissanceDispo, ecouter, interpreterCommande } from "./commandes-vocales.js";
 import { cablerParkings, planifierParkings, cablerTrafic } from "./ui-parkings.js";
 import { afficherAccueil } from "./ui-accueil.js";
-import { enrichirBornes, ageEtatsDynamiques, stationsOfficiellesZone, fusionnerBornes } from "./irve.js";
 import { demarrerNavigation, etatDiagnostic, navigationActive, retourNavigationEnCours, traceRestante, navigationInterrompue, oublierNavigationInterrompue } from "./navigation.js";
 import { ageTexte } from "./reprise.js";
 import { cablerDiagnostic } from "./ui-diagnostic.js";
@@ -102,7 +93,7 @@ function majKmCurseurs() {
   // Autoroute : consommation de référence (90 km/h) × effet de la vitesse,
   // corrigée de la saison par rapport à la mi-saison (~20 kWh/100 à 130).
   const multSaison = (MULTIPLICATEURS_SAISON[p.saison] ?? 1) / (MULTIPLICATEURS_SAISON.mi_saison ?? 1);
-  const consoAutoroute = consoParType().autoroute || p.consommation_kwh_100km * multSaison * facteurVitesse(p, 130);
+  const consoAutoroute = consoParType().autoroute || p.consommation_kwh_100km * multSaison * 1;
   const km = (pct, c = conso) => Math.max(0, ((p.capacite_kwh * pct) / 100 / c) * 100);
   const deux = (pct) => `≈ ${nombre(km(pct))} km · ${nombre(km(pct, consoAutoroute))} km sur autoroute`;
   const depart = Number($("ev-charge-pct-input").value);
@@ -125,13 +116,7 @@ function heure(ms) {
   return new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function classeBatterie(pct) {
-  return pct >= 50 ? "good" : pct >= 20 ? "warn" : "bad";
-}
 
-function batterieHtml(pct) {
-  return `<span class="ev-batt ${classeBatterie(pct)}">🔋 ${nombre(pct, pct % 1 ? 1 : 0)} %</span>`;
-}
 
 function ecranLarge() {
   return window.matchMedia("(min-width: 900px)").matches;
@@ -296,14 +281,9 @@ function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
   if ((vue === "trajet" || vue === "resultat") && !navigationActive()) definirAppuiLong(surAppuiLongPlanif);
   else if (!navigationActive()) definirAppuiLong(null);
   if (vue === "outils") {
-    rendreJournal();
-    rendreStats();
-    rendreTraces();
   }
   // Mesures et abonnements ont pu changer depuis (navigation, autre écran).
   if (vue === "profil") {
-    majConsoMesuree();
-    rendreAbonnements();
   }
   const onglet = ONGLET_PAR_VUE[vue];
   if (onglet) document.querySelectorAll(".ev-nav-btn").forEach((b) => b.classList.toggle("actif", b.dataset.vue === onglet));
@@ -367,210 +347,26 @@ function cablerNavigation() {
 
 const OUI_NON = { oui: "✅ oui", partiel: "⚠️ sur une partie des points", non: "❌ non" };
 
-function officielValide(b) {
-  return b.officiel && !b.officiel.indisponible ? b.officiel : null;
-}
 
-function etatCb(b) {
-  const o = officielValide(b);
-  if (o) {
-    if (o.paiement_cb === "oui") return { classe: "ok", court: "💳 CB acceptée", long: "✅ Acceptée" };
-    if (o.paiement_cb === "partiel") return { classe: "warn", court: "💳 CB sur certains points", long: "⚠️ Sur une partie des points seulement" };
-    return { classe: "non", court: "🚫 Pas de CB", long: "❌ Non acceptée" };
-  }
-  if (b.officiel === undefined) return { classe: "attente", court: "💳 vérification…", long: "Vérification en cours…" };
-  if (b.paiement_cb_probable) return { classe: "inconnu", court: "💳 CB probable", long: "❓ Non confirmé — probable : borne ≥50 kW, terminal CB obligatoire sur les bornes neuves depuis 04/2024" };
-  return { classe: "inconnu", court: "💳 CB non renseignée", long: "❓ Non renseigné" };
-}
 
-function prixConnu(b) {
-  if (b.prix_kwh_eur == null || b.prix_est_estimation) return null;
-  return b.prix_kwh_eur;
-}
 
-function prixRetenuHtml(b) {
-  if (b.prix_kwh_eur == null) return "";
-  const source =
-    b.prix_source === "abonnement"
-      ? `ton abonnement ${b.abonnement}`
-      : b.prix_source === "officiel"
-        ? "tarif officiel déclaré"
-        : b.prix_est_estimation
-          ? "estimation par défaut, tarif réel non communiqué"
-          : "tarif Open Charge Map";
-  return `${euros(b.prix_kwh_eur)}/kWh (${source})`;
-}
 
-function coutHtml(coutEstime, prixKwh, estimation) {
-  if (coutEstime !== undefined && coutEstime !== null) {
-    return `💶 ${estimation ? "~" : ""}${euros(coutEstime)}${estimation ? " (estimé, tarif non communiqué)" : ""}`;
-  }
-  if (prixKwh !== undefined && prixKwh !== null) return `💶 ~${euros(prixKwh)}/kWh${estimation ? " (estimé)" : ""}`;
-  return "";
-}
 
 // État déclaré par l'opérateur : hors service (avec la date du signalement)
 // ou, si l'information a moins d'une heure, points libres.
-function pastilleEtat(etat) {
-  if (!etat) return "";
-  // Chaque état porte son âge : une information ancienne n'est pas présentée comme actuelle.
-  const date = etat.date_signalement
-    ? ` (signalé le ${new Date(etat.date_signalement).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}${etat.signalement_ancien ? ", ancien : à vérifier" : ""})`
-    : "";
-  const minutes = etat.date_occupation ? Math.max(0, Math.round((Date.now() - etat.date_occupation) / 60000)) : null;
-  const age = minutes === null ? "< 1 h" : minutes < 1 ? "à l'instant" : `il y a ${minutes} min`;
-  if (etat.tous_hors_service) return `<span class="ev-cb-pill ${etat.signalement_ancien ? "warn" : "non"}">⛔ Hors service${date}</span>`;
-  if (etat.hors_service) return `<span class="ev-cb-pill warn">⚠️ ${etat.hors_service}/${etat.total} hors service${date}</span>`;
-  if (etat.libres) return `<span class="ev-cb-pill ok">✅ ${etat.libres} libre${etat.libres > 1 ? "s" : ""} (${age})</span>`;
-  if (etat.occupes) return `<span class="ev-cb-pill warn">⏳ Occupée (${age})</span>`;
-  return "";
-}
 
-function pastillesBorne(b) {
-  const o = officielValide(b);
-  const cb = etatCb(b);
-  const morceaux = [pastilleEtat(b.etat_dynamique), `<span class="ev-cb-pill ${cb.classe}">${cb.court}</span>`].filter(Boolean);
-  const prix = prixConnu(b);
-  if (o?.gratuit === "oui") morceaux.push(`<span class="ev-cb-pill ok">🎁 Gratuit</span>`);
-  else if (prix !== null) morceaux.push(`<span class="ev-cb-pill ${b.abonnement ? "ok" : "neutre"}">${b.abonnement ? "💳" : "💶"} ${euros(prix)}/kWh${b.abonnement ? " (abonnement)" : ""}</span>`);
-  if (o && /24\s*\/\s*7|24\s*h/i.test(o.horaires)) morceaux.push(`<span class="ev-cb-pill neutre">🕐 24h/24</span>`);
-  return morceaux.join("");
-}
 
 // ── Liste de bornes ────────────────────────────────────────────────────────
 
-function ligneBorneHtml(b, i, suffixeDistance = "") {
-  const kw = puissanceBorne(b);
-  const o = officielValide(b);
-  const points = o?.nombre_points || b.nombre_points;
-  const operateur = b.operateur || o?.operateur;
-  const sous = [operateur || "Opérateur inconnu", b.distance_km != null ? `${nombre(b.distance_km, 1)} km${suffixeDistance}` : "", points ? `${points} pts` : ""]
-    .filter(Boolean)
-    .join(" · ");
-  return `
-    <button type="button" class="ev-borne-ligne" data-idx="${i}">
-      <div class="ev-borne-puissance ${classePuissance(kw)}">${kw || "?"}<small>kW</small></div>
-      <div class="ev-borne-infos">
-        <div class="ev-borne-nom">${escapeHtml(b.nom || b.nom_borne || "Borne de recharge")}</div>
-        <div class="ev-borne-sous">${badgeOperateur(operateur)}${escapeHtml(sous)}</div>
-        <div class="ev-borne-pastilles">${pastillesBorne(b)}</div>
-      </div>
-    </button>`;
-}
 
-function afficherListe(conteneur, bornes, messageVide, suffixeDistance = "") {
-  listesAffichees.set(conteneur.id, bornes);
-  conteneur.innerHTML = bornes.map((b, i) => ligneBorneHtml(b, i, suffixeDistance)).join("") || hint(messageVide);
-}
 
-function cablerListe(conteneur, action) {
-  conteneur.addEventListener("click", (e) => {
-    const ligne = e.target.closest("[data-idx]");
-    if (!ligne) return;
-    const b = listesAffichees.get(conteneur.id)?.[Number(ligne.dataset.idx)];
-    if (b) action(b);
-  });
-}
 
 // ── Bornes autour de la carte ──────────────────────────────────────────────
 
-function cbPossible(b) {
-  const o = officielValide(b);
-  if (o) return o.paiement_cb !== "non";
-  if (b.officiel === undefined) return true;
-  return !!b.paiement_cb_probable;
-}
 
-function passeFiltres(b) {
-  const o = officielValide(b);
-  const enAttente = b.officiel === undefined;
-  if (filtres.has("rapide") && puissanceBorne(b) < 50) return false;
-  if (filtres.has("cb") && !cbPossible(b)) return false;
-  if (filtres.has("payable") && !enAttente && facilitePaiement(b, lireMoyens(lireReglages())).niveau === "incertain") return false;
-  if (filtres.has("compatible") && !borneCompatible(b, obtenirProfilVehicule().connecteurs_acceptes)) return false;
-  if (filtres.has("h24") && !enAttente && !(o && /24\s*\/\s*7|24\s*h/i.test(o.horaires))) return false;
-  if (filtres.has("gratuit") && !enAttente && !(o?.gratuit === "oui" || /gratuit|free/i.test(b.cout_texte || ""))) return false;
-  return true;
-}
 
-function renderBornes({ carteAussi = true } = {}) {
-  const liste = bornesZone.filter(passeFiltres);
-  if (carteAussi) afficherBornes(liste, (b) => ouvrirBorne(b, { centrerCarte: false }));
-  const nbFiltres = filtres.size ? ` · ${filtres.size} filtre${filtres.size > 1 ? "s" : ""}` : "";
-  $("ev-bornes-titre").textContent = rechercheManuelle
-    ? `🔍 ${liste.length} borne${liste.length > 1 ? "s" : ""} — ${rechercheManuelle}`
-    : `📍 ${liste.length} borne${liste.length > 1 ? "s" : ""} à proximité${nbFiltres}`;
-  $("ev-recherche-effacer").classList.toggle("hidden", !rechercheManuelle);
-  afficherListe(
-    $("ev-bornes-liste"),
-    liste,
-    bornesZone.length ? "Aucune borne ne correspond aux filtres choisis." : "Aucune borne trouvée dans cette zone. Déplace ou dézoome la carte.",
-  );
-  if (zoneIncomplete && !rechercheManuelle) {
-    $("ev-bornes-liste").insertAdjacentHTML("afterbegin", hint("Beaucoup de bornes ici : seules les plus proches du centre de la carte sont affichées. Zoome pour voir les autres."));
-  }
-}
 
-async function enrichirProgressivement(bornes, toujoursValide) {
-  for (let k = 0; k < bornes.length; k += 6) {
-    const groupe = bornes.slice(k, k + 6);
-    appliquerAbonnements(await enrichirBornes(groupe));
-    if (!toujoursValide()) return;
-    if (filtres.size) renderBornes();
-    else {
-      groupe.forEach(rafraichirBorne);
-      renderBornes({ carteAussi: false });
-    }
-  }
-}
 
-async function chargerBornesZone(force = false) {
-  const { openChargeMap } = getApiKeys();
-  const rayon = rayonVisibleKm();
-  if (rayon > 60) {
-    jetonZone++;
-    bornesZone = [];
-    derniereZone = null;
-    renderBornes();
-    $("ev-bornes-titre").textContent = "🔎 Zoome sur la carte pour voir les bornes";
-    return;
-  }
-  const c = centreVisible();
-  const r = Math.max(1.5, Math.min(40, rayon));
-  if (
-    !force &&
-    derniereZone &&
-    haversineKm(c.lat, c.lon, derniereZone.lat, derniereZone.lon) < derniereZone.rayon * 0.3 &&
-    r <= derniereZone.rayon * 1.25 &&
-    r >= derniereZone.rayon * 0.5
-  ) {
-    return;
-  }
-  const jeton = ++jetonZone;
-  $("ev-bornes-titre").textContent = "⏳ Recherche des bornes…";
-  // Deux sources : Open Charge Map (collaborative, monde entier) et la base
-  // officielle française (plus complète en France, avec le paiement CB).
-  const [res, officielles] = await Promise.all([
-    openChargeMap ? rechercherBornesZone(openChargeMap, c.lat, c.lon, { rayonKm: r, maxResultats: 80 }) : Promise.resolve({ ok: false, erreur: "cle_manquante", bornes: [] }),
-    stationsOfficiellesZone(c.lat, c.lon, r, { maxLignes: 450 }),
-  ]);
-  if (jeton !== jetonZone) return;
-  if (!res.ok && !officielles.bornes.length) {
-    $("ev-bornes-titre").textContent = "📍 Bornes à proximité";
-    $("ev-bornes-liste").innerHTML = alerte(
-      res.erreur === "cle_manquante" ? "Clé Open Charge Map manquante ou refusée : vérifie-la dans 🚗 Profil." : `Recherche de bornes indisponible (${res.erreur}).`,
-    );
-    return;
-  }
-  derniereZone = { lat: c.lat, lon: c.lon, rayon: r };
-  bornesZone = fusionnerBornes(res.ok ? res.bornes : [], officielles.bornes);
-  zoneIncomplete = !!officielles.incomplet;
-  renderBornes();
-  enrichirProgressivement(
-    bornesZone.filter((b) => b.officiel === undefined),
-    () => jeton === jetonZone,
-  );
-}
 
 function surDeplacementCarte() {
   // Parkings : aussi sur l'écran du trajet (se garer à l'arrivée).
@@ -578,7 +374,6 @@ function surDeplacementCarte() {
   const contexteTrajet = vueCourante === "resultat" || (vueCourante === "borne" && vueAvantBorne === "resultat");
   if (rechercheManuelle || contexteTrajet || navigationActive()) return;
   clearTimeout(minuteurDeplacement);
-  minuteurDeplacement = setTimeout(() => chargerBornesZone(), 650);
 }
 
 // ── Thème clair / sombre ───────────────────────────────────────────────────
@@ -603,7 +398,6 @@ function appliquerTheme() {
   document.querySelectorAll("[data-theme-choix]").forEach((b) => b.classList.toggle("active", b.dataset.themeChoix === choix));
   // Tant que l'utilisateur n'a pas choisi de fond de carte, il suit le thème.
   if (!reglages.fond_carte) $("ev-fond-btn").innerHTML = iconeFond(choisirFond(fondParDefaut()));
-  if (dernierTrajet && !$("ev-profil-trajet").classList.contains("hidden")) afficherVueCourbe();
 }
 
 function cablerTheme() {
@@ -691,8 +485,6 @@ function cablerCarte() {
   for (const f of reglages.filtres_carte || []) filtres.add(f);
   cablerParkings();
   cablerTrafic();
-  cablerVoitureGaree();
-  cablerStats();
   cablerSOS();
   cablerDiagnostic();
   // Liste d'essais sur la route : cases mémorisées sur ce téléphone.
@@ -735,8 +527,6 @@ function cablerCarte() {
       const t = listerTraces().find((x) => String(x.date) === aSupprimer);
       if (!t || !confirm(`Supprimer le trajet du ${new Date(t.date).toLocaleDateString("fr-FR")} (${nomCourt(t.destination || "Trajet").split(",")[0]}, ${nombre(t.km)} km) ?\n\nIl sera retiré de cette liste et des statistiques.`)) return;
       supprimerTrace(t.date);
-      rendreTraces();
-      rendreStats();
       return;
     }
     const i = e.target.closest("[data-trace]")?.dataset.trace;
@@ -777,7 +567,6 @@ function cablerCarte() {
       else filtres.add(f);
       chip.classList.toggle("actif", filtres.has(f));
       sauverReglages({ filtres_carte: [...filtres] });
-      renderBornes();
       if (vueCourante !== "bornes" && vueCourante !== "resultat") afficherVue("bornes", { etat: "mi", historique: false });
     });
   });
@@ -786,9 +575,7 @@ function cablerCarte() {
   $("ev-recherche-effacer").addEventListener("click", () => {
     rechercheManuelle = null;
     derniereZone = null;
-    chargerBornesZone(true);
   });
-  cablerListe($("ev-bornes-liste"), (b) => ouvrirBorne(b));
 }
 
 async function localiser() {
@@ -819,7 +606,6 @@ async function positionDeDepart() {
       return;
     }
   }
-  chargerBornesZone(true);
 }
 
 // ── Fiche borne ────────────────────────────────────────────────────────────
@@ -828,194 +614,10 @@ function ligneInfo(label, valeurHtml) {
   return valeurHtml ? `<div class="ev-ligne-info"><span class="label">${label}</span><span class="value">${valeurHtml}</span></div>` : "";
 }
 
-function prisesHtml(b) {
-  const o = officielValide(b);
-  let prises = [];
-  if (o?.prises?.length) {
-    prises = o.prises.map((p) => ({ nom: p.libelle, kw: p.puissance_max_kw, nb: p.nombre }));
-  } else {
-    const groupes = new Map();
-    for (const c of b.connecteurs || []) {
-      const cle = `${c.type}|${c.puissance_kw}`;
-      const g = groupes.get(cle) || { nom: c.type, kw: c.puissance_kw, nb: 0 };
-      g.nb += c.quantite || 1;
-      groupes.set(cle, g);
-    }
-    prises = [...groupes.values()].sort((a, z) => z.kw - a.kw);
-  }
-  if (!prises.length) return "";
-  return `<div class="ev-prises">${prises
-    .map((p) => `<div class="ev-prise"><span class="ev-prise-kw">${p.kw ? `${escapeHtml(p.kw)} kW` : "? kW"}</span><strong>${escapeHtml(p.nom)}</strong><span>${p.nb} point${p.nb > 1 ? "s" : ""}</span></div>`)
-    .join("")}</div>`;
-}
 
-function ficheBorneHtml(b, ctx) {
-  const o = officielValide(b);
-  const kw = puissanceBorne(b);
-  const cb = etatCb(b);
-  const nom = b.nom_borne || b.nom || o?.nom_station || "Borne de recharge";
-  const favori = estBorneFavorite(nom, b.lat, b.lon);
-  const statutOk = (b.statut || "").toLowerCase().includes("operational");
-  const points = o?.nombre_points || b.nombre_points;
 
-  let html = `
-    <div class="ev-fiche-tete">
-      <div class="ev-borne-puissance ${classePuissance(kw)}">${kw || "?"}<small>kW max</small></div>
-      <div>
-        <div class="ev-fiche-titre">${escapeHtml(nom)}</div>
-        <div class="ev-fiche-sous">${badgeOperateur(b.operateur || o?.operateur)}${escapeHtml([b.operateur || o?.operateur, b.adresse || o?.adresse].filter(Boolean).join(" · "))}</div>
-      </div>
-    </div>
-    <div class="ev-badges">
-      ${pastilleEtat(b.etat_dynamique) || (o ? `<span class="ev-cb-pill neutre">❔ Occupation en temps réel inconnue</span>` : "")}
-      <span class="ev-cb-pill ${cb.classe}">${cb.court}</span>
-      ${points ? `<span class="ev-cb-pill neutre">🔌 ${escapeHtml(points)} point${points > 1 ? "s" : ""}</span>` : ""}
-      ${o?.horaires ? `<span class="ev-cb-pill neutre">🕐 ${escapeHtml(o.horaires)}</span>` : ""}
-      ${b.statut ? `<span class="ev-cb-pill ${statutOk ? "ok" : "warn"}">${statutOk ? "✅ En service (déclaré)" : `⚠️ ${escapeHtml(b.statut)}`}</span>` : ""}
-      ${o?.gratuit === "oui" ? `<span class="ev-cb-pill ok">🎁 Gratuit</span>` : ""}
-    </div>
-    <div class="ev-actions-rangee">
-      <a class="ev-action" href="${lienGoogleMaps(b.lat, b.lon)}" target="_blank" rel="noopener"><span>🧭</span>Y aller</a>
-      <a class="ev-action" href="${lienWaze(b.lat, b.lon)}" target="_blank" rel="noopener"><span>🚗</span>Waze</a>
-      <button id="ev-borne-fav-btn" class="ev-action${favori ? " actif" : ""}" type="button"><span>${favori ? "★" : "☆"}</span>${favori ? "Favorite" : "Favori"}</button>
-      ${
-        o?.telephone
-          ? `<a class="ev-action" href="${escapeHtml(o.telephone.lien)}"><span>📞</span>Assistance</a>`
-          : `<button id="ev-borne-partager-btn" class="ev-action" type="button"><span>📤</span>Partager</button>`
-      }
-    </div>`;
 
-  const panneJusqua = borneEnPanneJusqua(b.lat, b.lon);
-  html += panneJusqua
-    ? `<div class="ev-alerte">⚠️ Tu as signalé cette borne en panne : elle n'est plus proposée dans tes trajets jusqu'au ${new Date(panneJusqua).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}. <button id="ev-borne-panne-btn" class="ev-lien" type="button">✅ Elle remarche</button></div>`
-    : `<button id="ev-borne-panne-btn" class="ev-lien" type="button">⚠️ Signaler cette borne en panne (${JOURS_BORNE_EN_PANNE} jours)</button>`;
 
-  if (ctx) {
-    html += `<div class="ev-carte-bloc"><h3>🔋 Cet arrêt dans ton trajet</h3>
-      <div class="ev-meta"><span>km ${escapeHtml(ctx.km_depuis_depart)}</span><span>⚡ ${escapeHtml(ctx.puissance_kw)} kW</span><span>+${escapeHtml(ctx.kwh_ajoutes)} kWh</span><span>⏱️ ${escapeHtml(ctx.temps_charge_min)} min</span></div>
-      <div>${batterieHtml(ctx.pct_arrivee_borne)} → ${batterieHtml(ctx.pct_depart_borne)}</div>
-      ${ctx.cout_estime_eur != null ? `<div>${coutHtml(ctx.cout_estime_eur, ctx.prix_kwh_eur, ctx.prix_est_estimation)}</div>` : ""}
-      ${ctx.distance_borne_km != null ? `<div class="ev-hint">À ${escapeHtml(ctx.distance_borne_km)} km du tracé.</div>` : ""}`;
-    if (typeof ctx.score === "number") {
-      const c = ctx.score >= 70 ? "" : ctx.score >= 40 ? "warn" : "bad";
-      html += `<div><span class="ev-score ${c}">Recommandation ${ctx.score}/100</span></div>
-        <div class="ev-details-score">${(ctx.score_details || []).map((d) => `<span>${d.points >= 0 ? "+" : ""}${d.points} ${escapeHtml(d.label)}</span>`).join("")}</div>`;
-    }
-    if (ctx.alternatives?.length) {
-      html += `<h3>🔁 Plan B à proximité</h3>`;
-      ctx.alternatives.forEach((alt, i) => {
-        const cbAlt = etatCb(alt);
-        html += `<div class="ev-alternative" data-alt="${i}">
-          <strong>${escapeHtml(alt.nom)}</strong>
-          <div class="ev-meta"><span>${escapeHtml(alt.operateur || "opérateur ?")}</span><span>${escapeHtml(alt.distance_km)} km</span><span>${escapeHtml(alt.puissance_max_kw)} kW</span><span>score ${alt.score}/100</span><span class="ev-cb-pill ${cbAlt.classe}">${cbAlt.court}</span></div>
-        </div>`;
-      });
-    }
-    html += `</div>`;
-  }
-
-  const prises = prisesHtml(b);
-  if (prises) html += `<div class="ev-carte-bloc"><h3>🔌 Prises</h3>${prises}${o?.cable_attache === "oui" ? hint("Câble Type 2 attaché à la borne.") : ""}</div>`;
-
-  const facilite = facilitePaiement(b, lireMoyens(lireReglages()));
-  let paiement = ligneInfo("Avec tes moyens de paiement", `<strong>${{ sur: "✅", probable: "🟡", incertain: "❓" }[facilite.niveau]} ${escapeHtml(facilite.texte)}</strong>`);
-  paiement += ligneInfo("Carte bancaire", `<strong class="ev-cb-texte ${cb.classe}">${escapeHtml(cb.long)}</strong>`);
-  if (o) {
-    paiement += ligneInfo("Sans abonnement (à l'acte)", OUI_NON[o.paiement_acte]);
-    paiement += ligneInfo("Badge, appli, abonnement", OUI_NON[o.paiement_autre]);
-    paiement += ligneInfo("Recharge gratuite", OUI_NON[o.gratuit]);
-    paiement += ligneInfo("Tarif officiel", o.tarifs.length ? escapeHtml(o.tarifs.join(" · ")) : "Non communiqué");
-  }
-  if (b.cout_texte && b.source !== "irve") paiement += ligneInfo("Tarif Open Charge Map", escapeHtml(b.cout_texte));
-  paiement += ligneInfo("Prix utilisé pour les calculs", prixRetenuHtml(b));
-  html += `<div class="ev-carte-bloc"><h3>💳 Paiement et tarifs</h3><div>${paiement}</div></div>`;
-
-  if (o) {
-    const acces =
-      ligneInfo("Conditions d'accès", escapeHtml(o.condition_acces)) +
-      ligneInfo("Horaires", escapeHtml(o.horaires)) +
-      ligneInfo("Réservation possible", OUI_NON[o.reservation]) +
-      ligneInfo("Accessibilité PMR", escapeHtml(o.accessibilite_pmr)) +
-      ligneInfo("Restriction de gabarit", escapeHtml(o.restriction_gabarit)) +
-      ligneInfo("Emplacement", escapeHtml(o.implantation)) +
-      ligneInfo("Adresse déclarée", escapeHtml(o.adresse));
-    html += `<div class="ev-carte-bloc"><h3>🕐 Accès</h3><div>${acces}</div></div>`;
-
-    const contact = o.contact ? (o.contact.includes("@") ? `<a href="mailto:${escapeHtml(o.contact)}">${escapeHtml(o.contact)}</a>` : escapeHtml(o.contact)) : "";
-    const operateur =
-      ligneInfo("Opérateur", escapeHtml(o.operateur)) +
-      (o.enseigne && o.enseigne !== o.operateur ? ligneInfo("Enseigne", escapeHtml(o.enseigne)) : "") +
-      (o.amenageur && o.amenageur !== o.operateur ? ligneInfo("Propriétaire", escapeHtml(o.amenageur)) : "") +
-      (o.telephone ? ligneInfo("Assistance", `<a href="${escapeHtml(o.telephone.lien)}">${escapeHtml(o.telephone.affichage)}</a>`) : "") +
-      ligneInfo("Contact", contact) +
-      ligneInfo("Remarques", escapeHtml(o.observations)) +
-      (o.date_mise_en_service ? ligneInfo("Mise en service", dateFr(o.date_mise_en_service)) : "") +
-      (o.date_maj ? ligneInfo("Mise à jour officielle", dateFr(o.date_maj)) : "");
-    html += `<div class="ev-carte-bloc"><h3>🏢 Opérateur</h3><div>${operateur}</div></div>`;
-    html += hint(
-      `Source : Base nationale officielle des bornes (IRVE, data.gouv.fr), déclarée par l'opérateur — station « ${o.nom_station || o.id_station} » à ${o.distance_m} m.` +
-        (o.points_consultes < o.nombre_points ? ` Détail établi sur ${o.points_consultes} des ${o.nombre_points} points.` : ""),
-    );
-  } else if (b.officiel === undefined) {
-    html += hint("🔎 Recherche des informations officielles (paiement CB, tarifs, horaires, accès)…");
-  } else if (b.officiel?.indisponible) {
-    html += hint("Base officielle des bornes momentanément injoignable : réessaie plus tard.");
-  } else {
-    html += hint("Aucune déclaration officielle trouvée à moins de 150 m (borne hors de France, très récente ou non déclarée) : informations Open Charge Map uniquement.");
-  }
-  if (b.fraicheur) html += hint(`Open Charge Map : ${b.fraicheur.label}. Occupation en temps réel non disponible.`);
-  return html;
-}
-
-function remplirFiche(b, ctx) {
-  const contenu = $("ev-borne-contenu");
-  contenu.innerHTML = ficheBorneHtml(b, ctx);
-  contenu.querySelectorAll(".ev-alternative").forEach((el) =>
-    el.addEventListener("click", () => ouvrirBorne(ctx.alternatives[Number(el.dataset.alt)], { remplacer: true })),
-  );
-  const nom = b.nom_borne || b.nom || officielValide(b)?.nom_station || "Borne de recharge";
-  $("ev-borne-fav-btn")?.addEventListener("click", () => {
-    basculerFavoriBorne(nom, b.lat, b.lon, b.adresse || officielValide(b)?.adresse || "");
-    toast(estBorneFavorite(nom, b.lat, b.lon) ? "⭐ Borne ajoutée aux favoris" : "Borne retirée des favoris");
-    remplirFiche(b, ctx);
-  });
-  $("ev-borne-partager-btn")?.addEventListener("click", () => partagerTexte(nom, `${nom}\n${b.adresse || ""}\n${lienGoogleMaps(b.lat, b.lon)}`));
-  $("ev-borne-panne-btn")?.addEventListener("click", () => {
-    const signalee = basculerBorneEnPanne(nom, b.lat, b.lon);
-    toast(signalee ? `⚠️ Borne écartée de tes trajets pendant ${JOURS_BORNE_EN_PANNE} jours` : "✅ Borne de nouveau proposée dans tes trajets");
-    remplirFiche(b, ctx);
-  });
-}
-
-function ouvrirBorne(b, { contexteArret = null, centrerCarte = true, remplacer = false } = {}) {
-  borneOuverte = { b, ctx: contexteArret };
-  if (remplacer && vueCourante === "borne") {
-    $("ev-feuille-corps").scrollTop = 0;
-  } else {
-    afficherVue("borne");
-  }
-  selectionnerBorne(b);
-  if (centrerCarte || !remplacer) centrer(b.lat, b.lon, Math.max(zoomActuel(), 14));
-  remplirFiche(b, contexteArret);
-  const nom = b.nom_borne || b.nom || "";
-  $("ev-station-note-input").value = obtenirNoteBorne(nom, b.lat, b.lon);
-
-  if (b.officiel === undefined) {
-    enrichirBornes([b]).then(appliquerAbonnements).then(() => {
-      if (borneOuverte?.b === b) remplirFiche(b, contexteArret);
-      rafraichirBorne(b);
-    });
-  }
-}
-
-function cablerFiche() {
-  $("ev-station-note-save-btn").addEventListener("click", () => {
-    if (!borneOuverte) return;
-    const { b } = borneOuverte;
-    definirNoteBorne(b.nom_borne || b.nom || "", b.lat, b.lon, $("ev-station-note-input").value || "");
-    toast("📝 Note enregistrée");
-  });
-}
 
 // ── Partage ────────────────────────────────────────────────────────────────
 
@@ -1051,14 +653,6 @@ const CASES = {
   ajuster_meteo: "ev-ajuster-meteo-checkbox",
 };
 
-function majJaugeBatterie() {
-  const pct = parseFloat($("ev-charge-pct-input").value);
-  const couleur = pct >= 50 ? "#22e5a0" : pct >= 20 ? "#ffcf70" : "#ff5c7a";
-  const fill = $("ev-charge-pct-fill");
-  fill.style.width = `${pct}%`;
-  fill.style.background = couleur;
-  fill.style.color = couleur;
-}
 
 function activerModeVisuel(mode) {
   document.querySelectorAll(".ev-charge-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
@@ -1074,7 +668,6 @@ function appliquerPresetMode(mode) {
 function cablerFormulaire() {
   $("ev-charge-pct-input").addEventListener("input", () => {
     $("ev-charge-pct-value").textContent = $("ev-charge-pct-input").value;
-    majJaugeBatterie();
   });
   for (const prefixe of ["ev-marge-pct", "ev-cible-pct"]) {
     $(`${prefixe}-input`).addEventListener("input", () => {
@@ -1155,7 +748,6 @@ function chargerPrefs() {
     slidersModifiesManuellement =
       !!preset && (preset.marge_pct !== Number(p.marge_pct ?? preset.marge_pct) || preset.cible_pct !== Number(p.cible_pct ?? preset.cible_pct));
   }
-  majJaugeBatterie();
 }
 
 // ── Points de passage imposés (appui long sur la carte en planification) ────
@@ -1383,7 +975,6 @@ async function lancerScenarios() {
     table.classList.remove("hidden");
     table.scrollIntoView({ behavior: "smooth", block: "start" });
     sauverPrefsDepuis(options);
-    renderScenarios(await comparerScenarios(options.depart, options.destination, options));
   });
 }
 
@@ -1408,150 +999,49 @@ function annoncer(r) {
 // ── Résultat ───────────────────────────────────────────────────────────────
 
 function etapesHtml(p) {
-  const arrets = p.arrets || [];
   const departMs = p.depart_ms || Date.now();
-  let chargeCumulMin = 0;
-  const pointHoraire = (km) => departMs + (minutesDepuisKm(p, km) + chargeCumulMin) * 60000;
-  const route = (kmA, kmB) => {
-    const min = minutesDepuisKm(p, kmB) - minutesDepuisKm(p, kmA);
-    return `<div class="ev-etape-route">↓ ${nombre(kmB - kmA)} km · ${formaterMinutes(Math.max(0, min))} de route</div>`;
-  };
-
-  let html = `
+  const duree = p.duree_totale_min || p.duree_min || 0;
+  return `
     <div class="ev-etape depart">
       <div class="ev-etape-rail"><div class="ev-etape-icone">🚗</div></div>
-      <div class="ev-etape-corps">
-        <div class="ev-etape-titre">Départ · ${escapeHtml(nomCourt(p.from_name))}</div>
-        <div class="ev-etape-sous">${heure(departMs)} · ${batterieHtml(dernierChargeDepartPct)}</div>
-        ${route(0, arrets.length ? arrets[0].km_depuis_depart : p.distance_km)}
-      </div>
-    </div>`;
-
-  arrets.forEach((a, i) => {
-    const arriveeMs = pointHoraire(a.km_depuis_depart);
-    chargeCumulMin += a.temps_charge_min;
-    const cb = etatCb(a);
-    const suivant = i + 1 < arrets.length ? arrets[i + 1].km_depuis_depart : p.distance_km;
-    html += `
-      <div class="ev-etape arret">
-        <div class="ev-etape-rail"><div class="ev-etape-icone">🔋</div></div>
-        <div class="ev-etape-corps">
-          <div class="ev-etape-titre">Arrêt ${a.numero} · km ${nombre(a.km_depuis_depart)}</div>
-          <div class="ev-etape-sous">Arrivée ${heure(arriveeMs)} · repart ${heure(arriveeMs + a.temps_charge_min * 60000)}</div>
-          <div class="ev-etape-carte" data-arret="${i}">
-            <strong>${a.impose ? "⭐ " : ""}${escapeHtml(a.nom_borne)}</strong>${a.impose ? ` <span class="ev-cb-pill ok">Votre aire</span>` : ""}
-            <div class="ev-borne-sous">${badgeOperateur(a.operateur)}${escapeHtml(a.operateur || "")}${a.adresse ? ` · ${escapeHtml(a.adresse)}` : ""}</div>
-            <div class="ev-meta"><span>⚡ ${a.puissance_kw} kW</span><span>+${a.kwh_ajoutes} kWh</span><span>⏱️ ${a.temps_charge_min} min</span></div>
-            <div>${batterieHtml(a.pct_arrivee_borne)} → ${batterieHtml(a.pct_depart_borne)}</div>
-            <div class="ev-borne-pastilles">${pastilleEtat(a.etat_dynamique)}<span class="ev-cb-pill ${cb.classe}">${cb.court}</span><span class="ev-cb-pill neutre">${coutHtml(a.cout_estime_eur, a.prix_kwh_eur, a.prix_est_estimation)}</span></div>
-            ${a.alternatives?.length ? `<div class="ev-hint">🔁 Plan B si elle est prise ou en panne : <strong>${escapeHtml(a.alternatives[0].nom)}</strong> (${escapeHtml(a.alternatives[0].distance_km)} km, ${escapeHtml(a.alternatives[0].puissance_max_kw)} kW)</div>` : ""}
-            ${a.pct_evite_arret ? `<div class="ev-hint">💡 Charger jusqu'à ${nombre(a.pct_evite_arret.pct)} % ici aurait évité l'arrêt suivant, mais aurait pris ${formaterMinutes(a.pct_evite_arret.cout_min)} de plus au total.</div>` : ""}
-          </div>
-          ${route(a.km_depuis_depart, suivant)}
-        </div>
-      </div>`;
-  });
-
-  html += `
+      <div class="ev-etape-corps"><div class="ev-etape-titre">Départ</div><div class="ev-etape-sous">${heure(departMs)}</div></div>
+    </div>
+    <div class="ev-etape-route">↓ ${nombre(Math.round(p.distance_km || 0))} km · ${formaterMinutes(duree)} de route</div>
     <div class="ev-etape arrivee">
       <div class="ev-etape-rail"><div class="ev-etape-icone">🏁</div></div>
-      <div class="ev-etape-corps">
-        <div class="ev-etape-titre">Arrivée · ${escapeHtml(nomCourt(p.to_name))}</div>
-        <div class="ev-etape-sous">vers ${heure(pointHoraire(p.distance_km))} · ${batterieHtml(p.pct_batterie_arrivee)}</div>
-      </div>
+      <div class="ev-etape-corps"><div class="ev-etape-titre">Arrivée</div><div class="ev-etape-sous">${heure(departMs + duree * 60000)}</div></div>
     </div>`;
-  return html;
 }
 
 function afficherResultat(p) {
   dernierTrajet = p;
   trajetAffiche = true;
   $("ev-voir-resultat-btn").classList.remove("hidden");
-  $("ev-scenarios-table").classList.toggle("hidden", !dernierScenarios);
 
   $("ev-resultat-titre").textContent = `${nomCourt(p.from_name).split(",")[0]} → ${nomCourt(p.to_name).split(",")[0]}`;
   const tuiles = [
     tuile("cyan", `${nombre(p.distance_km)} km`, "Distance"),
     tuile("violet", p.duree_text, "Route"),
-    tuile("cyan", p.duree_totale_min != null ? formaterMinutes(p.duree_totale_min) : "—", "Total avec charge"),
-    tuile(p.nb_arrets === 0 ? "good" : "warn", p.nb_arrets === 0 ? "Aucun" : String(p.nb_arrets), p.nb_arrets ? `Arrêt(s) · ${p.temps_charge_total_min} min` : "Arrêt"),
-    tuile(classeBatterie(p.pct_batterie_arrivee), `${nombre(p.pct_batterie_arrivee)} %`, "À l'arrivée"),
-    tuile(p.depasse_seuil_cout ? "bad" : "good", p.cout_total_eur ? euros(p.cout_total_eur) : "0 €", "Coût en route"),
   ].join("");
-  let meteo = "";
-  if (p.meteo_info) {
-    meteo = p.meteo_info.ok
-      ? `🌡️ Météo au départ : ${p.meteo_info.temperature_c} °C (${p.meteo_info.description}) — conso ×${p.meteo_info.multiplicateur}`
-      : "🌡️ Météo indisponible : réglage saisonnier utilisé.";
-  }
-  let retour = "";
-  if (p.retour) {
-    retour = p.retour.ok
-      ? `↩️ Retour : ${nombre(p.retour.distance_km)} km, ${p.retour.duree_text}, ${p.retour.nb_arrets} arrêt(s), arrivée à ${nombre(p.retour.pct_batterie_arrivee)} % (tracé orange).`
-      : `↩️ Retour impossible à calculer : ${p.retour.erreur}`;
-  }
   const peage = p.km_peage
-    ? `<div class="ev-meteo-info">🛣️ Péages : environ <strong>${euros(coutPeage(p.km_peage))}</strong> (estimation sur ${nombre(p.km_peage)} km à péage) · recharge + péages ≈ <strong>${euros(coutPeage(p.km_peage) + (p.cout_total_eur || 0))}</strong></div>`
+    ? `<div class="ev-meteo-info">🛣️ Péages : environ <strong>${euros(coutPeage(p.km_peage))}</strong> (estimation sur ${nombre(p.km_peage)} km)</div>`
     : "";
-  // Nouvelle simulation à refaire pour ce trajet-ci.
-  $("ev-vitesse-resultat").classList.add("hidden");
-  $("ev-trajet-summary").innerHTML = `<div class="ev-tuiles">${tuiles}</div>${peage}${meteo ? `<div class="ev-meteo-info">${escapeHtml(meteo)}</div>` : ""}${
-    retour ? `<div class="ev-meteo-info">${escapeHtml(retour)}</div>` : ""
-  }`;
+  $("ev-trajet-summary").innerHTML = `<div class="ev-tuiles">${tuiles}</div>${peage}`;
 
-  const alerteCout = $("ev-cout-alerte");
-  alerteCout.textContent = p.depasse_seuil_cout ? `⚠️ Le coût estimé (${euros(p.cout_total_eur)}) dépasse le seuil que tu as fixé.` : "";
-  alerteCout.classList.toggle("hidden", !p.depasse_seuil_cout);
-
-  $("ev-etapes").innerHTML = avertissementAireHtml(p) + etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
-  $("ev-sans-aire-btn")?.addEventListener("click", () => {
-    $("ev-arret-impose").value = "";
-    $("ev-arret-impose").dispatchEvent(new Event("change"));
-    lancerTrajet();
-  });
+  $("ev-cout-alerte").classList.add("hidden");
+  $("ev-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
   $("ev-partager-trajet-btn").addEventListener("click", () => partagerTrajet(p));
   $("ev-quand-partir-btn").addEventListener("click", () => quandPartir(p));
-  $("ev-etapes")
-    .querySelectorAll("[data-arret]")
-    .forEach((el) => el.addEventListener("click", () => {
-      const a = p.arrets[Number(el.dataset.arret)];
-      ouvrirBorne(a, { contexteArret: a });
-    }));
 
-  const d = p.comparaison_domicile;
-  const domicile = $("ev-domicile-box");
-  if (d && d.economie_eur > 0.5) {
-    const detail =
-      d.cout_hc_eur != null
-        ? `${euros(d.cout_hc_eur)} en heures creuses (${euros(d.prix_hc_eur_kwh)}/kWh) ou ${euros(d.cout_hp_eur)} en heures pleines (${euros(d.prix_hp_eur_kwh)}/kWh)`
-        : `${euros(d.cout_domicile_eur)}`;
-    const profil = obtenirProfilVehicule();
-    const kwMaison = profil.puissance_domicile_kw || 7.4;
-    const dureeMaison = formaterMinutes(calculerTempsCharge(d.kwh, kwMaison, { pctDebut: 20, profil }));
-    domicile.innerHTML = `💡 Ces ${nombre(d.kwh, 1)} kWh coûteraient ${detail} à la maison, contre ${euros(d.cout_public_eur)} en public.<br>Économie possible : <strong>${euros(d.economie_eur)}</strong>${
-      d.part_hc_pct != null ? ` (avec ${escapeHtml(d.part_hc_pct)} % en heures creuses)` : ""
-    }.<br>🏠 Sur ta borne de ${nombre(kwMaison, 1)} kW : environ <strong>${dureeMaison}</strong> de charge avant de partir.`;
-    domicile.classList.remove("hidden");
-  } else {
-    domicile.classList.add("hidden");
-  }
-
-  if (p.confiance) {
-    const c = p.confiance;
-    const classe = c.score >= 70 ? "" : c.score >= 40 ? "warn" : "bad";
-    $("ev-confiance-box").innerHTML = `<h3>✅ Fiabilité du plan</h3><div><span class="ev-score ${classe}">${c.score}/100</span></div>
-      <div class="ev-details-score">${c.details.map((x) => `<span>${x.points >= 0 ? "+" : ""}${x.points} ${escapeHtml(x.label)}</span>`).join("")}</div>`;
-  }
-
+  $("ev-domicile-box").classList.add("hidden");
+  $("ev-confiance-box").innerHTML = "";
   $("ev-maps-link").href = lienGoogleMaps(p.to_lat, p.to_lon);
   $("ev-qrcode-box").classList.add("hidden");
   $("ev-qrcode-box").innerHTML = "";
 
   afficherVue("resultat");
-  afficherTrajet(p, (arret) => ouvrirBorne(arret, { contexteArret: arret }));
+  afficherTrajet(p);
   afficherItineraires(p);
-  renderProfilTrajet(p);
-  preparerFrise(p);
 }
 
 // ── Itinéraires alternatifs ────────────────────────────────────────────────
@@ -1680,9 +1170,7 @@ function afficherItineraires(p) {
 function quitterTrajet() {
   effacerTrajet();
   trajetAffiche = false;
-  detruireCourbe();
   afficherVue("bornes", { etat: "bas", historique: false });
-  chargerBornesZone(true);
 }
 
 // Navigation coupée (appli fermée, téléphone redémarré…) : on propose de la
@@ -1797,313 +1285,36 @@ function cablerResultat() {
   document.querySelectorAll(".ev-courbe-btn").forEach((btn) =>
     btn.addEventListener("click", () => {
       vueCourbe = btn.dataset.vue;
-      afficherVueCourbe();
     }),
   );
 }
 
 // ── Scénarios ──────────────────────────────────────────────────────────────
 
-function renderScenarios(payload) {
-  const table = $("ev-scenarios-table");
-  if (!payload.ok) {
-    table.innerHTML = alerte(`Erreur : ${payload.erreur || "inconnue"}`);
-    return;
-  }
-  dernierScenarios = payload;
-  const colonnes = Object.entries(payload.scenarios)
-    .map(([mode, r]) => {
-      if (!r.ok) return `<div class="ev-scenario"><div class="ev-scenario-mode">${LABELS_MODE[mode] || mode}</div>${hint(r.erreur || "Erreur")}</div>`;
-      return `
-      <div class="ev-scenario">
-        <div class="ev-scenario-mode">${LABELS_MODE[mode] || mode}</div>
-        <div class="ev-scenario-ligne"><span>🏁 Total</span><strong>${formaterMinutes(r.duree_totale_min ?? 0)}</strong></div>
-        <div class="ev-scenario-ligne"><span>⏱️ Charge</span><strong>${r.temps_charge_total_min} min</strong></div>
-        <div class="ev-scenario-ligne"><span>💶 Coût</span><strong>${euros(r.cout_total_eur)}</strong></div>
-        <div class="ev-scenario-ligne"><span>🔋 Arrivée</span><strong>${nombre(r.pct_batterie_arrivee)} %</strong></div>
-        <div class="ev-scenario-ligne"><span>🔌 Arrêts</span><strong>${r.nb_arrets}</strong></div>
-        <div class="ev-scenario-ligne"><span>✅ Fiabilité</span><strong>${r.confiance?.score ?? "?"}/100</strong></div>
-        <button type="button" class="ev-btn ev-scenario-choisir" data-mode="${mode}">Choisir</button>
-      </div>`;
-    })
-    .join("");
-  table.innerHTML = `<h3>📊 Comparaison des modes <button type="button" id="ev-scenarios-export-btn" class="ev-lien">⬇️ Exporter</button></h3><div class="ev-scenarios-grille">${colonnes}</div>`;
-  table.querySelectorAll(".ev-scenario-choisir").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      const mode = btn.dataset.mode || "confort";
-      modeTrajet = mode;
-      slidersModifiesManuellement = false;
-      activerModeVisuel(mode);
-      appliquerPresetMode(mode);
-      afficherResultat(payload.scenarios[mode]);
-    }),
-  );
-  $("ev-scenarios-export-btn").addEventListener("click", () =>
-    telechargerTexte(`trajet_ve_modes_${Date.now()}.txt`, exporterScenariosTexte(payload.depart, payload.destination, payload.scenarios)),
-  );
-}
 
 // ── Profil du trajet (courbes) ─────────────────────────────────────────────
 
 let vueCourbe = "batterie";
 
-function renderProfilTrajet(p) {
-  const pt = p.profil_trajet;
-  const section = $("ev-profil-trajet");
-  if (!pt) {
-    section.classList.add("hidden");
-    detruireCourbe();
-    return;
-  }
-  section.classList.remove("hidden");
-  const s = pt.stats;
-  const stat = (icone, texte) => `<span>${icone} ${texte}</span>`;
-  const stats = [
-    stat("⚡", `<strong>${nombre(s.conso_moyenne_kwh100, 1)}</strong> kWh/100 km`),
-    stat("🔋", `<strong>${nombre(s.energie_totale_kwh, 1)}</strong> kWh au total`),
-  ];
-  if (s.vitesse_moyenne_kmh) stats.push(stat("🚗", `<strong>${nombre(s.vitesse_moyenne_kmh)}</strong> km/h de moyenne`));
-  if (pt.relief_ok) {
-    stats.push(stat("⛰️", `+<strong>${nombre(s.denivele_positif_m)}</strong> m / −<strong>${nombre(s.denivele_negatif_m)}</strong> m`));
-    stats.push(stat("🏔️", `alt. max <strong>${nombre(s.altitude_max_m)}</strong> m`));
-  }
-  if (pt.meteo_ok) {
-    stats.push(stat("🌡️", `<strong>${nombre(s.temperature_min)}</strong> à <strong>${nombre(s.temperature_max)}</strong> °C`));
-    stats.push(stat("🌧️", s.km_sous_la_pluie > 0.5 ? `pluie sur <strong>${nombre(s.km_sous_la_pluie)}</strong> km` : "pas de pluie prévue"));
-    const vent = s.vent_face_moyen_kmh;
-    stats.push(stat("💨", Math.abs(vent) < 3 ? "vent neutre" : `vent ${vent > 0 ? "de face" : "dans le dos"} ~<strong>${nombre(Math.abs(vent))}</strong> km/h`));
-  }
-  $("ev-profil-stats").innerHTML = stats.join("");
-
-  const notes =
-    p.modele === "detaille"
-      ? [
-          "Conso calculée tronçon par tronçon : vitesse (limitations et trafic TomTom)",
-          pt.relief_ok ? "relief" : "relief indisponible (supposé plat)",
-          pt.meteo_ok ? "météo à l'heure de passage" : "réglage saisonnier du profil",
-        ]
-      : ["Consommation constante (mode JARVIS) — coche « Calcul détaillé » dans les options avancées pour tenir compte de la vitesse et du relief"];
-  $("ev-profil-note").textContent = `ℹ️ ${notes.join(", ")}. Estimation : la conduite réelle peut s'en écarter.`;
-  afficherVueCourbe();
-}
 
 let chargementChart = null;
 
-function chargerChart() {
-  if (window.Chart) return Promise.resolve();
-  if (!chargementChart) {
-    chargementChart = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js";
-      script.onload = () => (window.Chart ? resolve() : reject(new Error("Chart.js ne s'est pas chargé correctement.")));
-      script.onerror = () => reject(new Error("Chart.js est indisponible."));
-      document.head.appendChild(script);
-    }).catch((erreur) => {
-      chargementChart = null;
-      throw erreur;
-    });
-  }
-  return chargementChart;
-}
 
-async function afficherVueCourbe() {
-  const pt = dernierTrajet?.profil_trajet;
-  document.querySelectorAll(".ev-courbe-btn").forEach((b) => b.classList.toggle("active", b.dataset.vue === vueCourbe));
-  const vide = $("ev-courbe-vide");
-  const conteneur = document.querySelector(".ev-courbe-wrap");
-  let message = "";
-  if (!pt) message = "Profil indisponible.";
-  else if (vueCourbe === "meteo" && !pt.meteo_ok) message = "Coche « 🌦️ Météo réelle sur le trajet » dans les options avancées, puis relance le calcul.";
-  if (!message && !window.Chart) {
-    message = "⏳ Chargement des courbes…";
-    detruireCourbe();
-    vide.textContent = message;
-    vide.classList.remove("hidden");
-    conteneur.classList.add("hidden");
-    try {
-      await chargerChart();
-    } catch {
-      if (dernierTrajet?.profil_trajet === pt) {
-        vide.textContent = "Courbes indisponibles : vérifie la connexion puis réessaie.";
-        vide.classList.remove("hidden");
-      }
-      return;
-    }
-    if (dernierTrajet?.profil_trajet !== pt) return;
-  }
-  vide.textContent = message;
-  vide.classList.toggle("hidden", !message);
-  conteneur.classList.toggle("hidden", !!message);
-  if (message) {
-    detruireCourbe();
-    return;
-  }
-  afficherCourbe($("ev-courbe-canvas"), pt, dernierTrajet.arrets, vueCourbe, (km) => sauterFriseAuKm(km));
-}
 
 // ── Frise "où serai-je ?" ──────────────────────────────────────────────────
 
-function tableTemps(p) {
-  if (p._tableTemps !== undefined) return p._tableTemps;
-  const seg = p.profil_trajet?.segments;
-  if (!seg || !seg.length || !p.duree_min) return (p._tableTemps = null);
-  const km = [0];
-  const min = [0];
-  for (const s of seg) {
-    km.push(s.km_fin);
-    min.push(min[min.length - 1] + ((s.km_fin - s.km_debut) / Math.max(s.vitesse, 1)) * 60);
-  }
-  const echelle = p.duree_min / Math.max(1e-6, min[min.length - 1]);
-  return (p._tableTemps = { km, min: min.map((m) => m * echelle) });
-}
 
-function interpoler(xs, ys, x) {
-  if (x <= xs[0]) return ys[0];
-  for (let i = 1; i < xs.length; i++) {
-    if (x <= xs[i]) return ys[i - 1] + ((ys[i] - ys[i - 1]) * (x - xs[i - 1])) / Math.max(1e-9, xs[i] - xs[i - 1]);
-  }
-  return ys[ys.length - 1];
-}
 
-function kmDepuisMinutes(p, minutes) {
-  const table = tableTemps(p);
-  if (table) return interpoler(table.min, table.km, minutes);
-  return p.duree_min > 0 ? Math.max(0, Math.min(1, minutes / p.duree_min)) * p.distance_km : 0;
-}
 
-function minutesDepuisKm(p, km) {
-  const table = tableTemps(p);
-  if (table) return interpoler(table.km, table.min, km);
-  return p.distance_km > 0 ? (km / p.distance_km) * p.duree_min : 0;
-}
 
-function estimerBatteriePourDistance(distanceKm, p) {
-  const courbe = p.profil_trajet?.batterie;
-  if (courbe && courbe.length > 1) {
-    for (let i = courbe.length - 1; i > 0; i--) {
-      const a = courbe[i - 1];
-      const b = courbe[i];
-      if (distanceKm >= a.km && distanceKm <= b.km) return b.km > a.km ? a.pct + ((b.pct - a.pct) * (distanceKm - a.km)) / (b.km - a.km) : b.pct;
-    }
-    return courbe[courbe.length - 1].pct;
-  }
-  const autonomie = p.autonomie_totale_km || 1;
-  let departKm = 0;
-  let departPct = dernierChargeDepartPct;
-  for (const a of p.arrets || []) {
-    if (distanceKm <= a.km_depuis_depart) return departPct - ((distanceKm - departKm) / autonomie) * 100;
-    departKm = a.km_depuis_depart;
-    departPct = a.pct_depart_borne;
-  }
-  return departPct - ((distanceKm - departKm) / autonomie) * 100;
-}
 
-function preparerFrise(p) {
-  if (!(p.coords?.length && p.duree_min)) {
-    $("ev-time-slider-row").classList.add("hidden");
-    return;
-  }
-  $("ev-time-slider-row").classList.remove("hidden");
-  $("ev-timeline-stops").innerHTML = (p.arrets || [])
-    .map((a) => {
-      const pct = (minutesDepuisKm(p, a.km_depuis_depart) / p.duree_min) * 100;
-      return `<div class="ev-charge-timeline-stop" style="left:${pct}%" data-km="${a.km_depuis_depart}" title="Arrêt ${a.numero}">🔋</div>`;
-    })
-    .join("");
-  $("ev-timeline-stops")
-    .querySelectorAll(".ev-charge-timeline-stop")
-    .forEach((el) =>
-      el.addEventListener("pointerdown", (e) => {
-        e.stopPropagation();
-        sauterFriseAuKm(parseFloat(el.dataset.km || "0"));
-      }),
-    );
-  $("ev-time-slider-stations").innerHTML = "";
-  deplacerFrise(0);
-}
 
-function deplacerFrise(minutes) {
-  const t = dernierTrajet;
-  if (!t) return;
-  const ratio = t.duree_min > 0 ? Math.max(0, Math.min(1, minutes / t.duree_min)) : 0;
-  $("ev-timeline-puck").style.left = `${ratio * 100}%`;
-  $("ev-timeline-fill").style.width = `${ratio * 100}%`;
-  const km = kmDepuisMinutes(t, ratio * t.duree_min);
-  $("ev-time-slider-value").textContent = minutes <= 0.5 ? "Départ" : `${formaterMinutes(minutes)} · km ${Math.round(km)}`;
-  $("ev-timeline-battery-estimate").innerHTML = batterieHtml(Math.round(estimerBatteriePourDistance(km, t)));
-}
 
 let minuteurFrise = null;
 let jetonFrise = 0;
 
-function demanderBornesADistance(minutes) {
-  if (!dernierTrajet) return;
-  clearTimeout(minuteurFrise);
-  minuteurFrise = setTimeout(async () => {
-    const jeton = ++jetonFrise;
-    const trajet = dernierTrajet;
-    $("ev-time-slider-stations").innerHTML = hint("Recherche des bornes à ce point du trajet…");
-    const r = await bornesADistance(trajet, kmDepuisMinutes(trajet, minutes));
-    if (jeton !== jetonFrise || trajet !== dernierTrajet) return;
-    const zone = $("ev-time-slider-stations");
-    if (!r.ok) {
-      zone.innerHTML = hint(`Erreur : ${r.erreur || "inconnue"}`);
-      placerCurseur(undefined, undefined);
-      return;
-    }
-    placerCurseur(r.lat, r.lon, `km ${r.distance_cible_km}`);
-    const bornes = r.bornes || [];
-    afficherListe(zone, bornes, "Aucune borne trouvée près de ce point.", " du tracé");
-    appliquerAbonnements(await enrichirBornes(bornes));
-    if (jeton === jetonFrise) afficherListe(zone, bornes, "Aucune borne trouvée près de ce point.", " du tracé");
-  }, 250);
-}
 
-function sauterFriseAuKm(km) {
-  if (!dernierTrajet) return;
-  const minutes = minutesDepuisKm(dernierTrajet, km);
-  deplacerFrise(minutes);
-  demanderBornesADistance(minutes);
-}
 
-function cablerFrise() {
-  const piste = $("ev-timeline-track");
-  let glissement = false;
-  const minutesDepuisX = (clientX) => {
-    const rect = piste.getBoundingClientRect();
-    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * (dernierTrajet?.duree_min || 0);
-  };
-  const bouger = (clientX) => {
-    if (!dernierTrajet) return;
-    const minutes = minutesDepuisX(clientX);
-    deplacerFrise(minutes);
-    demanderBornesADistance(minutes);
-  };
-  // Relâche toujours la capture : un glissement interrompu ne doit jamais bloquer la frise.
-  const terminer = (e) => {
-    if (!glissement) return;
-    glissement = false;
-    try {
-      piste.releasePointerCapture(e.pointerId);
-    } catch {
-      /* déjà relâché */
-    }
-    bouger(e.clientX);
-  };
-  piste.addEventListener("pointerdown", (e) => {
-    glissement = true;
-    try {
-      piste.setPointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-    bouger(e.clientX);
-  });
-  piste.addEventListener("pointermove", (e) => glissement && bouger(e.clientX));
-  piste.addEventListener("pointerup", terminer);
-  piste.addEventListener("pointercancel", terminer);
-  cablerListe($("ev-time-slider-stations"), (b) => ouvrirBorne(b));
-}
 
 // ── Favoris ────────────────────────────────────────────────────────────────
 
@@ -2125,7 +1336,6 @@ function chargerEtLancerTrajet(depart, destination, reglages, etapes) {
     if (reglages.cible_pct !== undefined) setSlider("ev-cible-pct", reglages.cible_pct);
     if (reglages.charge_pct !== undefined) {
       setSlider("ev-charge-pct", reglages.charge_pct);
-      majJaugeBatterie();
     }
     if (reglages.eviter_peages !== undefined) $("ev-eviter-peages-checkbox").checked = !!reglages.eviter_peages;
     if (reglages.puissance_min_kw !== undefined) $("ev-puissance-min-input").value = String(reglages.puissance_min_kw);
@@ -2209,7 +1419,6 @@ function cablerFavoris() {
     "ev-bornes-favorites-list",
     (f) => {
       const connue = bornesZone.find((b) => haversineKm(b.lat, b.lon, f.lat, f.lon) < 0.06);
-      ouvrirBorne(connue || { nom: f.nom, lat: f.lat, lon: f.lon, adresse: f.adresse, connecteurs: [] });
     },
     (id) => {
       const f = listerBornesFavorites().find((x) => x.id === id);
@@ -2232,154 +1441,18 @@ function cablerFavoris() {
 
 // ── Outils : recherche de bornes et calculateur ────────────────────────────
 
-function cablerOutils() {
-  cablerJournal();
-  const select = $("ev-recherche-operateur-select");
-  select.addEventListener("change", () => {
-    const autre = select.value === "__autre__";
-    $("ev-recherche-operateur-input").classList.toggle("hidden", !autre);
-    if (autre) $("ev-recherche-operateur-input").focus();
-  });
-  $("ev-recherche-rayon-input").addEventListener("input", () => ($("ev-recherche-rayon-value").textContent = $("ev-recherche-rayon-input").value));
-  $("ev-recherche-gps-btn").addEventListener("click", () => ($("ev-recherche-lieu-input").value = "Ma position"));
-
-  $("ev-recherche-run-btn").addEventListener("click", async () => {
-    const operateur = select.value === "__autre__" ? $("ev-recherche-operateur-input").value.trim() : select.value;
-    const rayon = parseFloat($("ev-recherche-rayon-input").value);
-    const cb = $("ev-recherche-cb-checkbox").checked;
-    const btn = $("ev-recherche-run-btn");
-    btn.disabled = true;
-    $("ev-recherche-etat").textContent = "⏳ Recherche en cours…";
-    try {
-      const r = await rechercherBornesAutour($("ev-recherche-lieu-input").value.trim() || "Ma position", {
-        operateur,
-        type_acces: $("ev-recherche-acces-select").value,
-        rayon_km: rayon,
-        carte_bancaire_uniquement: cb,
-      });
-      if (!r.ok) {
-        $("ev-recherche-etat").textContent = `⚠️ ${r.erreur || "Recherche impossible."}`;
-        return;
-      }
-      $("ev-recherche-etat").textContent = "";
-      rechercheManuelle = [nomCourt(r.lieu).split(",")[0], operateur, cb ? "CB" : ""].filter(Boolean).join(" · ");
-      jetonZone++;
-      zoneIncomplete = false;
-      bornesZone = r.bornes;
-      derniereZone = { lat: r.lat, lon: r.lon, rayon };
-      afficherVue("bornes", { etat: "mi", historique: false });
-      centrer(r.lat, r.lon, Math.max(9, Math.min(14, 14 - Math.log2(rayon / 2))));
-      renderBornes();
-      const jeton = jetonZone;
-      enrichirProgressivement(bornesZone, () => jeton === jetonZone);
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  for (const source of ["debut", "cible", "kwh"]) $(`ev-calc-${source}-input`).addEventListener("input", () => majCalculateur(source));
-  $("ev-calc-type-select").addEventListener("change", () => majCalculateur());
-  majCalculateur();
-}
 
 let dernierCalculRecharge = { minutes: 0, cible: 80 };
 
 // Calculateur de recharge : trois curseurs liés (batterie actuelle, niveau
 // visé, énergie à ajouter) et résultat recalculé à chaque mouvement.
 // source : le curseur qui vient de bouger ; les deux autres suivent.
-function majCalculateur(source = "cible") {
-  const profil = obtenirProfilVehicule();
-  const capacite = profil.capacite_kwh || 60;
-  const champ = (nom) => $(`ev-calc-${nom}-input`);
-  champ("kwh").max = String(Math.ceil(capacite * 2) / 2);
-  let debut = Number(champ("debut").value);
-  let cible = Number(champ("cible").value);
-  let kwh;
-  if (source === "kwh") {
-    // L'énergie choisie fixe le niveau visé, sans dépasser 100 %.
-    cible = Math.min(100, Math.round(debut + (Number(champ("kwh").value) / capacite) * 100));
-  } else if (source === "debut" && cible < debut) cible = debut;
-  else if (source === "cible" && cible < debut) debut = cible;
-  if (source !== "kwh" || cible === 100) kwh = Math.round((((cible - debut) / 100) * capacite) * 2) / 2;
-  else kwh = Number(champ("kwh").value);
-  champ("debut").value = String(debut);
-  champ("cible").value = String(cible);
-  champ("kwh").value = String(kwh);
-  $("ev-calc-debut-val").textContent = String(debut);
-  $("ev-calc-cible-val").textContent = String(cible);
-  $("ev-calc-kwh-val").textContent = nombre(kwh, 1);
-
-  const types = typesDeCharge(profil);
-  const type = types[$("ev-calc-type-select").value] || types.rapide;
-  const minutes = Math.round(calculerTempsCharge(kwh, type.puissance_kw, { pctDebut: debut, profil }));
-  dernierCalculRecharge = { minutes, cible };
-  $("ev-calc-result").innerHTML =
-    `⏱️ De ${debut} % à ${cible} % : <strong>${formaterMinutes(minutes)}</strong> (à ${escapeHtml(type.puissance_kw)} kW)` +
-    `<br>🏠 À la maison : <strong>${euros(kwh * profil.prix_hc_eur_kwh)}</strong> en heures creuses, <strong>${euros(kwh * profil.prix_hp_eur_kwh)}</strong> en heures pleines` +
-    `<br>🔌 Sur borne publique (~${euros(0.45)}/kWh) : environ <strong>${euros(kwh * 0.45)}</strong>`;
-}
 
 // ── Mode urgence ───────────────────────────────────────────────────────────
 
-function cablerUrgence() {
-  const panneau = $("ev-urgence-panel");
-  const corps = $("ev-urgence-body");
-  let bornesUrg = [];
-  // Recherche « batterie vide » : lancée depuis le panneau SOS.
-  $("ev-urgence-bornes-interne").addEventListener("click", async () => {
-    panneau.classList.remove("hidden");
-    history.pushState({ urgence: true }, "");
-    corps.innerHTML = hint("Recherche des bornes compatibles les plus proches de ta position…");
-    const r = await bornesUrgence($("ev-depart-input").value.trim());
-    if (!r.ok) {
-      corps.innerHTML = alerte(`Erreur : ${r.erreur || "inconnue"}`);
-      return;
-    }
-    bornesUrg = r.bornes || [];
-    if (!bornesUrg.length) {
-      corps.innerHTML = hint("Aucune borne compatible dans un rayon de 30 km. Élargis la recherche depuis Menu › Rechercher des bornes.");
-      return;
-    }
-    corps.innerHTML =
-      hint(`Autour de : ${nomCourt(r.lieu)}`) +
-      bornesUrg
-        .map((b, i) => {
-          const kw = puissanceBorne(b);
-          return `
-        <div class="ev-urgence-carte ${i === 0 ? "principale" : ""}">
-          <div class="ev-urgence-titre">${i === 0 ? "🎯 RECOMMANDÉE" : "🔁 Secours"} : ${escapeHtml(b.nom)}</div>
-          <div class="ev-borne-sous">${escapeHtml(b.adresse || "")}</div>
-          <div class="ev-meta"><span>📍 ${nombre(b.distance_km, 1)} km</span><span>⚡ ${kw} kW</span><span>${escapeHtml(b.operateur || "")}</span></div>
-          <div class="ev-borne-pastilles">${pastillesBorne(b)}</div>
-          <div class="ev-actions-rangee">
-            <a class="ev-action" href="${lienGoogleMaps(b.lat, b.lon)}" target="_blank" rel="noopener"><span>🧭</span>Maps</a>
-            <a class="ev-action" href="${lienWaze(b.lat, b.lon)}" target="_blank" rel="noopener"><span>🚗</span>Waze</a>
-            <button class="ev-action" type="button" data-fiche="${i}"><span>📋</span>Fiche</button>
-          </div>
-        </div>`;
-        })
-        .join("");
-  });
-  corps.addEventListener("click", (e) => {
-    const bouton = e.target.closest("[data-fiche]");
-    if (!bouton) return;
-    const b = bornesUrg[Number(bouton.dataset.fiche)];
-    panneau.classList.add("hidden");
-    history.replaceState({}, "");
-    ouvrirBorne(b);
-  });
-  $("ev-urgence-close-btn").addEventListener("click", () => {
-    if (history.state?.urgence) history.back();
-    else panneau.classList.add("hidden");
-  });
-}
 
 // ── Profil ─────────────────────────────────────────────────────────────────
 
-function majBandeauCles() {
-  const { tomtom, openChargeMap } = getApiKeys();
-  $("ev-cles-manquantes").classList.toggle("hidden", !!(tomtom && openChargeMap));
-}
 
 function rendreProfil() {
   const profil = obtenirProfilVehicule();
@@ -2390,8 +1463,6 @@ function rendreProfil() {
   $("ev-profil-ac").value = profil.puissance_ac_kw;
   $("ev-profil-dc").value = profil.puissance_dc_kw;
   $("ev-profil-domicile").value = profil.puissance_domicile_kw ?? "";
-  rendreAbonnements();
-  majConsoMesuree();
   $("ev-profil-connecteurs").value = (profil.connecteurs_acceptes || []).join(", ");
   $("ev-profil-saison").value = profil.saison || "mi_saison";
   $("ev-profil-prix-hc").value = profil.prix_hc_eur_kwh;
@@ -2401,22 +1472,6 @@ function rendreProfil() {
 }
 
 // Consommation mesurée en roulant (corrections de batterie en navigation).
-function majConsoMesuree() {
-  const n = appelsTomTomDuJour();
-  $("ev-quota-tomtom").textContent = `Appels TomTom aujourd'hui : ${n} / ${QUOTA_TOMTOM_JOUR} (compte gratuit)`;
-  const f = facteurChargeAppris();
-  const types = consoParType();
-  const apprisTxt = [types.ville && `ville ${nombre(types.ville, 1)}`, types.route && `route ${nombre(types.route, 1)}`, types.autoroute && `autoroute ${nombre(types.autoroute, 1)}`].filter(Boolean).join(" · ");
-  const mesure = consoMesuree();
-  $("ev-conso-mesuree").innerHTML = mesure
-    ? `Mesurée : <strong>${nombre(mesure.kwh_100km, 1)}</strong> sur ${mesure.km} km · <button type="button" class="ev-lien" id="ev-conso-utiliser-btn">Utiliser</button>`
-    : "Se mesure en roulant (batterie indiquée aux bornes)";
-  if (apprisTxt || f) $("ev-conso-mesuree").insertAdjacentHTML("beforeend", `<div>${apprisTxt ? `Apprise par route (kWh/100) : ${apprisTxt}` : ""}${f ? `<br>Temps de charge appris : réel ≈ ${nombre(f, 2)} × calculé` : ""}</div>`);
-  $("ev-conso-utiliser-btn")?.addEventListener("click", () => {
-    $("ev-profil-conso").value = mesure.kwh_100km;
-    toast("Valeur mesurée reprise : touche « Enregistrer » pour la garder");
-  });
-}
 
 function rendreReglagesProfil() {
   const profil = obtenirProfilVehicule();
@@ -2473,14 +1528,7 @@ function rendreReglagesProfil() {
 
   const { tomtom, openChargeMap } = getApiKeys();
   $("ev-cle-tomtom").value = tomtom || "";
-  $("ev-cle-ocm").value = openChargeMap || "";
 
-  const types = typesDeCharge(profil);
-  for (const option of $("ev-calc-type-select").options) {
-    const t = types[option.value];
-    if (t) option.textContent = `${t.label} — ${t.puissance_kw} kW`;
-  }
-  majCalculateur();
 }
 
 // Explique un refus TomTom en clair (les codes seuls ne parlent à personne).
@@ -2527,12 +1575,6 @@ async function centreRegion() {
   return lieu.erreur ? null : lieu;
 }
 
-function majInfoRegion() {
-  const r = regionPreparee();
-  $("ev-region-info").textContent = r
-    ? `✅ Région prête : ${r.rayon_km} km autour de ${new Date(r.date).toLocaleDateString("fr-FR")} (${Math.round((r.tuiles * 25) / 1024)} Mo environ).`
-    : "Pas encore de région téléchargée.";
-}
 
 async function telechargerRegion() {
   if (regionEnCours) return;
@@ -2579,7 +1621,6 @@ function cablerProfil() {
   majInfoLien();
   majBoutonInstallation();
   $("ev-revoir-accueil-btn").addEventListener("click", () => afficherAccueil(afficherVue));
-  cablerAbonnements();
   $("ev-import-donnees-btn").addEventListener("click", () => $("ev-import-donnees-fichier").click());
   $("ev-import-donnees-fichier").addEventListener("change", (e) => {
     const fichier = e.target.files?.[0];
@@ -2665,11 +1706,9 @@ function cablerProfil() {
       if (getApiKeys().tomtom) testerCleTomTom(getApiKeys().tomtom);
     }
     rendreProfil();
-    majBandeauCles();
     toast("✅ Profil et réglages enregistrés");
     if (!avaitCleOcm && getApiKeys().openChargeMap) {
       derniereZone = null;
-      chargerBornesZone(true);
     }
   });
 }
@@ -2706,14 +1745,6 @@ function majSuggestionTrajet() {
   }
 }
 
-function rendreTraces() {
-  const traces = listerTraces();
-  $("ev-traces-liste").innerHTML = traces.length
-    ? traces
-        .map((t, i) => `<div class="ev-journal-ligne"><span>${new Date(t.date).toLocaleDateString("fr-FR")} · ${escapeHtml(nomCourt(t.destination || "Trajet").split(",")[0])} · ${nombre(t.km)} km</span><button type="button" class="ev-btn" data-trace="${i}">Voir</button><button type="button" class="ev-lien" data-suppr-trace="${t.date}" title="Supprimer ce trajet" aria-label="Supprimer ce trajet">✕</button></div>`)
-        .join("")
-    : `<div class="ev-hint">Les trajets guidés apparaîtront ici.</div>`;
-}
 
 export function executerAction(action) {
   if (action === "maison") {
@@ -2756,81 +1787,15 @@ export function viderChampsTrajet() {
 // ── Compléments : moyens de paiement, minuteur, autonomie, vitesse ─────────
 
 // Menu › Payer aux bornes : ce que l'utilisateur possède pour payer.
-function rendreMoyensPaiement() {
-  const m = lireMoyens(lireReglages());
-  const case_ = (attr, coche, texte) => `<label class="ev-check"><input type="checkbox" ${attr}${coche ? " checked" : ""}> ${texte}</label>`;
-  $("ev-moyens-paiement").innerHTML =
-    case_('data-moyen="cb"', m.cb, "💳 Carte bancaire sans contact") +
-    case_('data-moyen="badge"', m.badge, "🪪 Un badge multi-réseaux (Chargemap, Freshmile, Shell Recharge…)") +
-    `<div class="ev-hint">Les applis de réseau où j'ai un compte :</div>` +
-    RESEAUX_PAIEMENT.map((r) => case_(`data-reseau="${r.id}"`, m.reseaux.includes(r.id), `📲 ${escapeHtml(r.nom)}`)).join("");
-}
 
-function enregistrerMoyensPaiement() {
-  const zone = $("ev-moyens-paiement");
-  sauverReglages({
-    moyens_paiement: {
-      cb: zone.querySelector('[data-moyen="cb"]').checked,
-      badge: zone.querySelector('[data-moyen="badge"]').checked,
-      reseaux: [...zone.querySelectorAll("[data-reseau]:checked")].map((c) => c.dataset.reseau),
-    },
-  });
-  // Le filtre « Je peux payer » dépend de ces choix.
-  if (filtres.has("payable")) renderBornes();
-}
 
 // Minuteur de recharge hors guidage (depuis le calculateur). Gardé dans le
 // téléphone : il reprend si l'appli est rouverte entre-temps.
 const CLE_MINUTEUR_RECHARGE = "tve_minuteur_recharge";
 let minuteurRechargeId = null;
 
-function lireMinuteurRecharge() {
-  try {
-    return JSON.parse(localStorage.getItem(CLE_MINUTEUR_RECHARGE));
-  } catch {
-    return null;
-  }
-}
 
-function majMinuteurRecharge() {
-  const zone = $("ev-calc-minuteur");
-  const bouton = $("ev-calc-minuteur-btn");
-  const m = lireMinuteurRecharge();
-  if (!m) {
-    zone.classList.add("hidden");
-    bouton.textContent = "🔔 Me prévenir à la fin de cette recharge";
-    clearInterval(minuteurRechargeId);
-    minuteurRechargeId = null;
-    return;
-  }
-  zone.classList.remove("hidden");
-  bouton.textContent = "✕ Arrêter le minuteur";
-  const reste = Math.round((m.fin - Date.now()) / 60000);
-  if (reste > 0) {
-    zone.textContent = `⏱️ Recharge jusqu'à ${m.cible} % : fin estimée à ${heure(m.fin)}, dans ${formaterMinutes(reste)}. Garde l'appli ouverte pour être prévenu.`;
-  } else {
-    zone.textContent = `✅ Recharge jusqu'à ${m.cible} % terminée (estimation) depuis ${heure(m.fin)}.`;
-    if (!m.prevenu) {
-      localStorage.setItem(CLE_MINUTEUR_RECHARGE, JSON.stringify({ ...m, prevenu: true }));
-      toast(`🔋 Recharge terminée (estimation) : ${m.cible} % atteints`);
-      navigator.vibrate?.([300, 150, 300]);
-      navigator.serviceWorker?.getRegistration?.().then((reg) => reg?.showNotification("🔋 Recharge terminée (estimation)", { body: `${m.cible} % atteints : tu peux débrancher.`, tag: "recharge", icon: "./icons/icon-192.png" })).catch(() => {});
-    }
-  }
-  if (!minuteurRechargeId) minuteurRechargeId = setInterval(majMinuteurRecharge, 20000);
-}
 
-function basculerMinuteurRecharge() {
-  if (lireMinuteurRecharge()) {
-    localStorage.removeItem(CLE_MINUTEUR_RECHARGE);
-  } else {
-    const { minutes, cible } = dernierCalculRecharge;
-    if (minutes <= 0) return toast("Règle d'abord une recharge à faire avec les curseurs.");
-    if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {});
-    localStorage.setItem(CLE_MINUTEUR_RECHARGE, JSON.stringify({ fin: Date.now() + minutes * 60000, cible }));
-  }
-  majMinuteurRecharge();
-}
 
 // Cercle d'autonomie : jusqu'où aller avec la batterie réglée dans Trajet, en
 // gardant la réserve. Une route n'est jamais droite : le rayon à vol d'oiseau
@@ -2838,57 +1803,10 @@ function basculerMinuteurRecharge() {
 const PART_VOL_OISEAU = 0.75;
 let autonomieAffichee = false;
 
-async function basculerAutonomie() {
-  const chip = $("ev-autonomie-chip");
-  if (autonomieAffichee) {
-    autonomieAffichee = false;
-    chip.classList.remove("actif");
-    afficherAutonomie(0, 0, 0);
-    return;
-  }
-  const p = obtenirProfilVehicule();
-  const conso = consoMesuree()?.kwh_100km || p.consommation_kwh_100km * (MULTIPLICATEURS_SAISON[p.saison] ?? 1);
-  const charge = Number($("ev-charge-pct-input").value);
-  const marge = Number($("ev-marge-pct-input").value);
-  const kmRoute = Math.max(0, ((p.capacite_kwh * (charge - marge)) / 100 / conso) * 100);
-  if (kmRoute < 1) return toast("🔋 Batterie au départ trop basse (réglage dans Trajet).");
-  toast("📍 Recherche de ta position…");
-  const pos = await resoudreLieu("ma position");
-  const centre = pos.erreur ? centreVisible() : pos;
-  autonomieAffichee = true;
-  chip.classList.add("actif");
-  afficherAutonomie(centre.lat, centre.lon, kmRoute * PART_VOL_OISEAU);
-  toast(`🔋 Avec ${charge} % (réserve de ${marge} % gardée) : environ ${nombre(kmRoute)} km de route${pos.erreur ? ", autour du centre de la carte" : ""}. Niveau de batterie réglable dans Trajet.`);
-}
 
 // « Et si je roulais à 110 ? » : le même trajet, vitesse plafonnée.
 const VITESSE_CONSEIL_KMH = 110;
 
-async function simulerVitesse() {
-  const p = dernierTrajet;
-  if (!p) return;
-  const bouton = $("ev-vitesse-btn");
-  const zone = $("ev-vitesse-resultat");
-  bouton.disabled = true;
-  zone.classList.remove("hidden");
-  zone.textContent = `⏳ Simulation à ${VITESSE_CONSEIL_KMH} km/h…`;
-  try {
-    const s = await simulerVitesseMax(VITESSE_CONSEIL_KMH);
-    const arrets = (n) => (n ? `${n} arrêt${n > 1 ? "s" : ""}` : "aucun arrêt");
-    if (!s.ok) zone.textContent = `⚠️ ${s.erreur || "Simulation impossible."}`;
-    else if (s.minutes_route_en_plus < 2) zone.textContent = `Ce trajet ne dépasse presque jamais ${VITESSE_CONSEIL_KMH} km/h : rouler moins vite n'y changerait rien.`;
-    else {
-      zone.innerHTML =
-        `🐢 <strong>À ${VITESSE_CONSEIL_KMH} km/h maximum</strong> : ${formaterMinutes(s.minutes_route_en_plus)} de route en plus, ${arrets(s.nb_arrets)} (au lieu de ${arrets(p.nb_arrets)}), ` +
-        `arrivée avec <strong>${nombre(s.pct_batterie_arrivee)} %</strong> (au lieu de ${nombre(p.pct_batterie_arrivee)} %).` +
-        `<br>Recharges comprises : <strong>${formaterMinutes(s.duree_totale_min)}</strong> au total, soit ${ecartMinutes(s.duree_totale_min - p.duree_totale_min)} · recharge ${euros(s.cout_total_eur || 0)} (au lieu de ${euros(p.cout_total_eur || 0)}).`;
-    }
-  } catch (e) {
-    zone.textContent = `⚠️ Simulation impossible : ${e?.message || e}`;
-  } finally {
-    bouton.disabled = false;
-  }
-}
 
 // Menu › État de l'appli (voir etat-appli.js). gpsTest : résultat du dernier
 // essai lancé par l'utilisateur ; la position elle-même n'est pas gardée.
@@ -2943,14 +1861,7 @@ function cablerComplements() {
   $("ev-etat-actualiser-btn").addEventListener("click", rendreEtatAppli);
   window.addEventListener("online", () => vueCourante === "profil" && rendreEtatAppli());
   window.addEventListener("offline", () => vueCourante === "profil" && rendreEtatAppli());
-  rendreMoyensPaiement();
-  $("ev-moyens-paiement").addEventListener("change", enregistrerMoyensPaiement);
-  $("ev-calc-minuteur-btn").addEventListener("click", basculerMinuteurRecharge);
   // Les minuteries s'endorment en arrière-plan : on recale au retour.
-  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && lireMinuteurRecharge() && majMinuteurRecharge());
-  majMinuteurRecharge();
-  $("ev-autonomie-chip").addEventListener("click", basculerAutonomie);
-  $("ev-vitesse-btn").addEventListener("click", simulerVitesse);
 }
 
 export function initialiserUI() {
@@ -2961,23 +1872,25 @@ export function initialiserUI() {
   cablerNavigation();
   cablerPointsPassage();
   cablerCarte();
-  cablerFiche();
   cablerFormulaire();
   cablerResultat();
-  cablerFrise();
   cablerFavoris();
-  cablerOutils();
-  cablerUrgence();
   cablerProfil();
   cablerComplements();
 
   chargerPrefs();
   rendreProfil();
-  majBandeauCles();
   appliquerTheme();
   afficherVue("bornes", { etat: "bas", historique: false });
   positionDeDepart();
   proposerRepriseNavigation();
   // Nouveaux utilisateurs seulement (aucune clé encore saisie).
   if (!lireReglages().accueil_vu && !getApiKeys().tomtom && !getApiKeys().openChargeMap) afficherAccueil((vue) => (vue === "profil" ? ouvrirBloc("ev-bloc-cles") : afficherVue(vue)));
+}
+
+function majInfoRegion() {
+  const r = regionPreparee();
+  $("ev-region-info").textContent = r
+    ? `✅ Région prête : ${r.rayon_km} km autour de ${new Date(r.date).toLocaleDateString("fr-FR")} (${Math.round((r.tuiles * 25) / 1024)} Mo environ).`
+    : "Pas encore de région téléchargée.";
 }

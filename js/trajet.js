@@ -7,10 +7,6 @@ import { obtenirProfilVehicule, enregistrerHistoriqueTrajet, lireReglages, appli
 import { resoudreLieu, estMaPosition, pointADistanceSurTrace, haversineKm } from "./geo.js";
 import { calculerItineraireTomTom } from "./tomtom.js";
 import { echangeursDuTrajet } from "./panneau-nav.js";
-import { calculerTrajetElectrique, formaterMinutes, consommationEffectiveKwh100km, kmSurTrace } from "./planner.js";
-import { construireProfilEnergie, fonctionsEnergie, fonctionsEnergieConstante } from "./energie.js";
-import { enrichirBornes, stationsOfficiellesZone, fusionnerBornes } from "./irve.js";
-import { rechercherBornesProches, rechercherBornesZone, borneCompatible } from "./ocm.js";
 
 const arrondi1 = (x) => Math.round(x * 10) / 10;
 
@@ -22,11 +18,6 @@ const arrondi1 = (x) => Math.round(x * 10) / 10;
 // détour de 67 km vers une aire préférée choisie pour un trajet bien plus
 // long (Saint-Nazaire → Bordeaux) -- aucune recharge n'était même prévue
 // à l'arrivée (0 arrêt), le détour ne servait donc littéralement à rien.
-function chargeProbablementNecessaire(distanceKm, chargePct, margePct, profil) {
-  const kwhDisponible = Math.max(0, (profil.capacite_kwh * ((chargePct ?? 100) - (margePct ?? 0))) / 100);
-  const kmSansCharge = (kwhDisponible / consommationEffectiveKwh100km(profil)) * 100;
-  return kmSansCharge < distanceKm;
-}
 
 function messageOcm(erreur) {
   return erreur === "cle_manquante"
@@ -124,7 +115,7 @@ async function calculerItineraire(depart, destination, opts) {
     const libre = await calculerItineraireTomTom(tomtom, a.lat, a.lon, b.lat, b.lon, { ...optsRoute, maxAlternatives: 0 });
     if (libre.erreur) return { ok: false, erreur: messageTomTom(libre.erreur, a.nom, b.nom) };
     const surTrajet = kmSurTrace(libre.coords, opts.arret_impose.lat, opts.arret_impose.lon).ecartKm <= 2;
-    const chargeNecessaire = chargeProbablementNecessaire(libre.summary.lengthInMeters / 1000, opts.charge_pct, opts.marge_pct, obtenirProfilVehicule());
+    const chargeNecessaire = false; // sans recharge
     if (surTrajet || !chargeNecessaire) {
       it = libre;
     } else {
@@ -195,133 +186,9 @@ function departPrevuMs(opts) {
   return Number.isFinite(ms) && ms > Date.now() ? ms : Date.now();
 }
 
-async function profilEnergiePour(itin, opts) {
-  try {
-    return await construireProfilEnergie(itin, obtenirProfilVehicule(), {
-      ajuster_meteo: opts.ajuster_meteo,
-      charge_lourde: opts.charge_lourde,
-      depart_ms: itin.depart_ms,
-      patience_ms: opts.patience_open_meteo_ms,
-    });
-  } catch (e) {
-    console.warn("[ENERGIE] Profil détaillé impossible, consommation constante utilisée", e);
-    return null;
-  }
-}
-
-// Batterie le long du trajet, avec la remontée à chaque arrêt -- sert à la
-// courbe et à la frise "où serai-je ?".
-function courbeBatterie(energie, kmPoints, chargeDepartPct, arrets, capacite) {
-  const points = [];
-  let refKm = 0;
-  let refPct = chargeDepartPct;
-  let a = 0;
-  const pctA = (d) => refPct - ((energie.energieA(d) - energie.energieA(refKm)) / capacite) * 100;
-  for (const km of kmPoints) {
-    while (a < arrets.length && arrets[a].km_depuis_depart <= km) {
-      const kmArret = arrets[a].km_depuis_depart;
-      points.push({ km: kmArret, pct: pctA(kmArret) });
-      refKm = kmArret;
-      refPct = arrets[a].pct_depart_borne;
-      points.push({ km: kmArret, pct: refPct });
-      a++;
-    }
-    points.push({ km, pct: pctA(km) });
-  }
-  return points.map((p) => ({ km: arrondi1(p.km), pct: arrondi1(p.pct) }));
-}
-
-async function planifierSurItineraire(itin, chargePct, opts) {
-  const profil = obtenirProfilVehicule();
-  const profilEnergie = opts.profil_energie !== undefined ? opts.profil_energie : await profilEnergiePour(itin, opts);
-  const detaille = opts.modele_detaille !== false && profilEnergie;
-
-  // Sans calcul détaillé : exactement la logique JARVIS (consommation
-  // constante, corrigée par la température au départ si demandé).
-  let meteoInfo = null;
-  let energie;
-  if (detaille) {
-    energie = fonctionsEnergie(profilEnergie.km, profilEnergie.ecum);
-  } else {
-    if (opts.ajuster_meteo) meteoInfo = profilEnergie?.meteo_depart ?? (await obtenirCorrectionMeteo(itin.from_lat, itin.from_lon));
-    let conso = meteoInfo?.ok ? meteoInfo.multiplicateur * profil.consommation_kwh_100km : consommationEffectiveKwh100km(profil);
-    if (opts.charge_lourde) conso *= MULTIPLICATEUR_CHARGE_LOURDE;
-    energie = fonctionsEnergieConstante(conso);
-  }
-
-  const resultat = await calculerTrajetElectrique(getApiKeys().openChargeMap, itin.distance_km, itin.coords, chargePct, profil, {
-    margeSecuritePct: opts.marge_pct,
-    cibleRechargePct: opts.cible_pct,
-    puissanceMinKw: opts.puissance_min_kw,
-    seuilCoutEur: opts.seuil_cout_eur,
-    mode: opts.mode,
-    energie,
-    enrichirBornes: async (bornes) => appliquerAbonnements(await enrichirBornes(bornes, { attendreEtats: true })),
-    preferCb: opts.preferer_cb,
-    optimiserArrets: opts.optimiser_arrets !== false,
-    arretImpose: opts.arret_impose || null,
-    bonusAbonnementMin: lireReglages().privilegier_abonnements === false ? 0 : BONUS_ABONNEMENT_MIN,
-    fusionner: fusionnerBornes,
-    estExclue: (b) => borneEnPanneJusqua(b.lat, b.lon) !== null,
-    bornesSupplementaires: async (lat, lon) => {
-      const r = await stationsOfficiellesZone(lat, lon, 20, { puissanceMin: Math.max(40, opts.puissance_min_kw || 0), maxLignes: 300 });
-      return r.ok ? r.bornes : [];
-    },
-  });
-  if (meteoInfo) resultat.meteo_info = meteoInfo;
-  // Route réelle passant par les bornes prévues (celle que suivra la
-  // navigation) : plus longue que le trajet direct si une borne est de
-  // l'autre côté de l'autoroute. On le mesure pour le dire -- mais
-  // seulement pour les bornes qui ne sont pas déjà sur le trajet direct
-  // (même seuil que l'aire imposée, v53) : forcer TomTom à s'arrêter pile
-  // sur un point déjà à quelques dizaines de mètres de la route peut quand
-  // même lui faire router des dizaines de km de plus (même artefact du
-  // point raccroché au mauvais côté de la chaussée, pas un vrai détour).
-  // Mesuré sur un cas réel : "Aire de Saint Caprais (direction Bordeaux)",
-  // à 80 m du trajet direct, donnait quand même +46 km en étape forcée.
-  if (resultat.ok && resultat.arrets?.length && !opts.trace_imposee) {
-    const arretsHorsTrajet = resultat.arrets.filter((a) => kmSurTrace(itin.coords, a.lat, a.lon).ecartKm > 2);
-    if (arretsHorsTrajet.length) {
-      try {
-        const avecArrets = await calculerItineraireTomTom(getApiKeys().tomtom, itin.from_lat, itin.from_lon, itin.to_lat, itin.to_lon, {
-          etapes: arretsHorsTrajet.map((a) => ({ lat: a.lat, lon: a.lon })),
-          eviterPeages: opts.eviter_peages,
-          eviterAutoroutes: opts.eviter_autoroutes,
-          plusCourt: opts.plus_court,
-          eviterFerries: opts.eviter_ferries,
-          eviterZonesFaiblesEmissions: opts.eviter_zones_faibles_emissions,
-          eviterRoutesNonRevetues: opts.eviter_routes_non_revetues,
-          zonesEvitees: rectanglesZonesEvitees(),
-        });
-        if (!avecArrets.erreur) {
-          resultat.detour_arrets = { km: arrondi1(avecArrets.summary.lengthInMeters / 1000 - itin.distance_km), min: Math.round(avecArrets.summary.travelTimeInSeconds / 60 - itin.duree_min) };
-        }
-      } catch {
-        // Mesure impossible : pas d'avertissement, le plan reste valable.
-      }
-    }
-  }
-
+async function planifierSurItineraire(itin) {
   const { _sections, _summary, _alternatives, ...itinPublic } = itin;
-  const dureeTotaleMin = resultat.ok ? itin.duree_min + (resultat.temps_charge_total_min || 0) : null;
-  const complet = { ...itinPublic, duree_totale_min: dureeTotaleMin, ...resultat, modele: detaille ? "detaille" : "constant" };
-
-  if (profilEnergie) {
-    const kmPoints = [0, ...profilEnergie.segments.map((s) => s.km_fin)];
-    complet.profil_trajet = {
-      segments: profilEnergie.segments,
-      stats: detaille
-        ? profilEnergie.stats
-        : { ...profilEnergie.stats, conso_moyenne_kwh100: (energie.energieA(itin.distance_km) / itin.distance_km) * 100, energie_totale_kwh: energie.energieA(itin.distance_km) },
-      relief_ok: profilEnergie.relief_ok,
-      meteo_ok: profilEnergie.meteo_ok,
-      // En mode constant, la courbe de conso affichée doit être celle utilisée pour le plan.
-      conso_constante: detaille ? null : (energie.energieA(100)),
-      batterie: resultat.ok ? courbeBatterie(energie, kmPoints, chargePct, resultat.arrets, profil.capacite_kwh) : null,
-    };
-  }
-  complet.bouchons = bouchonsDuTrajet(_sections);
-  return complet;
+  return { ...itinPublic, ok: true, duree_totale_min: itin.duree_min, arrets: [], bouchons: bouchonsDuTrajet(_sections) };
 }
 
 // Ralentissements annoncés par TomTom sur le tracé (indices de points),
@@ -349,25 +216,6 @@ let dernierItineraire = null;
 // Même trajet en ne dépassant jamais `vitesseMaxKmh` : consommation, arrêts
 // et durée recalculés. Renvoie le plan (avec minutes_route_en_plus), ou
 // { ok: false, erreur }.
-export async function simulerVitesseMax(vitesseMaxKmh) {
-  if (!dernierItineraire) return { ok: false, erreur: "Calcule d'abord un trajet." };
-  const { itin, opts } = dernierItineraire;
-  let profilEnergie;
-  try {
-    profilEnergie = await construireProfilEnergie(itin, obtenirProfilVehicule(), {
-      ajuster_meteo: opts.ajuster_meteo,
-      charge_lourde: opts.charge_lourde,
-      depart_ms: itin.depart_ms,
-      vitesse_max_kmh: vitesseMaxKmh,
-    });
-  } catch (e) {
-    return { ok: false, erreur: `Simulation impossible : ${e?.message || e}` };
-  }
-  const plan = await planifierSurItineraire(itin, opts.charge_pct, { ...opts, profil_energie: profilEnergie, modele_detaille: true });
-  if (!plan.ok) return plan;
-  const enPlus = Math.round(profilEnergie.secondes_en_plus / 60);
-  return { ...plan, minutes_route_en_plus: enPlus, duree_totale_min: plan.duree_totale_min + enPlus };
-}
 
 export async function planifierTrajet(depart, destination, opts, sauvegarder = true) {
   const itin = await calculerItineraire(depart, destination, opts);
@@ -403,76 +251,12 @@ export async function planifierAllerRetour(depart, destination, opts) {
 
 // Même trajet dans les 4 modes -- l'itinéraire est calculé une seule fois
 // puis réutilisé, pour économiser les appels TomTom.
-export async function comparerScenarios(depart, destination, opts) {
-  const itin = await calculerItineraire(depart, destination, opts);
-  if (!itin.ok) return { ok: false, erreur: itin.erreur };
-  const profilEnergie = await profilEnergiePour(itin, opts);
-  const scenarios = {};
-  for (const [mode, poids] of Object.entries(MODES_TRAJET)) {
-    scenarios[mode] = await planifierSurItineraire(itin, opts.charge_pct, {
-      ...opts,
-      mode,
-      marge_pct: poids.marge_pct,
-      cible_pct: poids.cible_pct,
-      profil_energie: profilEnergie,
-    });
-  }
-  return { ok: true, depart, destination, scenarios };
-}
 
 // Curseur "Où serai-je ?" : l'interface convertit déjà le temps de conduite
 // en distance (profil de vitesse du trajet).
-export async function bornesADistance(trajet, distanceKm) {
-  const distanceCibleKm = Math.max(0, Math.min(trajet.distance_km, distanceKm));
-  const point = pointADistanceSurTrace(trajet.coords, distanceCibleKm);
-  if (!point) return { ok: false, erreur: "Point introuvable sur le trajet." };
-  const [recherche, officielles] = await Promise.all([
-    rechercherBornesProches(getApiKeys().openChargeMap, point.lat, point.lon, 20, 8),
-    stationsOfficiellesZone(point.lat, point.lon, 20, { puissanceMin: 22, maxLignes: 200 }),
-  ]);
-  if (!recherche.ok && !officielles.bornes.length) return { ok: false, erreur: messageOcm(recherche.erreur) };
-  const bornes = fusionnerBornes(recherche.ok ? recherche.bornes : [], officielles.bornes).slice(0, 12);
-  return { ok: true, distance_cible_km: arrondi1(distanceCibleKm), lat: point.lat, lon: point.lon, bornes };
-}
 
-export async function rechercherBornesAutour(lieu, filtres = {}) {
-  const l = await resoudreLieu(lieu, lireReglages().adresse_domicile);
-  if (l.erreur) return { ok: false, erreur: l.erreur };
-  const rayon = filtres.rayon_km ?? 15;
-  const [recherche, officielles] = await Promise.all([
-    rechercherBornesZone(getApiKeys().openChargeMap, l.lat, l.lon, {
-      rayonKm: rayon,
-      filtreOperateur: filtres.operateur || "",
-      filtreTypeAcces: filtres.type_acces || "",
-      maxResultats: 40,
-    }),
-    stationsOfficiellesZone(l.lat, l.lon, rayon, { maxLignes: 400 }),
-  ]);
-  // Les types d'accès Open Charge Map n'ont pas d'équivalent exact dans la
-  // base officielle : avec ce filtre, on s'en tient à Open Charge Map.
-  let extra = filtres.type_acces ? [] : officielles.bornes;
-  const operateur = (filtres.operateur || "").trim().toLowerCase();
-  if (operateur) extra = extra.filter((b) => `${b.operateur || ""} ${b.nom || ""} ${b.officiel?.enseigne || ""}`.toLowerCase().includes(operateur));
-  if (!recherche.ok && !extra.length) return { ok: false, erreur: messageOcm(recherche.erreur) };
-  let bornes = fusionnerBornes(recherche.ok ? recherche.bornes : [], extra).slice(0, 60);
-  if (filtres.carte_bancaire_uniquement) {
-    // Déclaration officielle d'abord ; à défaut, règle légale des ≥50 kW.
-    appliquerAbonnements(await enrichirBornes(bornes));
-    bornes = bornes.filter((b) => (b.officiel && !b.officiel.indisponible ? b.officiel.paiement_cb !== "non" : b.paiement_cb_probable));
-  }
-  return { ok: true, lieu: l.nom, lat: l.lat, lon: l.lon, bornes };
-}
 
 // Mode urgence : position GPS d'abord (on est sur la route), sinon le lieu
 // de départ saisi. Seules les bornes compatibles avec le véhicule sont
 // proposées -- recommander une prise inutilisable en urgence serait pire
 // que rien.
-export async function bornesUrgence(lieuDeSecours) {
-  let recherche = await rechercherBornesAutour("ma position", { rayon_km: 30 });
-  if (!recherche.ok && lieuDeSecours) recherche = await rechercherBornesAutour(lieuDeSecours, { rayon_km: 30 });
-  if (!recherche.ok) return recherche;
-  const connecteurs = obtenirProfilVehicule().connecteurs_acceptes;
-  const bornes = recherche.bornes.filter((b) => borneCompatible(b, connecteurs)).slice(0, 3);
-  appliquerAbonnements(await enrichirBornes(bornes));
-  return { ...recherche, bornes };
-}
