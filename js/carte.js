@@ -131,7 +131,7 @@ export function initCarte(idElement, { fondInitial = "sombre", onDeplacement } =
   rotationDispo = typeof carte.setBearing === "function";
   carte.attributionControl.setPrefix(false);
   choisirFond(fondInitial);
-  coucheBornes = creerCoucheBornes().addTo(carte);
+  coucheBornes = creerCoucheBornes(); // GPS : bornes non affichées
   coucheSelection = L.layerGroup().addTo(carte);
   coucheTrajet = L.layerGroup().addTo(carte);
   coucheAlternatives = L.layerGroup();

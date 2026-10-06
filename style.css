@@ -1133,3 +1133,9 @@ button.ev-bandeau { width: 100%; border: none; font-family: inherit; text-align:
 #ev-installer, .ev-installer, #ev-bandeau-installer { display: none !important; }
 
 .ev-accueil, #ev-accueil { display: none !important; }
+
+/* ===== GPS : menu sans rubriques électriques ===== */
+[data-bloc="ev-bloc-vehicule"], [data-bloc="ev-bloc-electricite"], [data-bloc="ev-bloc-abonnements"], [data-bloc="ev-bloc-paiement"],
+[data-vue="outils"] { display: none !important; }
+.ev-menu-groupe:has(> [data-vue="outils"]), .ev-menu-titre:has(+ .ev-menu-groupe > [data-vue="outils"]) { display: none !important; }
+.ev-menu-groupe:has(> [data-bloc="ev-bloc-vehicule"]) { display: none !important; }
