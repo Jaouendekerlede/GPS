@@ -1160,3 +1160,9 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 /* Raccourci récent avec bouton pour le retirer (1.27.0) */
 .gps-raccourci-duo { display: inline-flex; align-items: center; gap: 2px; }
 .gps-raccourci-x { border: 0; background: transparent; color: #64748b; font-size: 14px; padding: 4px 6px; cursor: pointer; }
+
+/* Services sous les chiffres du bas de la navigation (1.28.0) */
+.gps-nav-services-bas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; font-weight: 700; color: rgb(255 255 255 / 85%); }
+.gps-nav-services-bas:empty { display: none; }
+.gps-nav-services-titre { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .6; }
+.gps-nav-services-bas i { font-style: normal; opacity: .5; }

@@ -587,6 +587,8 @@ function majAires() {
     el.innerHTML = html;
   }
   el.classList.toggle("hidden", !html);
+  const bas = $("gps-nav-services-bas");
+  if (bas) bas.innerHTML = html ? `<span class="gps-nav-services-titre">Sur la route</span>${html}` : "";
 }
 
 
