@@ -1632,6 +1632,14 @@ function majInfoRegion() {
 
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
 function cablerRechercheBas() {
+  $("gps-raccourcis").addEventListener("click", (e) => {
+    const x = e.target.closest("[data-oublier]");
+    if (!x) return;
+    const dest = x.dataset.oublier;
+    for (const h of listerHistoriqueTrajets().filter((h) => h.destination === dest)) supprimerTrajetHistorique(h.id);
+    rendreRaccourcis();
+    toast(`${nomCourt(dest).split(",")[0]} retiré des raccourcis.`);
+  });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
   $("gps-recherche-bas").addEventListener("click", () => {
     afficherVue("trajet");
@@ -1656,9 +1664,11 @@ function rendreRaccourcis() {
   if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Maison", dest: "Chez moi" });
   if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail" });
   const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 3);
-  for (const d of recents) items.push({ icone: "🕐", texte: nomCourt(d).split(",")[0], dest: d });
+  for (const d of recents) items.push({ icone: "🕐", texte: nomCourt(d).split(",")[0], dest: d, recent: true });
   const personnels = items.length
-    ? items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("")
+    ? items.map((i) => i.recent
+        ? `<span class="gps-raccourci-duo"><button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button><button type="button" class="gps-raccourci-x" data-oublier="${escapeHtml(i.dest)}" aria-label="Retirer ${escapeHtml(i.texte)}">✕</button></span>`
+        : `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("")
     : '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
   const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restaurant"]];
   const ligneActions = actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci gps-raccourci-action" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`).join("");

@@ -1156,3 +1156,7 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 .gps-raccourci { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: 0; border-radius: 999px; background: #fff; color: #0f172a; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgb(15 23 42 / 10%); cursor: pointer; max-width: 100%; }
 .gps-raccourci span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gps-raccourcis-aide { font-size: 13px; opacity: .6; padding: 4px 2px; }
+
+/* Raccourci récent avec bouton pour le retirer (1.27.0) */
+.gps-raccourci-duo { display: inline-flex; align-items: center; gap: 2px; }
+.gps-raccourci-x { border: 0; background: transparent; color: #64748b; font-size: 14px; padding: 4px 6px; cursor: pointer; }
