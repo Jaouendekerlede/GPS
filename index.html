@@ -65,9 +65,7 @@
       <p style="margin:0;opacity:.7;font-size:14px">Touchez la barre de recherche ou « Trajet » pour planifier un itinéraire.</p>
     </div>
 
-    <!-- ══ Bornes autour ══ -->
 
-    <!-- ══ Fiche borne ══ -->
 
     <!-- ══ Préparer un trajet ══ -->
     <div id="vue-trajet" class="ev-vue hidden">
@@ -164,7 +162,6 @@
 
 
 
-      <div class="ev-hint">ℹ️ Statuts et tarifs déclarés (Open Charge Map, base officielle IRVE) : l'occupation d'une borne en temps réel n'est pas disponible gratuitement.</div>
     </div>
 
     <!-- ══ Favoris ══ -->
@@ -219,7 +216,6 @@
 
 
 
-      <div class="ev-hint">ℹ️ Paiement CB, tarifs, horaires et accès : Base nationale officielle des bornes (IRVE, data.gouv.fr), déclarée par les opérateurs. « CB probable (non confirmé) » = borne non déclarée mais ≥50 kW, où le terminal CB est obligatoire sur les bornes neuves depuis avril 2024. En cas de doute, vérifie sur place.</div>
     </div>
 
     <!-- ══ Profil ══ -->
@@ -304,7 +300,7 @@
           <summary>⚠️ Alertes</summary>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-travaux"> 🚧 Annoncer les travaux, routes fermées et ralentissements</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-zones-danger"> ⚠️ Zones de danger (radars fixes, comme la loi l'autorise : zone sans emplacement précis)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur, avec les bornes à proximité</label>
+          <label class="ev-check"><input type="checkbox" id="ev-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur,</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-bip"> 🔔 Bip en cas d'excès de vitesse</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
@@ -345,12 +341,6 @@
         </label>
         <button id="ev-tester-tomtom-btn" class="ev-btn" type="button">🔍 Tester ma clé TomTom</button>
         <div id="ev-tester-tomtom-resultat" class="ev-diagnostic hidden"></div>
-        <label class="ev-champ">Clé Open Charge Map (bornes) — <a href="https://openchargemap.org/site/signup" target="_blank" rel="noopener">créer</a>
-          <span class="ev-input-row">
-            <input type="text" id="ev-cle-ocm" class="ev-input ev-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
-            <button type="button" id="ev-cle-ocm-voir" class="ev-mini-btn" aria-label="Afficher la clé">👁️</button>
-          </span>
-        </label>
       </div>
 
       <button id="ev-profil-save-btn" class="ev-btn-principal" type="button">Enregistrer</button>
@@ -382,7 +372,7 @@
       </div>
       <div class="ev-carte-bloc" id="ev-bloc-raz">
         <h3>🧹 Remise à zéro</h3>
-        <div class="ev-hint">Si l'appli se comporte bizarrement : efface réglages, favoris, historique, journal des recharges, trajets et données apprises. <strong>Reste en place</strong> : votre voiture (Kona 65 kWh et ses données), vos clés, la carte de la région téléchargée.</div>
+        <div class="ev-hint">Si l'appli se comporte bizarrement : efface réglages, favoris, historique, trajets et données apprises. <strong>Reste en place</strong> : votre carte régionale et vos clés.</div>
         <button id="ev-remise-zero-btn" class="ev-btn ev-btn-plein" type="button">🧹 Remettre à zéro</button>
       </div>
 
@@ -405,17 +395,13 @@
             <li><strong>Toujours</strong> : l'appli s'ouvre, tes réglages, favoris, journal et statistiques.</li>
             <li><strong>Si le trajet a été préparé</strong> (bouton « 📥 Hors ligne » du résultat, en Wi-Fi) : la carte 3D le long du trajet, le guidage et ses consignes vocales.</li>
             <li><strong>Si la région a été téléchargée</strong> (Menu › Cartes) : la carte 3D autour de chez toi.</li>
-            <li><strong>Jamais sans réseau</strong> : calculer ou recalculer un itinéraire, chercher une adresse ou des bornes, l'état des bornes, le trafic, la météo, la carte à plat (2D).</li>
             <li>Si tu quittes la route prévue sans réseau, l'appli ne peut pas te recalculer un chemin : elle garde l'itinéraire enregistré.</li>
           </ul>
         </details>
         <details class="ev-sous-menu" id="ev-aide">
           <summary>En navigation, mains sur le volant</summary>
           <ul class="ev-aide-liste">
-            <li><strong>🎤 Micro</strong> : « prochaine borne ? », « combien de temps ? », « batterie », « trouve une boulangerie », « où me garer », « autre borne », « la route est barrée », « coupe le son », « préviens que j'arrive ».</li>
-            <li><strong>Questions de l'appli</strong> (itinéraire plus rapide, parking, borne en panne) : répondez « oui » ou « non » ; pour une liste : « le premier », « la deuxième »… Sans réponse, rien ne change.</li>
             <li><strong>Toucher le bandeau</strong> : les prochaines étapes. <strong>Appui long sur la carte</strong> : y aller ou en faire une étape.</li>
-            <li><strong>Menu ⋯</strong> : aperçu, partage de l'arrivée, batterie prévue / réelle, changer de borne, tête haute, le long du trajet, parkings.</li>
             <li><strong>Bouton barrière</strong> : route barrée devant, un autre chemin est cherché.</li>
           </ul>
         </details>
@@ -423,7 +409,6 @@
           <summary>Préparer un trajet</summary>
           <ul class="ev-aide-liste">
             <li>Sous chaque curseur : les km réels (et sur autoroute) que cela représente.</li>
-            <li><strong>Recharger à</strong> : imposer votre aire préférée (mettez sa borne en ⭐ favori sur la carte).</li>
             <li><strong>🏠 Chez moi / 💼 Travail</strong> : adresses dans le Profil. <strong>🎤</strong> : dicter la destination.</li>
             <li>Résumé du trajet : sorties et échangeurs, « Quand partir ? », partager le trajet.</li>
           </ul>
@@ -440,8 +425,6 @@
         <details class="ev-sous-menu">
           <summary>Sur la carte et dans Outils</summary>
           <ul class="ev-aide-liste">
-            <li>Puces 🅿️ Parkings, 🚦 Trafic, 🚗 Ma voiture (position enregistrée à l'arrivée).</li>
-            <li>Outils : statistiques, journal des recharges, anciens trajets à revoir.</li>
             <li>Changer de téléphone : Profil › Sauvegarde (lien par e-mail, ou Google Drive).</li>
           </ul>
         </details>
@@ -490,7 +473,7 @@
   </div>
 
   <div class="ev-nav-vitesse-bloc">
-    <div id="ev-nav-aires" class="ev-nav-aires hidden" aria-label="Aires et bornes devant"></div>
+    <div id="ev-nav-aires" class="ev-nav-aires hidden" aria-label="Aires de repos devant"></div>
     <div id="ev-nav-limite" class="ev-nav-limite hidden"></div>
     <div id="ev-nav-vitesse" class="ev-nav-vitesse"><strong>0</strong><span>km/h</span></div>
   </div>
@@ -594,7 +577,6 @@
       <ul class="ev-aide-liste">
         <li>Feux de détresse, puis <strong>gilet avant de sortir</strong>, par la droite.</li>
         <li>Tous les passagers <strong>derrière la glissière</strong>, loin des voies. Pas de triangle sur autoroute.</li>
-        <li>Appelez depuis une <strong>borne orange</strong> (tous les 2 km : elle vous localise) ou le <strong>112</strong> en donnant route, sens et PR ci-dessus.</li>
         <li>Sur autoroute, le dépannage se fait <strong>uniquement par les dépanneurs agréés</strong>, envoyés par ces appels.</li>
       </ul>
     </details>
