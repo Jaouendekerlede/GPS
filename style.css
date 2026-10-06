@@ -480,7 +480,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 /* ===== Refonte visuelle 1.13.0 : clair, lisible, style GPS moderne ===== */
 :root { --gps-blue: #2563eb; --gps-blue-soft: #eff6ff; --gps-ink: #0f172a; --gps-muted: #64748b; --gps-line: #e2e8f0; --gps-red: #dc2626; }
 body, .app, button, input, select { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.app.map-theme-dark .leaflet-tile-pane { filter: none; }
+.app.map-theme-dark .leaflet-tile-pane { filter: brightness(.68) invert(.88) hue-rotate(180deg) saturate(.8); }
 
 /* Panneaux : blanc, arrondis, ombre douce */
 .planner, .route-options, .route-card, .nearby-services, .lane-guidance, .card {

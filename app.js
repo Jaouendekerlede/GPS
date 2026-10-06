@@ -1,4 +1,4 @@
-const APP_VERSION = '1.22.0';
+const APP_VERSION = '1.22.1';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -14,7 +14,7 @@ const PROFILE_LABELS = { driving: 'Voiture', cycling: 'Vélo', foot: 'À pied' }
 const SETTINGS_KEY = 'trajetwaze_settings';
 const DEFAULT_SETTINGS = {
   units: 'km',
-  mapStyle: 'standard',
+  mapStyle: 'dark',
   adaptiveZoom: true,
   followHeading: true,
   voiceGuidance: false,
@@ -39,17 +39,17 @@ try {
 }
 const map = L.map('map', { zoomControl: false, scrollWheelZoom: true, attributionControl: true })
   .setView([48.8566, 2.3522], 12);
-const lightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  subdomains: 'abcd',
+  subdomains: 'abc',
   detectRetina: true,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
-const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+const darkTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  subdomains: 'abcd',
+  subdomains: 'abc',
   detectRetina: true,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 });
 const lightFallbackTiles = L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
   maxZoom: 20,
