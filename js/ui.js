@@ -1285,7 +1285,6 @@ let dernierCalculRecharge = { minutes: 0, cible: 80 };
 
 function rendreProfil() {
   const profil = obtenirProfilVehicule();
-  $("gps-vehicule-badge").textContent = profil.nom || "";
   rendreReglagesProfil();
 }
 
