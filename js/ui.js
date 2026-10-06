@@ -25,6 +25,7 @@ import { boutonPartage, partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
 import { demarrerRadarsCarte } from "./radars-carte.js";
 import { cablerPresDeMoi } from "./pres-de-moi.js";
+import { meteoDesPoints, alerteMeteo } from "./meteo-route.js";
 import { icone, iconeFond } from "./icones.js";
 import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
@@ -894,6 +895,7 @@ function afficherResultat(p) {
   $("gps-qrcode-box").classList.add("hidden");
   $("gps-qrcode-box").innerHTML = "";
 
+  chargerMeteoTrajet(p);
   afficherVue("resultat");
   afficherTrajet(p);
   afficherItineraires(p);
@@ -1661,4 +1663,31 @@ function rendreRaccourcis() {
   const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restaurant"]];
   const ligneActions = actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci gps-raccourci-action" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`).join("");
   $("gps-raccourcis").innerHTML = ligneActions + personnels;
+}
+
+// Météo sur l'itinéraire, avant le départ : départ, milieu et arrivée à l'heure de passage.
+async function chargerMeteoTrajet(p) {
+  const bloc = $("gps-trajet-summary");
+  if (!bloc || !Number.isFinite(p.from_lat) || !Number.isFinite(p.to_lat)) return;
+  const debutS = (p.depart_ms || Date.now()) / 1000;
+  const dureeS = (p.duree_totale_min || p.duree_min || 0) * 60;
+  const points = [
+    { nom: "Départ", lat: p.from_lat, lon: p.from_lon, quandS: debutS },
+    { nom: "Milieu", lat: (p.from_lat + p.to_lat) / 2, lon: (p.from_lon + p.to_lon) / 2, quandS: debutS + dureeS / 2 },
+    { nom: "Arrivée", lat: p.to_lat, lon: p.to_lon, quandS: debutS + dureeS },
+  ];
+  bloc.insertAdjacentHTML("beforeend", '<div class="gps-meteo-trajet" id="gps-meteo-trajet">🌡️ Météo sur le trajet : chargement…</div>');
+  const mesures = await meteoDesPoints(points);
+  const sortie = $("gps-meteo-trajet");
+  if (!sortie) return;
+  if (!mesures) { sortie.textContent = "🌡️ Météo indisponible."; return; }
+  const alertes = [];
+  const morceaux = points.map((pt, i) => {
+    const m = mesures[i];
+    if (!m) return `${pt.nom} : –`;
+    const al = alerteMeteo(m);
+    if (al) alertes.push(al.texte);
+    return `${pt.nom} ${Math.round(m.temp)} °C`;
+  });
+  sortie.innerHTML = `🌡️ ${morceaux.join(" · ")}${alertes.length ? `<br>${escapeHtml([...new Set(alertes)].join(" · "))}` : ""}`;
 }
