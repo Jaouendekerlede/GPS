@@ -50,7 +50,7 @@ const ATTRIBUTION_OSM = '© <a href="https://www.openstreetmap.org/copyright">Op
 // devient noire. Sur écran dense, detectRetina demande déjà un niveau de plus.
 const ZOOM_MAX_AFFICHE = 22;
 const tuilesJusqua = (niveau) => ({ maxZoom: ZOOM_MAX_AFFICHE, maxNativeZoom: L.Browser.retina ? niveau - 1 : niveau, detectRetina: true });
-const osmSombre = () => L.tileLayer(OSM, { ...tuilesJusqua(19), attribution: ATTRIBUTION_OSM, className: "ev-tuiles-sombres" });
+const osmSombre = () => L.tileLayer(OSM, { ...tuilesJusqua(19), attribution: ATTRIBUTION_OSM, className: "gps-tuiles-sombres" });
 const osmPlan = () => L.tileLayer(OSM, { ...tuilesJusqua(19), attribution: ATTRIBUTION_OSM });
 
 // Après un refus (quota, clé), on ne réessaie TomTom qu'au bout d'un moment,
@@ -294,7 +294,7 @@ export function majProgressionNavigation(coords, indice, lat, lon) {
 let styleVoiture = "fleche_bleue";
 
 function iconeVoiture() {
-  return L.divIcon({ className: "", iconSize: [56, 56], iconAnchor: [28, 28], html: `<div class="ev-voiture">${svgVoiture(styleVoiture)}</div>` });
+  return L.divIcon({ className: "", iconSize: [56, 56], iconAnchor: [28, 28], html: `<div class="gps-voiture">${svgVoiture(styleVoiture)}</div>` });
 }
 
 // Réglage Profil > Navigation.
@@ -310,7 +310,7 @@ export function majVoiture(lat, lon, cap) {
   // leaflet-rotate tourne la carte dans le sens horaire : un cap apparaît
   // à l'écran décalé de +bearing.
   const relatif = (cap || 0) + (rotationDispo ? carte.getBearing() : 0);
-  const el = marqueurVoiture.getElement()?.querySelector(".ev-voiture");
+  const el = marqueurVoiture.getElement()?.querySelector(".gps-voiture");
   if (el) el.style.transform = `rotate(${relatif}deg)`;
 }
 
@@ -327,7 +327,7 @@ export function decalageNavGauche() {
   if (maintenant - colonneGauche.t < 1000) return colonneGauche.px;
   let px = 0;
   if (matchMedia("(orientation: landscape) and (max-height: 560px)").matches) {
-    const colonne = document.querySelector(".ev-nav-haut");
+    const colonne = document.querySelector(".gps-nav-haut");
     px = colonne ? colonne.getBoundingClientRect().right : 0;
   }
   colonneGauche = { t: maintenant, px };
@@ -490,7 +490,7 @@ function creerCoucheBornes() {
     iconCreateFunction: (groupe) => {
       const enfants = groupe.getAllChildMarkers();
       const kwMax = Math.max(0, ...enfants.map((m) => m.options.kw || 0));
-      return L.divIcon({ className: "", iconSize: [40, 40], html: `<div class="ev-grappe ${classePuissance(kwMax)}">${enfants.length}</div>` });
+      return L.divIcon({ className: "", iconSize: [40, 40], html: `<div class="gps-grappe ${classePuissance(kwMax)}">${enfants.length}</div>` });
     },
   });
 }
@@ -502,7 +502,7 @@ function iconeBorne(b) {
     iconSize: [36, 46],
     iconAnchor: [18, 44],
     tooltipAnchor: [0, -40],
-    html: `<div class="ev-pin ${classePuissance(kw)}${b === selection ? " selection" : ""}"><span>${kw || "?"}</span>${cbConfirmee(b) ? '<b class="ev-pin-cb">CB</b>' : ""}</div>`,
+    html: `<div class="gps-pin ${classePuissance(kw)}${b === selection ? " selection" : ""}"><span>${kw || "?"}</span>${cbConfirmee(b) ? '<b class="gps-pin-cb">CB</b>' : ""}</div>`,
   });
 }
 
@@ -565,7 +565,7 @@ let coucheParkings = null;
 
 // Icône « P » (⚡ s'il y a des places avec recharge), partagée avec la 3D.
 export function htmlIconeParking(p) {
-  return `<div class="ev-parking${p.places_recharge ? " recharge" : ""}">P${p.places_recharge ? "<b>⚡</b>" : ""}</div>`;
+  return `<div class="gps-parking${p.places_recharge ? " recharge" : ""}">P${p.places_recharge ? "<b>⚡</b>" : ""}</div>`;
 }
 
 // liste : [{ parking, html }] -- html : fiche affichée au toucher.
@@ -594,7 +594,7 @@ function limitesVisibles2D() {
 }
 
 function afficherPosition2D(lat, lon, precision) {
-  const icone = L.divIcon({ className: "", iconSize: [18, 18], iconAnchor: [9, 9], html: '<div class="ev-position"></div>' });
+  const icone = L.divIcon({ className: "", iconSize: [18, 18], iconAnchor: [9, 9], html: '<div class="gps-position"></div>' });
   if (marqueurPosition) marqueurPosition.setLatLng([lat, lon]);
   else marqueurPosition = L.marker([lat, lon], { icon: icone, interactive: false, zIndexOffset: 20000 }).addTo(carte);
   if (Number.isFinite(precision) && precision > 0) {
@@ -614,7 +614,7 @@ function pastille(taille, couleur, contenu = "") {
     className: "",
     iconSize: [taille, taille],
     iconAnchor: [taille / 2, taille / 2],
-    html: `<div class="ev-point-trajet" style="width:${taille}px;height:${taille}px;background:${couleur};box-shadow:0 0 12px ${couleur};">${contenu}</div>`,
+    html: `<div class="gps-point-trajet" style="width:${taille}px;height:${taille}px;background:${couleur};box-shadow:0 0 12px ${couleur};">${contenu}</div>`,
   });
 }
 
@@ -642,7 +642,7 @@ function ajouterArrets(arrets, icone, prefixe, onClicArret) {
     const batterie = texteBatterieArret(arret);
     if (batterie) {
       L.marker([arret.lat, arret.lon], {
-        icon: L.divIcon({ className: "", iconSize: [0, 0], iconAnchor: [-18, 10], html: `<span class="ev-etiquette-arret">${escapeHtml(batterie)}</span>` }),
+        icon: L.divIcon({ className: "", iconSize: [0, 0], iconAnchor: [-18, 10], html: `<span class="gps-etiquette-arret">${escapeHtml(batterie)}</span>` }),
         interactive: false,
         zIndexOffset: 4900,
       }).addTo(coucheTrajet);
@@ -836,7 +836,7 @@ export function limitesVisibles() {
 // Position à l'écran (px) du centre de la partie visible de la carte : là où
 // placer une croix de visée qui correspond à centreVisible().
 export function pixelCentreVisible() {
-  const el = document.getElementById(explo3D ? "ev-carte-3d" : "ev-carte");
+  const el = document.getElementById(explo3D ? "gps-carte-3d" : "gps-carte");
   const r = el.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + Math.max(1, (r.height - decalageBas) / 2) };
 }
@@ -862,7 +862,7 @@ let marqueurGaree = null;
 
 export function marquerVoitureGaree(pos) {
   marqueurGaree?.remove();
-  marqueurGaree = pos ? L.marker([pos.lat, pos.lon], { icon: L.divIcon({ className: "", iconSize: [40, 40], iconAnchor: [20, 20], html: `<div class="ev-garee">🚗</div>` }), interactive: false }).addTo(carte) : null;
+  marqueurGaree = pos ? L.marker([pos.lat, pos.lon], { icon: L.divIcon({ className: "", iconSize: [40, 40], iconAnchor: [20, 20], html: `<div class="gps-garee">🚗</div>` }), interactive: false }).addTo(carte) : null;
   c3d.exploVoitureGaree(pos);
 }
 
@@ -875,13 +875,13 @@ export function definirAppuiLong(cb) {
   if (appuiLongBranche) return;
   appuiLongBranche = true;
   // Appui long au doigt = « contextmenu » pour le navigateur (et clic droit).
-  for (const id of ["ev-carte", "ev-carte-3d"]) {
+  for (const id of ["gps-carte", "gps-carte-3d"]) {
     document.getElementById(id)?.addEventListener("contextmenu", (e) => {
       if (!appuiLongCb) return;
       e.preventDefault();
       const r = e.currentTarget.getBoundingClientRect();
       const [x, y] = [e.clientX - r.left, e.clientY - r.top];
-      const p = id === "ev-carte" ? carte.containerPointToLatLng([x, y]) : c3d.pointVersLatLon(x, y);
+      const p = id === "gps-carte" ? carte.containerPointToLatLng([x, y]) : c3d.pointVersLatLon(x, y);
       if (p) appuiLongCb(p.lat, p.lng ?? p.lon);
     });
   }

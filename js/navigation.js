@@ -295,8 +295,8 @@ const DISTANCE_MAX_VOIES_M = 800;
 // à prendre en évidence. Seulement pour la prochaine manœuvre, quand
 // TomTom connaît les voies à cet endroit.
 function afficherVoies(instr) {
-  const zone = $("ev-nav-voies");
-  const fenetre = $("ev-nav-vue-voies");
+  const zone = $("gps-nav-voies");
+  const fenetre = $("gps-nav-vue-voies");
   const reste = instr ? instr.offset - etat.offset : Infinity;
   const section = instr && !etat.aLaBorne && !etat.arrive && reste < DISTANCE_MAX_VOIES_M ? etat.route.voies.find((v) => Math.abs(v.offset - instr.offset) < 40) : null;
   // Fenêtre en perspective quand il faut choisir sa file (pas si toutes
@@ -305,12 +305,12 @@ function afficherVoies(instr) {
   fenetre.classList.toggle("hidden", !enFenetre);
   if (enFenetre) {
     const voiesSuivies = section.lanes.filter((voie) => voie.follow).length;
-    $("ev-nav-vue-voies-instruction").textContent = voiesSuivies === 1 ? "Suivez la voie bleue" : "Suivez les voies bleues";
+    $("gps-nav-vue-voies-instruction").textContent = voiesSuivies === 1 ? "Suivez la voie bleue" : "Suivez les voies bleues";
     fenetre.setAttribute("aria-label", voiesSuivies === 1 ? "Suivez la voie bleue" : "Suivez les voies bleues");
-    $("ev-nav-vue-voies-distance").textContent = distanceAffichee(reste);
+    $("gps-nav-vue-voies-distance").textContent = distanceAffichee(reste);
     if (fenetre.dataset.cle !== String(section.offset)) {
       fenetre.dataset.cle = String(section.offset);
-      $("ev-nav-vue-voies-dessin").innerHTML = dessinVoies(section.lanes);
+      $("gps-nav-vue-voies-dessin").innerHTML = dessinVoies(section.lanes);
     }
   } else fenetre.dataset.cle = "";
   if (!section || enFenetre) {
@@ -324,7 +324,7 @@ function afficherVoies(instr) {
   zone.innerHTML = section.lanes
     .map((l) => {
       const fleches = (l.directions || ["STRAIGHT"]).map((d) => `<span class="${d === l.follow ? "suivre" : ""}">${FLECHES_VOIE[d] || "↑"}</span>`).join("");
-      return `<div class="ev-nav-voie${l.follow ? " active" : ""}">${fleches}</div>`;
+      return `<div class="gps-nav-voie${l.follow ? " active" : ""}">${fleches}</div>`;
     })
     .join("");
   zone.classList.remove("hidden");
@@ -338,16 +338,16 @@ function afficherVoies(instr) {
 // alarmante qu'une vraie alerte météo/batterie, alors qu'elle ne demande
 // aucune action et n'affecte pas la navigation (2026-09-27).
 function afficherAlerte(texte, bouton, niveau = "alerte") {
-  const el = $("ev-nav-alerte");
+  const el = $("gps-nav-alerte");
   if (!texte) {
     el.classList.add("hidden");
     return;
   }
   noter("alerte", texte);
-  el.innerHTML = `<span>${escapeHtml(texte)}</span>${bouton ? `<button type="button" class="ev-btn" id="ev-nav-alerte-btn">${escapeHtml(bouton.libelle)}</button>` : ""}`;
+  el.innerHTML = `<span>${escapeHtml(texte)}</span>${bouton ? `<button type="button" class="gps-btn" id="gps-nav-alerte-btn">${escapeHtml(bouton.libelle)}</button>` : ""}`;
   el.classList.remove("hidden");
-  el.classList.toggle("ev-nav-alerte-info", niveau === "info");
-  if (bouton) $("ev-nav-alerte-btn").addEventListener("click", bouton.action);
+  el.classList.toggle("gps-nav-alerte-info", niveau === "info");
+  if (bouton) $("gps-nav-alerte-btn").addEventListener("click", bouton.action);
 }
 
 function majEcran() {
@@ -357,16 +357,16 @@ function majEcran() {
   // Prochaine manœuvre
   const prochaines = route.instructions.filter((i) => i.offset > etat.offset + 8 && i.type !== "LOCATION_DEPARTURE");
   const instr = prochaines[0];
-  const ensuite = $("ev-nav-ensuite");
+  const ensuite = $("gps-nav-ensuite");
   ensuite.classList.add("hidden");
-  const rue = $("ev-nav-rue");
+  const rue = $("gps-nav-rue");
   const flecheBandeau = (contenu) => {
     if (etat.flecheBandeau === contenu) return;
     etat.flecheBandeau = contenu;
-    $("ev-nav-fleche").innerHTML = contenu;
+    $("gps-nav-fleche").innerHTML = contenu;
   };
   rue.classList.add("hidden");
-  const panneau = $("ev-nav-panneau");
+  const panneau = $("gps-nav-panneau");
   panneau.classList.add("hidden");
   // Bleu sur autoroute et vers une autoroute, comme les panneaux.
   // Autoroute = route « A… », ou section rapide limitée à 130 (TomTom classe
@@ -374,19 +374,19 @@ function majEcran() {
   const passee = route.instructions.filter((i) => i.offset <= etat.offset && !i.synthetique).pop();
   const surAutoroute = (passee?.numeros || []).some(estAutoroute) || ((route.autoroutes || []).some(([a, b]) => etat.offset >= a && etat.offset <= b) && (route.limites[etat.idx] || 0) >= 130);
   const bleu = !!instr && (surAutoroute || (instr.numeros || []).some(estAutoroute));
-  $("ev-nav-manoeuvre").classList.toggle("autoroute", bleu);
+  $("gps-nav-manoeuvre").classList.toggle("autoroute", bleu);
   if (etat.arrive) {
     flecheBandeau(svgFleche({ manoeuvre: "ARRIVE" }));
-    $("ev-nav-distance").textContent = "Arrivé";
-    $("ev-nav-instruction").textContent = etat.destination.nom || "Destination";
+    $("gps-nav-distance").textContent = "Arrivé";
+    $("gps-nav-instruction").textContent = etat.destination.nom || "Destination";
   } else if (etat.aLaBorne) {
-    flecheBandeau(`<span class="ev-nav-fleche-emoji">${etat.aLaBorne.pause ? "📍" : "🔌"}</span>`);
-    $("ev-nav-distance").textContent = etat.aLaBorne.pause ? "Étape" : "Recharge";
-    $("ev-nav-instruction").textContent = etat.aLaBorne.nom_borne;
+    flecheBandeau(`<span class="gps-nav-fleche-emoji">${etat.aLaBorne.pause ? "📍" : "🔌"}</span>`);
+    $("gps-nav-distance").textContent = etat.aLaBorne.pause ? "Étape" : "Recharge";
+    $("gps-nav-instruction").textContent = etat.aLaBorne.nom_borne;
   } else if (instr) {
     const d = instr.offset - etat.offset;
     flecheBandeau(pictoCarrefour(instr) || svgFleche(instr));
-    $("ev-nav-distance").textContent = distanceAffichee(d);
+    $("gps-nav-distance").textContent = distanceAffichee(d);
     // Longue ligne droite : bandeau replié en une ligne (« ↑ 34 km · A83 »).
     etat.bandeauReplie = etat.prefs.epure && (etat.bandeauReplie ? d > REPLI_FIN_M : d > REPLI_DEBUT_M);
     const t = textesPanneau(instr);
@@ -394,35 +394,35 @@ function majEcran() {
     rue.classList.toggle("hidden", !t.rue);
     // Comme sur les panneaux : n° de sortie, n° de route, direction.
     const html = [
-      t.sortie ? `<span class="ev-num ev-num-sortie">Sortie ${escapeHtml(t.sortie)}</span>` : "",
-      ...t.numeros.map((n) => `<span class="ev-num ev-num-${classeNumero(n)}">${escapeHtml(n)}</span>`),
+      t.sortie ? `<span class="gps-num gps-num-sortie">Sortie ${escapeHtml(t.sortie)}</span>` : "",
+      ...t.numeros.map((n) => `<span class="gps-num gps-num-${classeNumero(n)}">${escapeHtml(n)}</span>`),
       // t.direction est maintenant le nom de la route (la direction/ville est
       // déjà affichée en gros) : "via" plutôt qu'une flèche qui suggérerait une destination.
-      t.direction ? `<span class="ev-nav-direction">via ${escapeHtml(t.direction)}</span>` : "",
+      t.direction ? `<span class="gps-nav-direction">via ${escapeHtml(t.direction)}</span>` : "",
     ].join("");
     if (etat.panneauAffiche !== html) {
       etat.panneauAffiche = html;
       panneau.innerHTML = html;
     }
     panneau.classList.toggle("hidden", !html);
-    $("ev-nav-instruction").textContent = t.action;
+    $("gps-nav-instruction").textContent = t.action;
     const suivante = prochaines[1];
     if (suivante && suivante.offset - instr.offset < 400) {
-      ensuite.innerHTML = `Puis <span class="ev-nav-ensuite-fleche">${svgFleche(suivante)}</span> ${escapeHtml(messageCourt(suivante.message))}`;
+      ensuite.innerHTML = `Puis <span class="gps-nav-ensuite-fleche">${svgFleche(suivante)}</span> ${escapeHtml(messageCourt(suivante.message))}`;
       ensuite.classList.remove("hidden");
     }
   } else {
     flecheBandeau(svgFleche({ manoeuvre: "STRAIGHT" }));
-    $("ev-nav-distance").textContent = distanceAffichee(route.total - etat.offset);
-    $("ev-nav-instruction").textContent = "Continuez jusqu'à la destination";
+    $("gps-nav-distance").textContent = distanceAffichee(route.total - etat.offset);
+    $("gps-nav-instruction").textContent = "Continuez jusqu'à la destination";
   }
   if (!instr || etat.arrive || etat.aLaBorne) etat.bandeauReplie = false;
-  $("ev-nav-manoeuvre").classList.toggle("replie", !!etat.bandeauReplie);
+  $("gps-nav-manoeuvre").classList.toggle("replie", !!etat.bandeauReplie);
   if (etat.bandeauReplie) ensuite.classList.add("hidden");
   // Autoroute en ligne droite : l'essentiel seulement (un toucher rend tout).
   const kmhEpure = (pos.vitesse || 0) * 3.6;
-  document.body.classList.toggle("ev-nav-epure", !!etat.bandeauReplie && kmhEpure > VITESSE_EPURE_KMH && Date.now() > (etat.epureSuspenduJusqua || 0) && $("ev-nav-alerte").classList.contains("hidden"));
-  if (!$("ev-nav-feuille").classList.contains("hidden")) majFeuilleDeRoute();
+  document.body.classList.toggle("gps-nav-epure", !!etat.bandeauReplie && kmhEpure > VITESSE_EPURE_KMH && Date.now() > (etat.epureSuspenduJusqua || 0) && $("gps-nav-alerte").classList.contains("hidden"));
+  if (!$("gps-nav-feuille").classList.contains("hidden")) majFeuilleDeRoute();
   majNotificationGuidage(instr);
   majNuitDouce();
   majFlecheCarte(instr, instr ? instr.offset - etat.offset : Infinity);
@@ -431,10 +431,10 @@ function majEcran() {
   majAires();
   // Affichage compact : une seule info sous le bandeau (alerte, sinon voies,
   // sinon prochaine borne) pour garder la carte visible.
-  if (document.body.classList.contains("ev-bandeau-compact")) {
-    const alerte = !$("ev-nav-alerte").classList.contains("hidden");
-    const voies = !$("ev-nav-vue-voies").classList.contains("hidden");
-    if (alerte) $("ev-nav-vue-voies").classList.add("hidden");
+  if (document.body.classList.contains("gps-bandeau-compact")) {
+    const alerte = !$("gps-nav-alerte").classList.contains("hidden");
+    const voies = !$("gps-nav-vue-voies").classList.contains("hidden");
+    if (alerte) $("gps-nav-vue-voies").classList.add("hidden");
   }
 
   afficherVoies(instr);
@@ -442,18 +442,18 @@ function majEcran() {
   // Vitesse et limitation
   const kmh = Math.round((pos.vitesse || 0) * 3.6);
   const limite = route.limites[etat.idx];
-  $("ev-nav-vitesse").innerHTML = `<strong>${kmh}</strong><span>km/h</span>`;
-  $("ev-nav-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
-  $("ev-nav-limite").textContent = limite || "";
-  $("ev-nav-limite").classList.toggle("hidden", !limite);
+  $("gps-nav-vitesse").innerHTML = `<strong>${kmh}</strong><span>km/h</span>`;
+  $("gps-nav-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
+  $("gps-nav-limite").textContent = limite || "";
+  $("gps-nav-limite").classList.toggle("hidden", !limite);
   surveillerVitesse(kmh, limite);
-  if (document.body.classList.contains("ev-hud")) majHud(kmh, limite);
+  if (document.body.classList.contains("gps-hud")) majHud(kmh, limite);
 
   // Bas de l'écran : heure d'arrivée, temps et km restants
   const secondes = secondesRestantesJusqua(route.total);
-  $("ev-nav-eta").textContent = heure(Date.now() + secondes * 1000);
-  $("ev-nav-reste-temps").textContent = formaterMinutes(secondes / 60);
-  $("ev-nav-reste-km").textContent = `${Math.round((route.total - etat.offset) / 1000)}`;
+  $("gps-nav-eta").textContent = heure(Date.now() + secondes * 1000);
+  $("gps-nav-reste-temps").textContent = formaterMinutes(secondes / 60);
+  $("gps-nav-reste-km").textContent = `${Math.round((route.total - etat.offset) / 1000)}`;
 }
 
 // Recalcule à la fois les zones de danger (fusionnées, pour le bandeau
@@ -558,12 +558,12 @@ async function chercherAires() {
 const HORIZON_AIRES_M = 150000;
 
 function majAires() {
-  const el = $("ev-nav-aires");
+  const el = $("gps-nav-aires");
   const route = etat.route;
   const surRapide = (route.autoroutes || []).some(([a, b]) => etat.offset >= a - 200 && etat.offset <= b);
   const devant = surRapide && etat.prefs.aires && !etat.aLaBorne ? (route.aires || []).filter((x) => x.offset > etat.offset && x.offset - etat.offset < HORIZON_AIRES_M) : [];
   const borne = devant.find((x) => x.type === "recharge");
-  const aires = devant.filter((x) => x.type !== "recharge").slice(0, document.body.classList.contains("ev-bandeau-compact") ? 1 : 2);
+  const aires = devant.filter((x) => x.type !== "recharge").slice(0, document.body.classList.contains("gps-bandeau-compact") ? 1 : 2);
   const liste = [borne, ...aires].filter(Boolean).sort((a, b) => a.offset - b.offset);
   const html = liste
     .map((x) => {
@@ -571,7 +571,7 @@ function majAires() {
       const icone = x.type === "recharge" ? "⚡" : x.type === "service" ? "🍴" : "🌳";
       const plus = x.type === "recharge" && x.puissance_kw ? `<small>${Math.round(x.puissance_kw)} kW</small>` : x.recharge ? "<small>⚡</small>" : "";
       const titre = `${x.type === "recharge" ? "Borne" : x.type === "service" ? "Aire de service" : "Aire de repos"}${x.nom ? ` ${x.nom}` : ""}`;
-      return `<div class="ev-aire ev-aire-${x.type}" title="${escapeHtml(titre)}"><span>${icone}</span><strong>${d}</strong>${plus}</div>`;
+      return `<div class="gps-aire gps-aire-${x.type}" title="${escapeHtml(titre)}"><span>${icone}</span><strong>${d}</strong>${plus}</div>`;
     })
     .join("");
   if (el.dataset.html !== html) {
@@ -583,7 +583,7 @@ function majAires() {
 
 function majZoneDanger() {
   const zone = etat.prefs.dangers && !etat.aLaBorne ? (etat.route.zonesDanger || []).find((z) => etat.offset >= z.debut && etat.offset <= z.fin) : null;
-  const el = $("ev-nav-danger");
+  const el = $("gps-nav-danger");
   el.classList.toggle("hidden", !zone);
   if (!zone) {
     etat.dansZoneDanger = false;
@@ -715,9 +715,9 @@ function direPuisEcouter(texte) {
     u.lang = "fr-FR";
     u.onend = async () => {
       if (!etat) return resolve(null);
-      $("ev-nav-ecoute").classList.remove("hidden");
+      $("gps-nav-ecoute").classList.remove("hidden");
       const r = await ecouter();
-      $("ev-nav-ecoute").classList.add("hidden");
+      $("gps-nav-ecoute").classList.add("hidden");
       noter("voix", `réponse entendue : ${r || "(rien)"}`);
       resolve(r);
     };
@@ -813,10 +813,10 @@ function annonces() {
     const [voix, icone] = travaux.fermeture ? ["Attention, route signalée fermée", "⛔ Route signalée fermée"] : travaux.bouchon ? ["Ralentissement", "🚗 Ralentissement"] : ["Travaux", "🚧 Travaux"];
     if (etat.prefs.voixTravaux) parler(`${voix} dans ${distanceParlee(d)}${travaux.fermeture ? "" : retard}.`);
     const texte = `${icone} dans ${distanceAffichee(d)}${!travaux.fermeture && travaux.retard_min >= 1 ? ` (+${travaux.retard_min} min)` : ""}`;
-    if ($("ev-nav-alerte").classList.contains("hidden")) {
+    if ($("gps-nav-alerte").classList.contains("hidden")) {
       afficherAlerte(texte, travaux.fermeture ? { libelle: "🚧 Éviter", action: routeBarree } : null);
       setTimeout(() => {
-        if (etat && $("ev-nav-alerte").textContent.startsWith(texte)) afficherAlerte(null);
+        if (etat && $("gps-nav-alerte").textContent.startsWith(texte)) afficherAlerte(null);
       }, 15000);
     }
   }
@@ -863,7 +863,7 @@ function bilanArrivee() {
     [`${batt} %`, etat.plan.pct_batterie_arrivee != null ? `batterie (prévu ${Math.round(etat.plan.pct_batterie_arrivee)} %)` : "batterie"],
   ];
   if (recharge > 0) cases.push([`${recharge} min`, `de recharge${etat.coutRecharges ? ` · ${etat.coutRecharges.toFixed(2).replace(".", ",")} €` : ""}`]);
-  return `<div class="ev-bilan">${cases.map(([v, l]) => `<div><strong>${v}</strong><span>${l}</span></div>`).join("")}</div>`;
+  return `<div class="gps-bilan">${cases.map(([v, l]) => `<div><strong>${v}</strong><span>${l}</span></div>`).join("")}</div>`;
 }
 
 function arriveeDestination() {
@@ -875,18 +875,18 @@ function arriveeDestination() {
   const finale = etat.destinationFinale;
   if (!etat.demo && etat.pos) {
     garerVoiture(etat.pos.lat, etat.pos.lon, (finale || etat.destination).nom || "");
-    document.dispatchEvent(new Event("ev-voiture-garee"));
+    document.dispatchEvent(new Event("gps-voiture-garee"));
   }
-  const carteFin = $("ev-nav-point");
+  const carteFin = $("gps-nav-point");
   carteFin.innerHTML = `
-    <div class="ev-nav-carte-titre">🏁 Vous êtes arrivé</div>
+    <div class="gps-nav-carte-titre">🏁 Vous êtes arrivé</div>
     <div>${escapeHtml(etat.destination.nom || "")}</div>
     ${bilanArrivee()}
-    ${etat.demo ? "" : `<div class="ev-nav-carte-sous">🚗 Position de la voiture enregistrée (Carte › 🚗 Ma voiture)</div>`}
-    ${finale ? `<a class="ev-btn" href="${escapeHtml(lienAPied(finale.lat, finale.lon))}" target="_blank" rel="noopener">🚶 Finir à pied jusqu'à ${escapeHtml(finale.nom || "la destination")}</a>` : ""}
-    <button type="button" id="ev-nav-terminer-btn" class="ev-btn-principal">Terminer</button>`;
+    ${etat.demo ? "" : `<div class="gps-nav-carte-sous">🚗 Position de la voiture enregistrée (Carte › 🚗 Ma voiture)</div>`}
+    ${finale ? `<a class="gps-btn" href="${escapeHtml(lienAPied(finale.lat, finale.lon))}" target="_blank" rel="noopener">🚶 Finir à pied jusqu'à ${escapeHtml(finale.nom || "la destination")}</a>` : ""}
+    <button type="button" id="gps-nav-terminer-btn" class="gps-btn-principal">Terminer</button>`;
   carteFin.classList.remove("hidden");
-  $("ev-nav-terminer-btn").addEventListener("click", () => {
+  $("gps-nav-terminer-btn").addEventListener("click", () => {
     // Appui de l'utilisateur : Google autorise alors la sauvegarde Drive.
     if (!etat.demo) sauvegardeApresTrajet();
     arreterNavigation();
@@ -996,7 +996,7 @@ function proposerRoute(route, gain) {
   setTimeout(() => {
     if (etat?.proposition !== route) return;
     etat.proposition = null;
-    if ($("ev-nav-alerte").textContent.startsWith(texte)) afficherAlerte(null);
+    if ($("gps-nav-alerte").textContent.startsWith(texte)) afficherAlerte(null);
   }, DUREE_PROPOSITION_MS);
 }
 
@@ -1312,11 +1312,11 @@ function majSignalGps(signal, incertitude = null) {
     fige: "📡 Pas de signal GPS",
     suivi: g.niveau === "mauvais" ? `📡 GPS très imprécis (±${precision} m)` : g.niveau === "faible" && precision ? `📡 GPS imprécis (±${precision} m)` : "",
   };
-  const el = $("ev-nav-gps");
+  const el = $("gps-nav-gps");
   if (!el) return;
   el.textContent = textes[signal] || "";
   el.classList.toggle("hidden", !el.textContent);
-  el.classList.toggle("ev-nav-gps-estime", signal !== "suivi");
+  el.classList.toggle("gps-nav-gps-estime", signal !== "suivi");
 }
 
 function surveillerSignal() {
@@ -1435,28 +1435,28 @@ let cable = false;
 function cablerBoutons() {
   if (cable) return;
   cable = true;
-  $("ev-nav-stop-btn").addEventListener("click", () => {
+  $("gps-nav-stop-btn").addEventListener("click", () => {
     if (confirm("Arrêter la navigation ?")) arreterNavigation();
   });
-  $("ev-nav-voix-btn").addEventListener("click", () => {
+  $("gps-nav-voix-btn").addEventListener("click", () => {
     etat.voix = !etat.voix;
-    $("ev-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
+    $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
     if (!etat.voix) speechSynthesis.cancel();
   });
-  $("ev-nav-orientation-btn").addEventListener("click", () => {
+  $("gps-nav-orientation-btn").addEventListener("click", () => {
     etat.sensDeMarche = !etat.sensDeMarche;
     majBoutonOrientation();
     etat.suivi = true;
-    $("ev-nav-recentrer-btn").classList.add("hidden");
+    $("gps-nav-recentrer-btn").classList.add("hidden");
     if (etat.pos) vue.cameraNavigation(etat.pos.lat, etat.pos.lon, etat.pos.cap, 16, etat.sensDeMarche, false);
   });
-  $("ev-nav-3d-btn").addEventListener("click", basculerVue);
-  $("ev-nav-barree-btn").addEventListener("click", routeBarree);
-  $("ev-nav-menu-btn").addEventListener("click", () => $("ev-nav-menu").classList.toggle("hidden"));
-  $("ev-nav-menu").addEventListener("click", (e) => {
+  $("gps-nav-3d-btn").addEventListener("click", basculerVue);
+  $("gps-nav-barree-btn").addEventListener("click", routeBarree);
+  $("gps-nav-menu-btn").addEventListener("click", () => $("gps-nav-menu").classList.toggle("hidden"));
+  $("gps-nav-menu").addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
-    $("ev-nav-menu").classList.add("hidden");
+    $("gps-nav-menu").classList.add("hidden");
     if (b.dataset.navAction) actionMenu(b.dataset.navAction);
   });
   // Un toucher en dehors du menu (la carte, le bandeau) le referme : en
@@ -1464,50 +1464,50 @@ function cablerBoutons() {
   document.addEventListener(
     "pointerdown",
     (e) => {
-      const menu = $("ev-nav-menu");
-      if (menu.classList.contains("hidden") || menu.contains(e.target) || e.target.closest("#ev-nav-menu-btn")) return;
+      const menu = $("gps-nav-menu");
+      if (menu.classList.contains("hidden") || menu.contains(e.target) || e.target.closest("#gps-nav-menu-btn")) return;
       menu.classList.add("hidden");
     },
     true,
   );
-  $("ev-nav-hud").addEventListener("click", () => basculerHud(false));
-  $("ev-nav-micro-btn").addEventListener("click", commandeVocale);
+  $("gps-nav-hud").addEventListener("click", () => basculerHud(false));
+  $("gps-nav-micro-btn").addEventListener("click", commandeVocale);
   window.addEventListener("online", surReseau);
   window.addEventListener("offline", surReseau);
-  $("ev-nav-manoeuvre").addEventListener("click", () => etat && basculerFeuilleDeRoute());
-  $("ev-nav-feuille").addEventListener("click", () => $("ev-nav-feuille").classList.add("hidden"));
-  $("ev-nav-point").addEventListener("click", (e) => {
+  $("gps-nav-manoeuvre").addEventListener("click", () => etat && basculerFeuilleDeRoute());
+  $("gps-nav-feuille").addEventListener("click", () => $("gps-nav-feuille").classList.add("hidden"));
+  $("gps-nav-point").addEventListener("click", (e) => {
     const a = e.target.closest("[data-point]")?.dataset.point;
     if (a === "etape") {
-      $("ev-nav-point").classList.add("hidden");
+      $("gps-nav-point").classList.add("hidden");
       if (etat?.pointChoisi) ajouterEtape({ ...etat.pointChoisi, nom: "Point choisi sur la carte", adresse: "" });
     } else if (a === "aller") allerAuPoint();
-    else if (a === "fermer") $("ev-nav-point").classList.add("hidden");
+    else if (a === "fermer") $("gps-nav-point").classList.add("hidden");
   });
   document.addEventListener("pointerdown", () => etat && reveillerBoutons(), true);
   // Valeurs au toucher du graphique de batterie (crosshair).
-  $("ev-nav-recherche-cats").innerHTML = CATEGORIES_TRAJET.map((c) => `<button type="button" data-requete="${escapeHtml(c.requete)}">${c.icone}<span>${escapeHtml(c.nom)}</span></button>`).join("");
-  $("ev-nav-recherche").addEventListener("click", (e) => {
-    if (e.target.closest("[data-fermer]")) return $("ev-nav-recherche").classList.add("hidden");
+  $("gps-nav-recherche-cats").innerHTML = CATEGORIES_TRAJET.map((c) => `<button type="button" data-requete="${escapeHtml(c.requete)}">${c.icone}<span>${escapeHtml(c.nom)}</span></button>`).join("");
+  $("gps-nav-recherche").addEventListener("click", (e) => {
+    if (e.target.closest("[data-fermer]")) return $("gps-nav-recherche").classList.add("hidden");
     const q = e.target.closest("[data-requete]")?.dataset.requete;
     if (q) return chercherLeLongDuTrajet(q);
     const i = e.target.closest("[data-etape]")?.dataset.etape;
     if (i !== undefined && etat?.lieuxTrouves?.[i]) ajouterEtape(etat.lieuxTrouves[i]);
   });
-  $("ev-nav-parkings").addEventListener("click", (e) => {
-    if (e.target.closest("[data-fermer]")) return $("ev-nav-parkings").classList.add("hidden");
+  $("gps-nav-parkings").addEventListener("click", (e) => {
+    if (e.target.closest("[data-fermer]")) return $("gps-nav-parkings").classList.add("hidden");
     const i = e.target.closest("[data-parking]")?.dataset.parking;
     if (i !== undefined && etat?.parkingsTrouves?.[i]) allerAuParking(etat.parkingsTrouves[i]);
   });
-  $("ev-nav-apercu-btn").addEventListener("click", () => {
+  $("gps-nav-apercu-btn").addEventListener("click", () => {
     clearTimeout(etat.retourSuivi);
     etat.apercu = true;
     etat.suivi = false;
-    $("ev-nav-recentrer-btn").textContent = vue === carte2D ? "🎯 Revenir au guidage" : "🎯 Recentrer";
-    $("ev-nav-recentrer-btn").classList.remove("hidden");
+    $("gps-nav-recentrer-btn").textContent = vue === carte2D ? "🎯 Revenir au guidage" : "🎯 Recentrer";
+    $("gps-nav-recentrer-btn").classList.remove("hidden");
     vue.apercuNavigation(etat.route.coords.slice(etat.idx));
   });
-  $("ev-nav-recentrer-btn").addEventListener("click", () => {
+  $("gps-nav-recentrer-btn").addEventListener("click", () => {
     etat.apercu = false;
     reprendreSuivi();
   });
@@ -1523,10 +1523,10 @@ const DELAI_CALME_MS = 8000;
 let minuteurCalme = null;
 
 function reveillerBoutons() {
-  document.body.classList.remove("ev-nav-calme", "ev-nav-epure");
+  document.body.classList.remove("gps-nav-calme", "gps-nav-epure");
   if (etat) etat.epureSuspenduJusqua = Date.now() + DUREE_REVEIL_EPURE_MS;
   clearTimeout(minuteurCalme);
-  minuteurCalme = setTimeout(() => etat && document.body.classList.add("ev-nav-calme"), DELAI_CALME_MS);
+  minuteurCalme = setTimeout(() => etat && document.body.classList.add("gps-nav-calme"), DELAI_CALME_MS);
 }
 
 // ── Bandeau replié, écran épuré, feuille de route ───────────────────────────
@@ -1539,7 +1539,7 @@ const NB_LIGNES_FEUILLE = 15;
 
 // Toucher le bandeau : liste des prochaines manœuvres, bornes et arrivée.
 function basculerFeuilleDeRoute() {
-  const f = $("ev-nav-feuille");
+  const f = $("gps-nav-feuille");
   f.classList.toggle("hidden");
   if (!f.classList.contains("hidden")) majFeuilleDeRoute();
 }
@@ -1549,13 +1549,13 @@ function majFeuilleDeRoute() {
   const lignes = route.instructions
     .filter((i) => i.offset > etat.offset + 8 && i.type !== "LOCATION_DEPARTURE" && !i.synthetique)
     .slice(0, NB_LIGNES_FEUILLE)
-    .map((i) => ({ offset: i.offset, html: `<span class="ev-feuille-fleche">${svgFleche(i)}</span><span>${escapeHtml(i.message || "Continuez")}</span>` }));
+    .map((i) => ({ offset: i.offset, html: `<span class="gps-feuille-fleche">${svgFleche(i)}</span><span>${escapeHtml(i.message || "Continuez")}</span>` }));
   etat.arretsRestants.forEach((a, k) => {
     const fin = route.troncons[k]?.fin;
-    if (fin > etat.offset) lignes.push({ offset: fin, html: `<span class="ev-feuille-fleche">${a.pause ? "📍" : "🔋"}</span><span><strong>${escapeHtml(a.nom_borne)}</strong></span>` });
+    if (fin > etat.offset) lignes.push({ offset: fin, html: `<span class="gps-feuille-fleche">${a.pause ? "📍" : "🔋"}</span><span><strong>${escapeHtml(a.nom_borne)}</strong></span>` });
   });
   lignes.sort((a, b) => a.offset - b.offset);
-  $("ev-nav-feuille-liste").innerHTML = lignes.map((l) => `<div class="ev-feuille-ligne">${l.html}<em>${distanceAffichee(l.offset - etat.offset)}</em></div>`).join("") || `<div class="ev-nav-carte-sous">Tout droit jusqu'à l'arrivée.</div>`;
+  $("gps-nav-feuille-liste").innerHTML = lignes.map((l) => `<div class="gps-feuille-ligne">${l.html}<em>${distanceAffichee(l.offset - etat.offset)}</em></div>`).join("") || `<div class="gps-nav-carte-sous">Tout droit jusqu'à l'arrivée.</div>`;
 }
 
 // ── Nuit douce : carte et bandeau un peu moins lumineux après le coucher ─────
@@ -1563,7 +1563,7 @@ function majFeuilleDeRoute() {
 function majNuitDouce() {
   if (!etat.pos || Date.now() - (etat.derniereNuit || 0) < 60000) return;
   etat.derniereNuit = Date.now();
-  document.body.classList.toggle("ev-nuit-douce", etat.prefs.nuitDouce && estNuit(etat.pos.lat, etat.pos.lon));
+  document.body.classList.toggle("gps-nuit-douce", etat.prefs.nuitDouce && estNuit(etat.pos.lat, etat.pos.lon));
 }
 
 // ── Guidage sur l'écran verrouillé (notification Android) ───────────────────
@@ -1604,12 +1604,12 @@ async function demanderPermissionNotifications() {
 function surAppuiLong(lat, lon) {
   if (!etat?.route) return;
   etat.pointChoisi = { lat, lon };
-  $("ev-nav-point").classList.remove("hidden");
+  $("gps-nav-point").classList.remove("hidden");
 }
 
 async function allerAuPoint() {
   const p = etat.pointChoisi;
-  $("ev-nav-point").classList.add("hidden");
+  $("gps-nav-point").classList.add("hidden");
   if (!p) return;
   etat.destinationFinale = null;
   etat.destination = { lat: p.lat, lon: p.lon, nom: "Point choisi sur la carte" };
@@ -1651,7 +1651,7 @@ function surReseau() {
   if (!navigator.onLine) {
     afficherAlerte("📡 Hors réseau : le guidage continue avec l'itinéraire gardé.");
   } else {
-    if ($("ev-nav-alerte").textContent.startsWith("📡")) afficherAlerte(null);
+    if ($("gps-nav-alerte").textContent.startsWith("📡")) afficherAlerte(null);
     etat.horsRouteSansReseau = false;
     etat.dernierRecalcul = 0; // hors itinéraire : nouveau chemin dès la prochaine mesure
     etat.dernierTrafic = 0; // trafic à jour dès que possible
@@ -1662,7 +1662,7 @@ function surReseau() {
 function actionMenu(action) {
   if (!etat) return;
   if (action === "hud") basculerHud(true);
-  else if (action === "recherche") $("ev-nav-recherche").classList.remove("hidden");
+  else if (action === "recherche") $("gps-nav-recherche").classList.remove("hidden");
   else if (action === "parkings") proposerParkings(true);
   else if (action === "partage") partagerArrivee();
   else if (action === "suivi") basculerPartagePosition();
@@ -1670,13 +1670,13 @@ function actionMenu(action) {
   else if (action === "signaler") {
     signalerProbleme("menu");
     afficherAlerte("🛟 Noté. Envoyez le rapport à l'arrêt : Profil › Aide › Signaler un problème.");
-    setTimeout(() => etat && $("ev-nav-alerte").textContent.startsWith("🛟") && afficherAlerte(null), 8000);
+    setTimeout(() => etat && $("gps-nav-alerte").textContent.startsWith("🛟") && afficherAlerte(null), 8000);
   }
   else if (action === "radar") signalerRadarIci();
   else if (action === "oublier-radar") oublierDernierRadarSignale();
   else if (action === "aide") {
     afficherAlerte("🎤 En roulant : « prochaine borne ? », « trouve un café », « où me garer », « autre borne », « route barrée ». Répondez « oui » / « non » aux questions.", null, "info");
-    setTimeout(() => etat && $("ev-nav-alerte").textContent.startsWith("🎤 En roulant") && afficherAlerte(null), 15000);
+    setTimeout(() => etat && $("gps-nav-alerte").textContent.startsWith("🎤 En roulant") && afficherAlerte(null), 15000);
   }
 }
 
@@ -1703,9 +1703,9 @@ async function verifierMeteo() {
     const km = Math.max(1, Math.round((points[i].o - etat.offset) / 1000));
     const texte = `${a.texte} dans ~${km} km`;
     parler(`${a.voix} dans environ ${km} kilomètres.`);
-    if ($("ev-nav-alerte").classList.contains("hidden")) {
+    if ($("gps-nav-alerte").classList.contains("hidden")) {
       afficherAlerte(texte);
-      setTimeout(() => etat && $("ev-nav-alerte").textContent === texte && afficherAlerte(null), 20000);
+      setTimeout(() => etat && $("gps-nav-alerte").textContent === texte && afficherAlerte(null), 20000);
     }
     break;
   }
@@ -1736,9 +1736,9 @@ function verifierMiParcours() {
   const listeBornes = bornesProches.map((b) => `${b.nom || "Borne de recharge"} à ${distanceAffichee(b.offset - etat.offset)}`).join(", ");
   const texte = `🔄 Mi-parcours : pensez à une pause, ou à changer de conducteur.${listeBornes ? ` Bornes à proximité : ${listeBornes}.` : ""}`;
   parler(`Vous êtes à mi-parcours de votre trajet. Pensez à faire une pause, ou à changer de conducteur.${bornesProches.length ? " Des bornes de recharge sont à proximité." : ""}`, true);
-  if ($("ev-nav-alerte").classList.contains("hidden")) {
+  if ($("gps-nav-alerte").classList.contains("hidden")) {
     afficherAlerte(texte);
-    setTimeout(() => etat && $("ev-nav-alerte").textContent === texte && afficherAlerte(null), 20000);
+    setTimeout(() => etat && $("gps-nav-alerte").textContent === texte && afficherAlerte(null), 20000);
   }
 }
 
@@ -1800,7 +1800,7 @@ function ouvrirSOSNavigation(aVoix) {
 }
 
 function majBoutonOrientation() {
-  $("ev-nav-orientation-btn").innerHTML = etat.sensDeMarche ? "🧭<span>Nord en haut</span>" : "🅽<span>Sens de marche</span>";
+  $("gps-nav-orientation-btn").innerHTML = etat.sensDeMarche ? "🧭<span>Nord en haut</span>" : "🅽<span>Sens de marche</span>";
 }
 
 // Temps jusqu'à l'arrivée, recharges comprises (s).
@@ -1819,7 +1819,7 @@ function nomCourtLieu(nom) {
 // les positions passent par un service public que l'appli ne contrôle pas).
 
 function majBoutonPartagePosition() {
-  const libelle = $("ev-nav-suivi-btn")?.querySelector("span");
+  const libelle = $("gps-nav-suivi-btn")?.querySelector("span");
   if (libelle) libelle.textContent = etat?.partage ? "Arrêter la position en direct" : "Position en direct";
 }
 
@@ -1924,7 +1924,7 @@ async function commandeVocale() {
   switch (c.action) {
     case "voix":
       etat.voix = c.valeur;
-      $("ev-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
+      $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
       if (etat.voix) parler("Voix activée.", true);
       break;
     case "barree":
@@ -1959,7 +1959,7 @@ async function commandeVocale() {
       parler(arret ? `Prochain arrêt : ${arret.nom_borne}, dans ${distanceParlee(Math.max(0, etat.route.troncons[0].fin - etat.offset))}.` : "Plus aucune recharge prévue d'ici l'arrivée.", true);
       break;
     case "recherche":
-      $("ev-nav-recherche").classList.remove("hidden");
+      $("gps-nav-recherche").classList.remove("hidden");
       parler(`Je cherche sur votre trajet : ${c.requete}.`, true);
       etat.parVoix = true;
       chercherLeLongDuTrajet(c.requete);
@@ -1975,13 +1975,13 @@ async function commandeVocale() {
 // ── Le long du trajet : café, boulangerie… ajoutés comme étape ──────────────
 
 async function chercherLeLongDuTrajet(requete) {
-  const zone = $("ev-nav-recherche-res");
-  zone.innerHTML = `<div class="ev-nav-carte-sous">⏳ Recherche…</div>`;
+  const zone = $("gps-nav-recherche-res");
+  zone.innerHTML = `<div class="gps-nav-carte-sous">⏳ Recherche…</div>`;
   const restant = etat.route.coords.slice(etat.idx);
   const r = await rechercherLeLongDu(getApiKeys().tomtom, restant, requete);
   if (!etat) return;
   if (!r.ok) {
-    zone.innerHTML = `<div class="ev-nav-carte-sous">⚠️ ${escapeHtml(r.erreur)}</div>`;
+    zone.innerHTML = `<div class="gps-nav-carte-sous">⚠️ ${escapeHtml(r.erreur)}</div>`;
     return;
   }
   const lieux = r.lieux
@@ -1999,13 +1999,13 @@ async function chercherLeLongDuTrajet(requete) {
   }
   zone.innerHTML = lieux.length
     ? lieux
-        .map((l, i) => `<div class="ev-nav-resultat"><div><strong>${escapeHtml(l.nom)}</strong><div class="ev-nav-carte-sous">dans ${distanceAffichee(l.devant_m)} · détour +${l.detour_min} min</div></div><button type="button" class="ev-btn" data-etape="${i}">➕ Étape</button></div>`)
+        .map((l, i) => `<div class="gps-nav-resultat"><div><strong>${escapeHtml(l.nom)}</strong><div class="gps-nav-carte-sous">dans ${distanceAffichee(l.devant_m)} · détour +${l.detour_min} min</div></div><button type="button" class="gps-btn" data-etape="${i}">➕ Étape</button></div>`)
         .join("")
-    : `<div class="ev-nav-carte-sous">Rien de trouvé devant, à moins de 15 min de détour.</div>`;
+    : `<div class="gps-nav-carte-sous">Rien de trouvé devant, à moins de 15 min de détour.</div>`;
 }
 
 async function ajouterEtape(lieu) {
-  $("ev-nav-recherche").classList.add("hidden");
+  $("gps-nav-recherche").classList.add("hidden");
   const arret = { lat: lieu.lat, lon: lieu.lon, nom_borne: lieu.nom, adresse: lieu.adresse, pause: true, temps_charge_min: 0 };
   const offset = projeterSurTrace(lieu.lat, lieu.lon, etat.route.coords, etat.route.cum).offset;
   // Avant la première borne dont le tronçon se termine après le lieu.
@@ -2047,20 +2047,20 @@ async function proposerParkings(manuel = false) {
     return;
   }
   etat.parkingsTrouves = liste;
-  $("ev-nav-parkings-liste").innerHTML = liste
+  $("gps-nav-parkings-liste").innerHTML = liste
     .map((p, i) => {
       const infos = [`à ${p.distM} m à pied`, p.places != null ? `${p.places} places` : "", p.payant === "oui" ? "payant" : p.payant === "non" ? "gratuit" : "", p.places_recharge ? `⚡ ${p.places_recharge} bornes` : ""].filter(Boolean).join(" · ");
-      return `<div class="ev-nav-resultat"><div><strong>🅿️ ${escapeHtml(p.nom)}</strong><div class="ev-nav-carte-sous">${escapeHtml(infos)}</div></div><button type="button" class="ev-btn" data-parking="${i}">Y aller</button></div>`;
+      return `<div class="gps-nav-resultat"><div><strong>🅿️ ${escapeHtml(p.nom)}</strong><div class="gps-nav-carte-sous">${escapeHtml(infos)}</div></div><button type="button" class="gps-btn" data-parking="${i}">Y aller</button></div>`;
     })
     .join("");
-  $("ev-nav-parkings").classList.remove("hidden");
+  $("gps-nav-parkings").classList.remove("hidden");
   const decrire = (p) => `${p.nom}, à ${p.distM} mètres de l'arrivée`;
   if (!manuel) {
     const r = await direPuisEcouter(`Vous approchez de l'arrivée. Parking le plus proche : ${decrire(liste[0])}. Voulez-vous y aller ? Dites oui ou non.`);
     if (!etat) return;
     const ok = interpreterOuiNon(r);
     if (ok === true) allerAuParking(liste[0]);
-    else if (ok === false) $("ev-nav-parkings").classList.add("hidden");
+    else if (ok === false) $("gps-nav-parkings").classList.add("hidden");
   } else if (etat.parVoix) {
     etat.parVoix = false;
     const i = await choisirALaVoix("Parkings près de l'arrivée.", liste, decrire);
@@ -2069,7 +2069,7 @@ async function proposerParkings(manuel = false) {
 }
 
 async function allerAuParking(p) {
-  $("ev-nav-parkings").classList.add("hidden");
+  $("gps-nav-parkings").classList.add("hidden");
   etat.destinationFinale ??= etat.destination;
   etat.destination = { lat: p.lat, lon: p.lon, nom: `🅿️ ${p.nom}` };
   afficherAlerte("🅿️ Direction le parking…");
@@ -2084,7 +2084,7 @@ async function allerAuParking(p) {
 // Tête haute (HUD) : téléphone posé sous le pare-brise la nuit, l'essentiel
 // en grand et à l'envers pour se refléter à l'endroit. Un appui en sort.
 function basculerHud(actif) {
-  document.body.classList.toggle("ev-hud", actif);
+  document.body.classList.toggle("gps-hud", actif);
   if (actif) {
     parler("Mode tête haute. Touchez l'écran pour en sortir.");
     majEcran();
@@ -2092,17 +2092,17 @@ function basculerHud(actif) {
 }
 
 function majHud(kmh, limite) {
-  const fleche = $("ev-nav-fleche").innerHTML;
-  if ($("ev-hud-fleche").dataset.contenu !== fleche) {
-    $("ev-hud-fleche").dataset.contenu = fleche;
-    $("ev-hud-fleche").innerHTML = fleche;
+  const fleche = $("gps-nav-fleche").innerHTML;
+  if ($("gps-hud-fleche").dataset.contenu !== fleche) {
+    $("gps-hud-fleche").dataset.contenu = fleche;
+    $("gps-hud-fleche").innerHTML = fleche;
   }
-  $("ev-hud-distance").textContent = $("ev-nav-distance").textContent;
-  $("ev-hud-texte").textContent = ($("ev-nav-rue").classList.contains("hidden") ? "" : $("ev-nav-rue").textContent) || $("ev-nav-instruction").textContent;
-  $("ev-hud-vitesse").textContent = String(kmh);
-  $("ev-hud-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
-  $("ev-hud-limite").textContent = limite || "";
-  $("ev-hud-limite").classList.toggle("hidden", !limite);
+  $("gps-hud-distance").textContent = $("gps-nav-distance").textContent;
+  $("gps-hud-texte").textContent = ($("gps-nav-rue").classList.contains("hidden") ? "" : $("gps-nav-rue").textContent) || $("gps-nav-instruction").textContent;
+  $("gps-hud-vitesse").textContent = String(kmh);
+  $("gps-hud-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
+  $("gps-hud-limite").textContent = limite || "";
+  $("gps-hud-limite").classList.toggle("hidden", !limite);
 }
 
 // Frise du trajet restant (comme Sygic) : bouchons, travaux, zones de
@@ -2122,7 +2122,7 @@ function signalerRemplacementCarte() {
   const message = `ℹ️ ${texte}.`;
   afficherAlerte(message, null, "info");
   setTimeout(() => {
-    if (etat && $("ev-nav-alerte").textContent === message) afficherAlerte(null);
+    if (etat && $("gps-nav-alerte").textContent === message) afficherAlerte(null);
   }, 12000);
 }
 
@@ -2134,8 +2134,8 @@ const RETOUR_AUTO_SUIVI_MS = 20000;
 function reprendreSuivi() {
   clearTimeout(etat.retourSuivi);
   etat.suivi = true;
-  $("ev-nav-recentrer-btn").classList.add("hidden");
-  $("ev-nav-recentrer-btn").textContent = "🎯 Recentrer";
+  $("gps-nav-recentrer-btn").classList.add("hidden");
+  $("gps-nav-recentrer-btn").textContent = "🎯 Recentrer";
   const a = etat.aff || etat.pos;
   if (a) vue.cameraNavigation(a.lat, a.lon, a.cap, zoomAffiche(a.zoom ?? etat.zoom ?? 16), etat.sensDeMarche, false);
 }
@@ -2145,13 +2145,13 @@ function surDeplacementManuel() {
   clearTimeout(etat.retourSuivi);
   if (!etat.apercu) etat.retourSuivi = setTimeout(() => etat && !etat.suivi && !etat.apercu && reprendreSuivi(), RETOUR_AUTO_SUIVI_MS);
   etat.suivi = false;
-  if (vue === carte2D) $("ev-nav-recentrer-btn").textContent = "🎯 Revenir au guidage";
-  else $("ev-nav-recentrer-btn").textContent = "🎯 Recentrer";
-  $("ev-nav-recentrer-btn").classList.remove("hidden");
+  if (vue === carte2D) $("gps-nav-recentrer-btn").textContent = "🎯 Revenir au guidage";
+  else $("gps-nav-recentrer-btn").textContent = "🎯 Recentrer";
+  $("gps-nav-recentrer-btn").classList.remove("hidden");
 }
 
 function majBouton3D() {
-  const btn = $("ev-nav-3d-btn");
+  const btn = $("gps-nav-3d-btn");
   btn.textContent = vue === carte3D ? "3D" : "2D";
   btn.title = vue === carte3D ? "Vue 3D (toucher pour passer en 2D)" : "Vue 2D (toucher pour passer en 3D)";
 }
@@ -2168,7 +2168,7 @@ function changerVue(nouvelle) {
   if (etat.route) vue.dessinerRouteNavigation(etat.route.coords, etat.arretsRestants, etat.destination);
   etat.posBornes = null;
   etat.suivi = true;
-  $("ev-nav-recentrer-btn").classList.add("hidden");
+  $("gps-nav-recentrer-btn").classList.add("hidden");
   const a = etat.aff;
   if (a && etat.route) {
     vue.majVoiture(a.lat, a.lon, a.cap);
@@ -2189,7 +2189,7 @@ async function basculerVue() {
   sauverReglages({ vue_3d: vers3D });
   let nouvelle = carte2D;
   if (vers3D) {
-    $("ev-nav-3d-btn").textContent = "…";
+    $("gps-nav-3d-btn").textContent = "…";
     if (await carte3D.preparer(optionsCarte3D())) {
       nouvelle = carte3D;
       signalerRemplacementCarte();
@@ -2210,7 +2210,7 @@ carte3D.definirSurPanne((raison) => {
   const texte = `⚠️ Vue 3D interrompue (${raison}) : passage en 2D. Touchez « 2D » pour réessayer.`;
   afficherAlerte(texte);
   setTimeout(() => {
-    if (etat && $("ev-nav-alerte").textContent === texte) afficherAlerte(null);
+    if (etat && $("gps-nav-alerte").textContent === texte) afficherAlerte(null);
   }, 15000);
 });
 
@@ -2305,34 +2305,34 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
     suivi: true,
   };
 
-  document.body.classList.add("ev-mode-navigation");
-  document.body.classList.toggle("ev-mode-voiture", reglages.mode_voiture === true);
-  document.body.classList.toggle("ev-bandeau-compact", reglages.taille_bandeau !== "grand");
+  document.body.classList.add("gps-mode-navigation");
+  document.body.classList.toggle("gps-mode-voiture", reglages.mode_voiture === true);
+  document.body.classList.toggle("gps-bandeau-compact", reglages.taille_bandeau !== "grand");
   document.documentElement.style.setProperty("--echelle-nav", String((reglages.taille_texte_nav || 100) / 100));
   reveillerBoutons();
   carte2D.definirIconeVoiture(reglages.icone_voiture);
   carte3D.definirInclinaison3D(reglages.inclinaison_3d ?? 70);
   carte3D.definirInclinaisonPlate(reglages.inclinaison_ronds_points ?? 40);
   carte3D.definirIconeVoiture(reglages.icone_voiture);
-  $("ev-nav-menu").classList.add("hidden");
-  $("ev-nav-recherche").classList.add("hidden");
-  $("ev-nav-parkings").classList.add("hidden");
-  $("ev-nav-feuille").classList.add("hidden");
-  $("ev-nav-point").classList.add("hidden");
+  $("gps-nav-menu").classList.add("hidden");
+  $("gps-nav-recherche").classList.add("hidden");
+  $("gps-nav-parkings").classList.add("hidden");
+  $("gps-nav-feuille").classList.add("hidden");
+  $("gps-nav-point").classList.add("hidden");
   carte2D.definirAppuiLong(surAppuiLong);
   demanderPermissionNotifications();
-  $("ev-nav-recherche-res").innerHTML = "";
-  $("ev-navigation").classList.remove("hidden");
-  $("ev-nav-point").classList.add("hidden");
-  $("ev-nav-recentrer-btn").classList.add("hidden");
-  $("ev-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
+  $("gps-nav-recherche-res").innerHTML = "";
+  $("gps-navigation").classList.remove("hidden");
+  $("gps-nav-point").classList.add("hidden");
+  $("gps-nav-recentrer-btn").classList.add("hidden");
+  $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
   majBoutonOrientation();
-  $("ev-nav-fleche").textContent = "⏳";
-  $("ev-nav-rue").classList.add("hidden");
-  $("ev-nav-danger").classList.add("hidden");
-  $("ev-nav-vue-voies").classList.add("hidden");
-  $("ev-nav-distance").textContent = "";
-  $("ev-nav-instruction").textContent = "Calcul du guidage…";
+  $("gps-nav-fleche").textContent = "⏳";
+  $("gps-nav-rue").classList.add("hidden");
+  $("gps-nav-danger").classList.add("hidden");
+  $("gps-nav-vue-voies").classList.add("hidden");
+  $("gps-nav-distance").textContent = "";
+  $("gps-nav-instruction").textContent = "Calcul du guidage…";
   afficherAlerte(null);
   history.pushState({ navigation: true }, "");
   // Mode éco : la 2D (Leaflet, tuiles raster simples) consomme bien moins
@@ -2340,13 +2340,13 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   // continu) -- le tracé, la flèche et le guidage restent tout aussi
   // visibles, seul le rendu change. Demande explicite de l'utilisateur.
   const veut3D = lireReglages().vue_3d !== false && !etat.prefs.modeEco;
-  if (veut3D) $("ev-nav-instruction").textContent = "Préparation de la vue 3D…";
+  if (veut3D) $("gps-nav-instruction").textContent = "Préparation de la vue 3D…";
   vue = veut3D && (await carte3D.preparer(optionsCarte3D())) ? carte3D : carte2D;
   if (!etat) return;
   majBouton3D();
   if (veut3D && vue === carte2D) afficherAlerte(`⚠️ Vue 3D indisponible : ${carte3D.derniereErreur() || "raison inconnue"}. Navigation en 2D.`);
   else if (vue === carte3D) signalerRemplacementCarte();
-  $("ev-nav-instruction").textContent = "Calcul du guidage…";
+  $("gps-nav-instruction").textContent = "Calcul du guidage…";
   vue.entrerNavigation({ onDeplacementManuel: surDeplacementManuel });
   garderEcranAllume();
 
@@ -2362,7 +2362,7 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
       );
   if (!depart) {
     afficherAlerte("⚠️ Position GPS introuvable. Autorise la localisation, ou essaie le mode démo.");
-    $("ev-nav-instruction").textContent = "En attente du GPS…";
+    $("gps-nav-instruction").textContent = "En attente du GPS…";
     return;
   }
   if (!etat) return;
@@ -2436,7 +2436,7 @@ export function arreterNavigation({ depuisRetour = false } = {}) {
   if (etat.watchId !== undefined) navigator.geolocation.clearWatch(etat.watchId);
   clearInterval(etat.surveillanceSignal);
   clearTimeout(etat.retourSuivi);
-  $("ev-nav-gps")?.classList.add("hidden");
+  $("gps-nav-gps")?.classList.add("hidden");
   if (etat.demoTimer) clearInterval(etat.demoTimer);
   if (etat.raf) cancelAnimationFrame(etat.raf);
   try {
@@ -2456,10 +2456,10 @@ export function arreterNavigation({ depuisRetour = false } = {}) {
   etat = null;
   vue.montrerBornes(false);
   vue.quitterNavigation();
-  document.body.classList.remove("ev-mode-navigation", "ev-mode-voiture", "ev-bandeau-compact", "ev-hud", "ev-nav-calme", "ev-nav-epure", "ev-nuit-douce", "ev-eco");
+  document.body.classList.remove("gps-mode-navigation", "gps-mode-voiture", "gps-bandeau-compact", "gps-hud", "gps-nav-calme", "gps-nav-epure", "gps-nuit-douce", "gps-eco");
   carte2D.definirAppuiLong(null);
   navigator.serviceWorker?.getRegistration?.().then((reg) => reg?.getNotifications({ tag: "guidage" }).then((l) => l.forEach((n) => n.close())));
-  $("ev-navigation").classList.add("hidden");
+  $("gps-navigation").classList.add("hidden");
   if (!depuisRetour && history.state?.navigation) {
     retourEnCours = true;
     history.back();

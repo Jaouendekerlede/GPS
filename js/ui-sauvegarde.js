@@ -39,7 +39,7 @@ const TEXTE_LIEN = (jour) =>
   `GPS : lien de restauration du ${jour}.\nSur un nouveau téléphone, touche ce lien : l'appli s'ouvre avec toutes tes données.\nIl contient tes clés : ne le transfère à personne.`;
 
 export function majInfoLien() {
-  const el = $("ev-lien-sauvegarde-info");
+  const el = $("gps-lien-sauvegarde-info");
   if (!el) return;
   const d = dateDernierLien();
   el.textContent = d ? `Dernier lien envoyé le ${new Date(d).toLocaleDateString("fr-FR")}` : "Aucun lien envoyé pour l'instant";
@@ -112,7 +112,7 @@ export async function restaurerDepuisAdresse() {
 export function proposerRappelSauvegarde() {
   if (navigationActive() || !rappelSauvegardeNecessaire()) return;
   bandeau({
-    id: "ev-rappel-sauvegarde",
+    id: "gps-rappel-sauvegarde",
     texte: dateDernierLien() ? "💾 Tes réglages ont changé : renvoie-toi le lien de restauration" : "💾 Envoie-toi le lien de restauration (utile si tu changes de téléphone)",
     boutons: [
       { libelle: "Plus tard", secondaire: true, action: () => reporterRappel() },

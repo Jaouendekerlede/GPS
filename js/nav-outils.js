@@ -105,7 +105,7 @@ export function pointeSvg(x, y, angle, longueur = 15, demi = 14) {
 
 export function svgFleche(instr) {
   const m = instr?.manoeuvre || "";
-  if (/ARRIVE|WAYPOINT|FERRY/.test(m)) return `<span class="ev-nav-fleche-emoji">${fleche(m)}</span>`;
+  if (/ARRIVE|WAYPOINT|FERRY/.test(m)) return `<span class="gps-nav-fleche-emoji">${fleche(m)}</span>`;
   const trait = `fill="none" stroke="#fff" stroke-width="13" stroke-linejoin="round" stroke-linecap="butt"`;
   let dessin;
   if (/ROUNDABOUT/.test(m) && m in ANGLES_ROND_POINT) {

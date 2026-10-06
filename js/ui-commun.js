@@ -5,7 +5,7 @@ import { escapeHtml } from "./util.js";
 export const $ = (id) => document.getElementById(id);
 
 export function toast(message) {
-  const el = $("ev-toast");
+  const el = $("gps-toast");
   el.textContent = message;
   el.classList.add("visible");
   clearTimeout(toast.minuteur);
@@ -33,15 +33,15 @@ export function nombreOuUndefined(valeur) {
 }
 
 export function hint(texte) {
-  return `<div class="ev-hint">${escapeHtml(texte)}</div>`;
+  return `<div class="gps-hint">${escapeHtml(texte)}</div>`;
 }
 
 export function alerte(texte) {
-  return `<div class="ev-alerte">${escapeHtml(texte)}</div>`;
+  return `<div class="gps-alerte">${escapeHtml(texte)}</div>`;
 }
 
 export function tuile(couleur, valeur, label) {
-  return `<div class="ev-tuile ${couleur}"><span class="t-valeur">${escapeHtml(valeur)}</span><span class="t-label">${escapeHtml(label)}</span></div>`;
+  return `<div class="gps-tuile ${couleur}"><span class="t-valeur">${escapeHtml(valeur)}</span><span class="t-label">${escapeHtml(label)}</span></div>`;
 }
 
 export function telechargerTexte(nomFichier, texte) {
@@ -101,28 +101,28 @@ export function badgeOperateur(nom) {
     for (const c of nom) h = (h * 31 + c.charCodeAt(0)) % 360;
     fond = `hsl(${h}, 45%, 38%)`;
   }
-  return `<span class="ev-badge-op" style="background:${fond};color:${texte}" title="${escapeHtml(nom)}">${escapeHtml(sigle)}</span>`;
+  return `<span class="gps-badge-op" style="background:${fond};color:${texte}" title="${escapeHtml(nom)}">${escapeHtml(sigle)}</span>`;
 }
 
 // Bandeau en bas de l'écran avec des boutons (un seul à la fois ; il se
 // ferme au premier appui). boutons : [{ libelle, action, secondaire }].
 export function bandeau({ id, texte, boutons }) {
-  if (document.querySelector(".ev-maj")) return null;
+  if (document.querySelector(".gps-maj")) return null;
   const el = document.createElement("div");
   el.id = id;
-  el.className = "ev-maj";
-  el.innerHTML = `<span></span><div class="ev-maj-boutons"></div>`;
+  el.className = "gps-maj";
+  el.innerHTML = `<span></span><div class="gps-maj-boutons"></div>`;
   el.querySelector("span").textContent = texte;
   for (const b of boutons) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = b.secondaire ? "ev-lien" : "ev-btn";
+    btn.className = b.secondaire ? "gps-lien" : "gps-btn";
     btn.textContent = b.libelle;
     btn.addEventListener("click", () => {
       el.remove();
       b.action?.();
     });
-    el.querySelector(".ev-maj-boutons").appendChild(btn);
+    el.querySelector(".gps-maj-boutons").appendChild(btn);
   }
   document.body.appendChild(el);
   return el;

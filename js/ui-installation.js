@@ -17,7 +17,7 @@ export function estInstallee() {
 }
 
 export function majBoutonInstallation() {
-  $("ev-installer-btn")?.classList.toggle("hidden", !invite || estInstallee());
+  $("gps-installer-btn")?.classList.toggle("hidden", !invite || estInstallee());
 }
 
 function refuseRecemment() {
@@ -35,7 +35,7 @@ export function proposerInstallation(options = {}) {
   if (options.insister) insister = true;
   if (!invite || estInstallee() || navigationActive() || (!insister && refuseRecemment())) return;
   bandeau({
-    id: "ev-bandeau-installation",
+    id: "gps-bandeau-installation",
     texte: "📲 Installer GPS sur l'écran d'accueil ?",
     boutons: [
       {

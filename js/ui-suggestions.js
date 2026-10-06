@@ -9,7 +9,7 @@ const LETTRES_MIN = 3;
 
 export function cablerSuggestions(ids) {
   const liste = document.createElement("div");
-  liste.className = "ev-suggestions hidden";
+  liste.className = "gps-suggestions hidden";
   liste.setAttribute("role", "listbox");
   document.body.appendChild(liste);
   let champ = null;

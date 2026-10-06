@@ -27,40 +27,40 @@
 <body>
 
 <!-- Carte plein écran -->
-<div id="ev-carte" class="ev-carte"></div>
+<div id="gps-carte" class="gps-carte"></div>
 <!-- Carte 3D de la navigation (MapLibre), chargée à la demande -->
-<div id="ev-carte-3d" class="ev-carte ev-carte-3d hidden"></div>
+<div id="gps-carte-3d" class="gps-carte gps-carte-3d hidden"></div>
 
 <!-- Barre du haut : recherche + filtres -->
-<header class="ev-haut">
-  <div class="ev-haut-ligne">
-      <span class="ev-loupe">🔍</span><span>Où allez-vous ?</span>
+<header class="gps-haut">
+  <div class="gps-haut-ligne">
+      <span class="gps-loupe">🔍</span><span>Où allez-vous ?</span>
     </button>
   </div>
-  <div class="ev-chips" id="ev-filtres">
-    <button class="ev-chip" type="button" id="ev-parkings-chip" title="Afficher les parkings (OpenStreetMap)">🅿️ Parkings</button>
-    <button class="ev-chip" type="button" id="ev-trafic-chip" title="Trafic en couleur sur les routes (TomTom)">🚦 Trafic</button>
+  <div class="gps-chips" id="gps-filtres">
+    <button class="gps-chip" type="button" id="gps-parkings-chip" title="Afficher les parkings (OpenStreetMap)">🅿️ Parkings</button>
+    <button class="gps-chip" type="button" id="gps-trafic-chip" title="Trafic en couleur sur les routes (TomTom)">🚦 Trafic</button>
   </div>
 </header>
 
 <!-- Boutons flottants sur la carte -->
-<div class="ev-fabs">
-  <button id="ev-fond-btn" class="ev-fab" type="button" title="Changer le fond de carte"></button>
-  <button id="ev-carte3d-btn" class="ev-fab ev-fab-texte" type="button" title="Carte en 3D / 2D">3D</button>
-  <button id="ev-localiser-btn" class="ev-fab" type="button" title="Me localiser" data-icone="localiser"></button>
+<div class="gps-fabs">
+  <button id="gps-fond-btn" class="gps-fab" type="button" title="Changer le fond de carte"></button>
+  <button id="gps-carte3d-btn" class="gps-fab gps-fab-texte" type="button" title="Carte en 3D / 2D">3D</button>
+  <button id="gps-localiser-btn" class="gps-fab" type="button" title="Me localiser" data-icone="localiser"></button>
 </div>
 
 <!-- Point choisi sur la carte en planification (appui long) -->
-<div id="ev-plan-point" class="ev-nav-carte hidden">
-  <div class="ev-nav-carte-titre ev-titre-fermer">📍 Point choisi <button type="button" class="ev-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
-  <button type="button" class="ev-btn" data-point="etape">➕ Passer par ici</button>
+<div id="gps-plan-point" class="gps-nav-carte hidden">
+  <div class="gps-nav-carte-titre gps-titre-fermer">📍 Point choisi <button type="button" class="gps-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
+  <button type="button" class="gps-btn" data-point="etape">➕ Passer par ici</button>
 </div>
 
 <!-- Panneau coulissant -->
-<section id="ev-feuille" class="ev-feuille" data-etat="bas">
-  <div id="ev-poignee" class="ev-poignee-zone"><div class="ev-poignee"></div></div>
-  <div id="ev-feuille-corps" class="ev-feuille-corps">
-    <div class="ev-vue" id="vue-accueil" style="padding:18px 6px">
+<section id="gps-feuille" class="gps-feuille" data-etat="bas">
+  <div id="gps-poignee" class="gps-poignee-zone"><div class="gps-poignee"></div></div>
+  <div id="gps-feuille-corps" class="gps-feuille-corps">
+    <div class="gps-vue" id="vue-accueil" style="padding:18px 6px">
       <h2 style="margin:0 0 6px">🧭 Où allez-vous ?</h2>
       <p style="margin:0;opacity:.7;font-size:14px">Touchez la barre de recherche ou « Trajet » pour planifier un itinéraire.</p>
     </div>
@@ -68,97 +68,97 @@
 
 
     <!-- ══ Préparer un trajet ══ -->
-    <div id="vue-trajet" class="ev-vue hidden">
-      <div class="ev-vue-entete">
-        <h2>🧭 Planifier un trajet <span id="ev-vehicule-badge" class="ev-vehicule-badge"></span></h2>
+    <div id="vue-trajet" class="gps-vue hidden">
+      <div class="gps-vue-entete">
+        <h2>🧭 Planifier un trajet <span id="gps-vehicule-badge" class="gps-vehicule-badge"></span></h2>
       </div>
 
-      <div class="ev-itineraire-champs">
-        <div class="ev-itineraire-points"><i class="ev-pt-depart"></i><i class="ev-pt-ligne"></i><i class="ev-pt-arrivee"></i></div>
-        <div class="ev-itineraire-saisies">
-          <span class="ev-input-row">
-            <input type="text" id="ev-depart-input" class="ev-input" placeholder="Départ (vide = ma position)" aria-label="Départ">
-            <button id="ev-depart-clear-btn" class="ev-mini-btn" type="button" title="Effacer le départ">🧹</button>
-            <button id="ev-depart-gps-btn" class="ev-mini-btn" type="button" title="Ma position">📍</button>
+      <div class="gps-itineraire-champs">
+        <div class="gps-itineraire-points"><i class="gps-pt-depart"></i><i class="gps-pt-ligne"></i><i class="gps-pt-arrivee"></i></div>
+        <div class="gps-itineraire-saisies">
+          <span class="gps-input-row">
+            <input type="text" id="gps-depart-input" class="gps-input" placeholder="Départ (vide = ma position)" aria-label="Départ">
+            <button id="gps-depart-clear-btn" class="gps-mini-btn" type="button" title="Effacer le départ">🧹</button>
+            <button id="gps-depart-gps-btn" class="gps-mini-btn" type="button" title="Ma position">📍</button>
           </span>
-          <span class="ev-input-row">
-            <input type="text" id="ev-via-input" class="ev-input" placeholder="Via (étape facultative)" enterkeyhint="done" aria-label="Étape : passer par">
-            <button id="ev-via-ajouter-btn" class="ev-mini-btn" type="button" title="Ajouter cette étape">➕</button>
+          <span class="gps-input-row">
+            <input type="text" id="gps-via-input" class="gps-input" placeholder="Via (étape facultative)" enterkeyhint="done" aria-label="Étape : passer par">
+            <button id="gps-via-ajouter-btn" class="gps-mini-btn" type="button" title="Ajouter cette étape">➕</button>
           </span>
-          <span class="ev-input-row">
-            <input type="text" id="ev-destination-input" class="ev-input" placeholder="Destination (ville, adresse…)" enterkeyhint="go" aria-label="Destination">
-            <button id="ev-destination-clear-btn" class="ev-mini-btn" type="button" title="Effacer la destination">🧹</button>
-            <button id="ev-destination-micro" class="ev-mini-btn" type="button" title="Dicter la destination">🎤</button>
+          <span class="gps-input-row">
+            <input type="text" id="gps-destination-input" class="gps-input" placeholder="Destination (ville, adresse…)" enterkeyhint="go" aria-label="Destination">
+            <button id="gps-destination-clear-btn" class="gps-mini-btn" type="button" title="Effacer la destination">🧹</button>
+            <button id="gps-destination-micro" class="gps-mini-btn" type="button" title="Dicter la destination">🎤</button>
           </span>
-          <div class="ev-raccourcis-dest">
-            <button type="button" class="ev-chip" data-dest="Chez moi">🏠 Chez moi</button>
-            <button type="button" class="ev-chip" data-dest="Travail">💼 Travail</button>
-            <button type="button" class="ev-chip hidden" id="ev-suggestion-trajet"></button>
+          <div class="gps-raccourcis-dest">
+            <button type="button" class="gps-chip" data-dest="Chez moi">🏠 Chez moi</button>
+            <button type="button" class="gps-chip" data-dest="Travail">💼 Travail</button>
+            <button type="button" class="gps-chip hidden" id="gps-suggestion-trajet"></button>
           </div>
-          <div class="ev-chips hidden" id="ev-points-passage-liste"></div>
-          <p class="ev-hint">💡 Pour passer par une ville, écris-la dans « Via ». Un appui long sur la carte ajoute aussi une étape. La flèche ⬆ fait passer une étape avant la précédente.</p>
+          <div class="gps-chips hidden" id="gps-points-passage-liste"></div>
+          <p class="gps-hint">💡 Pour passer par une ville, écris-la dans « Via ». Un appui long sur la carte ajoute aussi une étape. La flèche ⬆ fait passer une étape avant la précédente.</p>
         </div>
-        <button id="ev-inverser-btn" class="ev-mini-btn ev-inverser" type="button" title="Inverser départ et destination">⇅</button>
+        <button id="gps-inverser-btn" class="gps-mini-btn gps-inverser" type="button" title="Inverser départ et destination">⇅</button>
       </div>
 
 
-      <details class="ev-accordeon">
+      <details class="gps-accordeon">
         <summary>⚙️ Options avancées</summary>
-        <div class="ev-colonne">
-          <div class="ev-zones-evitees">
-            <div class="ev-hint">🚧 Routes coupées à éviter (travaux connus avant de partir) :</div>
-            <div id="ev-zones-evitees-liste"></div>
-            <button id="ev-zone-eviter-btn" class="ev-btn" type="button">🚧 Marquer une route coupée sur la carte</button>
+        <div class="gps-colonne">
+          <div class="gps-zones-evitees">
+            <div class="gps-hint">🚧 Routes coupées à éviter (travaux connus avant de partir) :</div>
+            <div id="gps-zones-evitees-liste"></div>
+            <button id="gps-zone-eviter-btn" class="gps-btn" type="button">🚧 Marquer une route coupée sur la carte</button>
           </div>
-          <label class="ev-check"><input type="checkbox" id="ev-plus-court-checkbox"> 📏 Itinéraire le plus court (au lieu du plus rapide)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-eviter-autoroutes-checkbox"> 🚗 Éviter les autoroutes</label>
-          <label class="ev-check"><input type="checkbox" id="ev-eviter-peages-checkbox"> 🛣️ Éviter les péages</label>
-          <label class="ev-check"><input type="checkbox" id="ev-eviter-ferries-checkbox"> ⛴️ Éviter les ferries</label>
-          <label class="ev-check"><input type="checkbox" id="ev-eviter-zfe-checkbox"> 🚫 Éviter les zones à faibles émissions</label>
-          <label class="ev-check"><input type="checkbox" id="ev-eviter-non-revetues-checkbox"> 🪨 Éviter les routes non revêtues</label>
-          <label class="ev-champ">🕐 Départ prévu (vide = maintenant)
+          <label class="gps-check"><input type="checkbox" id="gps-plus-court-checkbox"> 📏 Itinéraire le plus court (au lieu du plus rapide)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-eviter-autoroutes-checkbox"> 🚗 Éviter les autoroutes</label>
+          <label class="gps-check"><input type="checkbox" id="gps-eviter-peages-checkbox"> 🛣️ Éviter les péages</label>
+          <label class="gps-check"><input type="checkbox" id="gps-eviter-ferries-checkbox"> ⛴️ Éviter les ferries</label>
+          <label class="gps-check"><input type="checkbox" id="gps-eviter-zfe-checkbox"> 🚫 Éviter les zones à faibles émissions</label>
+          <label class="gps-check"><input type="checkbox" id="gps-eviter-non-revetues-checkbox"> 🪨 Éviter les routes non revêtues</label>
+          <label class="gps-champ">🕐 Départ prévu (vide = maintenant)
           </label>
-          <label class="ev-champ">Puissance mini aux arrêts (kW, 0 = indifférent)
+          <label class="gps-champ">Puissance mini aux arrêts (kW, 0 = indifférent)
           </label>
-          <label class="ev-champ">Alerte si le coût total dépasse (€, vide = aucune)
+          <label class="gps-champ">Alerte si le coût total dépasse (€, vide = aucune)
           </label>
         </div>
       </details>
 
-      <button id="ev-trajet-run-btn" class="ev-btn-principal" type="button">Calculer le trajet</button>
-      <div id="ev-trajet-erreur" class="ev-alerte hidden"></div>
-      <div class="ev-grille-2">
-        <button id="ev-aller-retour-btn" class="ev-btn" type="button">↩️ Avec le retour</button>
-        <button id="ev-favori-trajet-btn" class="ev-btn" type="button">☆ Trajet favori</button>
-        <button id="ev-voir-resultat-btn" class="ev-btn hidden" type="button">🗺️ Dernier résultat</button>
+      <button id="gps-trajet-run-btn" class="gps-btn-principal" type="button">Calculer le trajet</button>
+      <div id="gps-trajet-erreur" class="gps-alerte hidden"></div>
+      <div class="gps-grille-2">
+        <button id="gps-aller-retour-btn" class="gps-btn" type="button">↩️ Avec le retour</button>
+        <button id="gps-favori-trajet-btn" class="gps-btn" type="button">☆ Trajet favori</button>
+        <button id="gps-voir-resultat-btn" class="gps-btn hidden" type="button">🗺️ Dernier résultat</button>
       </div>
     </div>
 
     <!-- ══ Résultat du trajet ══ -->
-    <div id="vue-resultat" class="ev-vue hidden">
-      <div class="ev-vue-entete">
-        <h2 id="ev-resultat-titre">🧭 Itinéraire</h2>
-        <span class="ev-entete-btns">
-          <button id="ev-modifier-btn" class="ev-lien" type="button">✏️ Modifier</button>
-          <button id="ev-quitter-trajet-btn" class="ev-lien" type="button">✕ Quitter</button>
+    <div id="vue-resultat" class="gps-vue hidden">
+      <div class="gps-vue-entete">
+        <h2 id="gps-resultat-titre">🧭 Itinéraire</h2>
+        <span class="gps-entete-btns">
+          <button id="gps-modifier-btn" class="gps-lien" type="button">✏️ Modifier</button>
+          <button id="gps-quitter-trajet-btn" class="gps-lien" type="button">✕ Quitter</button>
         </span>
       </div>
-      <div id="ev-trajet-summary"></div>
-      <div id="ev-itineraires" class="ev-carte-bloc ev-itineraires hidden"></div>
-      <button id="ev-nav-demarrer-btn" class="ev-btn-principal ev-btn-go" type="button">▶ Démarrer la navigation</button>
-      <button id="ev-nav-demo-btn" class="ev-lien ev-lien-centre" type="button">🎬 Essayer en mode démo (trajet simulé)</button>
+      <div id="gps-trajet-summary"></div>
+      <div id="gps-itineraires" class="gps-carte-bloc gps-itineraires hidden"></div>
+      <button id="gps-nav-demarrer-btn" class="gps-btn-principal gps-btn-go" type="button">▶ Démarrer la navigation</button>
+      <button id="gps-nav-demo-btn" class="gps-lien gps-lien-centre" type="button">🎬 Essayer en mode démo (trajet simulé)</button>
 
-      <div id="ev-etapes" class="ev-etapes"></div>
+      <div id="gps-etapes" class="gps-etapes"></div>
 
 
-      <div id="ev-result-actions" class="ev-actions-rangee">
-        <a id="ev-maps-link" class="ev-action" href="#" target="_blank" rel="noopener"><span>🧭</span>Maps</a>
-        <button id="ev-partager-btn" class="ev-action" type="button"><span>📤</span>Partager</button>
-        <button id="ev-export-btn" class="ev-action" type="button"><span>⬇️</span>Exporter</button>
-        <button id="ev-qrcode-btn" class="ev-action" type="button"><span>📱</span>QR code</button>
-        <button id="ev-hors-ligne-btn" class="ev-action" type="button" title="Télécharger la carte et le guidage de ce trajet pour rouler sans réseau"><span>📥</span>Hors ligne</button>
+      <div id="gps-result-actions" class="gps-actions-rangee">
+        <a id="gps-maps-link" class="gps-action" href="#" target="_blank" rel="noopener"><span>🧭</span>Maps</a>
+        <button id="gps-partager-btn" class="gps-action" type="button"><span>📤</span>Partager</button>
+        <button id="gps-export-btn" class="gps-action" type="button"><span>⬇️</span>Exporter</button>
+        <button id="gps-qrcode-btn" class="gps-action" type="button"><span>📱</span>QR code</button>
+        <button id="gps-hors-ligne-btn" class="gps-action" type="button" title="Télécharger la carte et le guidage de ce trajet pour rouler sans réseau"><span>📥</span>Hors ligne</button>
       </div>
-      <div id="ev-qrcode-box" class="ev-qrcode hidden"></div>
+      <div id="gps-qrcode-box" class="gps-qrcode hidden"></div>
 
 
 
@@ -166,51 +166,51 @@
 
     <!-- ══ Favoris ══ -->
     <!-- ══ Menu : tout le reste, rangé par rubrique ══ -->
-    <div id="vue-menu" class="ev-vue hidden">
-      <div class="ev-vue-entete"><h2>☰ Menu</h2></div>
-      <div class="ev-menu-titre">Mes trajets</div>
-      <div class="ev-menu-groupe">
-          <button type="button" class="ev-menu-ligne" data-vue="favoris"><span class="ev-menu-icone">⭐</span><span><span class="ev-menu-nom">Favoris et historique</span><span class="ev-menu-detail">Trajets favoris et trajets calculés</span></span></button>
+    <div id="vue-menu" class="gps-vue hidden">
+      <div class="gps-vue-entete"><h2>☰ Menu</h2></div>
+      <div class="gps-menu-titre">Mes trajets</div>
+      <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-vue="favoris"><span class="gps-menu-icone">⭐</span><span><span class="gps-menu-nom">Favoris et historique</span><span class="gps-menu-detail">Trajets favoris et trajets calculés</span></span></button>
       </div>
-      <div class="ev-menu-titre">Outils</div>
-      <div class="ev-menu-groupe">
+      <div class="gps-menu-titre">Outils</div>
+      <div class="gps-menu-groupe">
       </div>
-      <div class="ev-menu-titre">Profil et réglages</div>
-      <div class="ev-menu-groupe">
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-navigation"><span class="ev-menu-icone">🧭</span><span><span class="ev-menu-nom">Navigation</span><span class="ev-menu-detail">Affichage, voix, alertes</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-cartes"><span class="ev-menu-icone">🗺️</span><span><span class="ev-menu-nom">Cartes</span><span class="ev-menu-detail">Carte hors ligne, carte 3D</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-domicile"><span class="ev-menu-icone">🏠</span><span><span class="ev-menu-nom">Domicile et voix</span><span class="ev-menu-detail">Adresses du domicile et du travail</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-apparence"><span class="ev-menu-icone">🎨</span><span><span class="ev-menu-nom">Apparence</span><span class="ev-menu-detail">Sombre, clair ou automatique</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-cles"><span class="ev-menu-icone">🔑</span><span><span class="ev-menu-nom">Clés API</span><span class="ev-menu-detail">TomTom et Open Charge Map</span></span></button>
+      <div class="gps-menu-titre">Profil et réglages</div>
+      <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-navigation"><span class="gps-menu-icone">🧭</span><span><span class="gps-menu-nom">Navigation</span><span class="gps-menu-detail">Affichage, voix, alertes</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-cartes"><span class="gps-menu-icone">🗺️</span><span><span class="gps-menu-nom">Cartes</span><span class="gps-menu-detail">Carte hors ligne, carte 3D</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-domicile"><span class="gps-menu-icone">🏠</span><span><span class="gps-menu-nom">Domicile et voix</span><span class="gps-menu-detail">Adresses du domicile et du travail</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-apparence"><span class="gps-menu-icone">🎨</span><span><span class="gps-menu-nom">Apparence</span><span class="gps-menu-detail">Sombre, clair ou automatique</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-cles"><span class="gps-menu-icone">🔑</span><span><span class="gps-menu-nom">Clés API</span><span class="gps-menu-detail">TomTom et Open Charge Map</span></span></button>
       </div>
-      <div class="ev-menu-titre">Mes données</div>
-      <div class="ev-menu-groupe">
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-sauvegarde"><span class="ev-menu-icone">💾</span><span><span class="ev-menu-nom">Sauvegarde</span><span class="ev-menu-detail">Lien de restauration, Google Drive</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-raz"><span class="ev-menu-icone">🧹</span><span><span class="ev-menu-nom">Remise à zéro</span><span class="ev-menu-detail">Effacer les données de l'appli</span></span></button>
+      <div class="gps-menu-titre">Mes données</div>
+      <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-sauvegarde"><span class="gps-menu-icone">💾</span><span><span class="gps-menu-nom">Sauvegarde</span><span class="gps-menu-detail">Lien de restauration, Google Drive</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-raz"><span class="gps-menu-icone">🧹</span><span><span class="gps-menu-nom">Remise à zéro</span><span class="gps-menu-detail">Effacer les données de l'appli</span></span></button>
       </div>
-      <div class="ev-menu-titre">Aide</div>
-      <div class="ev-menu-groupe">
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-etat"><span class="ev-menu-icone">🩺</span><span><span class="ev-menu-nom">État de l'appli</span><span class="ev-menu-detail">GPS, réseau, clés, données des bornes, hors ligne</span></span></button>
-          <button type="button" class="ev-menu-ligne" data-vue="profil" data-bloc="ev-bloc-aide"><span class="ev-menu-icone">❓</span><span><span class="ev-menu-nom">Aide et astuces</span><span class="ev-menu-detail">Mode d'emploi, signaler un problème, version</span></span></button>
+      <div class="gps-menu-titre">Aide</div>
+      <div class="gps-menu-groupe">
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-etat"><span class="gps-menu-icone">🩺</span><span><span class="gps-menu-nom">État de l'appli</span><span class="gps-menu-detail">GPS, réseau, clés, données des bornes, hors ligne</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-aide"><span class="gps-menu-icone">❓</span><span><span class="gps-menu-nom">Aide et astuces</span><span class="gps-menu-detail">Mode d'emploi, signaler un problème, version</span></span></button>
       </div>
     </div>
 
-    <div id="vue-favoris" class="ev-vue hidden">
-      <div class="ev-vue-entete"><h2>⭐ Favoris</h2></div>
-      <div class="ev-segments">
-        <button type="button" class="ev-fav-onglet active" data-onglet="trajets">⭐ Trajets</button>
-        <button type="button" class="ev-fav-onglet" data-onglet="historique">🕘 Historique</button>
+    <div id="vue-favoris" class="gps-vue hidden">
+      <div class="gps-vue-entete"><h2>⭐ Favoris</h2></div>
+      <div class="gps-segments">
+        <button type="button" class="gps-fav-onglet active" data-onglet="trajets">⭐ Trajets</button>
+        <button type="button" class="gps-fav-onglet" data-onglet="historique">🕘 Historique</button>
       </div>
-      <div id="ev-favoris-list" class="ev-liste"></div>
-      <div id="ev-historique-bloc" class="hidden">
-        <button id="ev-historique-clear-btn" class="ev-lien" type="button">🗑️ Effacer tout l'historique</button>
-        <div id="ev-historique-list" class="ev-liste"></div>
+      <div id="gps-favoris-list" class="gps-liste"></div>
+      <div id="gps-historique-bloc" class="hidden">
+        <button id="gps-historique-clear-btn" class="gps-lien" type="button">🗑️ Effacer tout l'historique</button>
+        <div id="gps-historique-list" class="gps-liste"></div>
       </div>
     </div>
 
     <!-- ══ Outils ══ -->
-    <div id="vue-outils" class="ev-vue hidden">
-      <div class="ev-vue-entete"><h2>⚡ Outils</h2></div>
+    <div id="vue-outils" class="gps-vue hidden">
+      <div class="gps-vue-entete"><h2>⚡ Outils</h2></div>
 
 
 
@@ -219,61 +219,61 @@
     </div>
 
     <!-- ══ Profil ══ -->
-    <div id="vue-profil" class="ev-vue hidden">
-      <div class="ev-vue-entete"><h2>🚗 Profil et réglages</h2></div>
+    <div id="vue-profil" class="gps-vue hidden">
+      <div class="gps-vue-entete"><h2>🚗 Profil et réglages</h2></div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-apparence">
+      <div class="gps-carte-bloc" id="gps-bloc-apparence">
         <h3>🎨 Apparence</h3>
-        <div class="ev-segments" id="ev-theme-choix">
+        <div class="gps-segments" id="gps-theme-choix">
           <button type="button" data-theme-choix="sombre">🌙 Sombre</button>
           <button type="button" data-theme-choix="clair">☀️ Clair</button>
           <button type="button" data-theme-choix="auto">📱 Auto</button>
         </div>
-        <div class="ev-hint">« Auto » suit le réglage clair/sombre de ton téléphone. S'applique tout de suite.</div>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-contraste"> 🔆 Contraste renforcé (textes et contours plus marqués)</label>
+        <div class="gps-hint">« Auto » suit le réglage clair/sombre de ton téléphone. S'applique tout de suite.</div>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-contraste"> 🔆 Contraste renforcé (textes et contours plus marqués)</label>
       </div>
 
 
 
-      <div class="ev-carte-bloc" id="ev-bloc-domicile">
+      <div class="gps-carte-bloc" id="gps-bloc-domicile">
         <h3>Domicile et voix</h3>
-        <label class="ev-champ">Adresse du travail (pour « Travail »)
-          <input type="text" id="ev-reglage-travail" class="ev-input" placeholder="Ex : 3 rue de la Gare, Rennes">
+        <label class="gps-champ">Adresse du travail (pour « Travail »)
+          <input type="text" id="gps-reglage-travail" class="gps-input" placeholder="Ex : 3 rue de la Gare, Rennes">
         </label>
-        <label class="ev-champ">Adresse du domicile (pour « Chez moi »)
-          <input type="text" id="ev-reglage-domicile" class="ev-input" placeholder="Ex : 12 rue des Lilas, Rennes">
+        <label class="gps-champ">Adresse du domicile (pour « Chez moi »)
+          <input type="text" id="gps-reglage-domicile" class="gps-input" placeholder="Ex : 12 rue des Lilas, Rennes">
         </label>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-annonce"> 🔊 Annoncer le résultat à voix haute</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-annonce"> 🔊 Annoncer le résultat à voix haute</label>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-navigation">
+      <div class="gps-carte-bloc" id="gps-bloc-navigation">
         <h3>🧭 Navigation</h3>
-        <div class="ev-hint">Tout est déjà réglé comme conseillé ; ouvrez une rubrique pour changer.</div>
-        <details class="ev-sous-menu">
+        <div class="gps-hint">Tout est déjà réglé comme conseillé ; ouvrez une rubrique pour changer.</div>
+        <details class="gps-sous-menu">
           <summary>🖥️ Affichage</summary>
-          <label class="ev-champ">🔠 Taille du texte en navigation : <span id="ev-reglage-taille-texte-val" class="ev-valeur">100</span> %
-            <input type="range" min="80" max="130" step="5" value="100" id="ev-reglage-taille-texte" class="ev-curseur">
+          <label class="gps-champ">🔠 Taille du texte en navigation : <span id="gps-reglage-taille-texte-val" class="gps-valeur">100</span> %
+            <input type="range" min="80" max="130" step="5" value="100" id="gps-reglage-taille-texte" class="gps-curseur">
           </label>
-          <label class="ev-champ">📐 Inclinaison de la vue 3D : <span id="ev-reglage-inclinaison-val" class="ev-valeur">70</span>°
-          <input type="range" min="40" max="78" step="2" value="70" id="ev-reglage-inclinaison" class="ev-curseur">
-          <span class="ev-km-estime">Plus incliné : on voit plus loin devant, jusqu'à l'horizon.</span>
+          <label class="gps-champ">📐 Inclinaison de la vue 3D : <span id="gps-reglage-inclinaison-val" class="gps-valeur">70</span>°
+          <input type="range" min="40" max="78" step="2" value="70" id="gps-reglage-inclinaison" class="gps-curseur">
+          <span class="gps-km-estime">Plus incliné : on voit plus loin devant, jusqu'à l'horizon.</span>
         </label>
-        <label class="ev-champ">📐 Inclinaison aux ronds-points/carrefours : <span id="ev-reglage-inclinaison-plate-val" class="ev-valeur">40</span>°
-          <input type="range" min="15" max="60" step="5" value="40" id="ev-reglage-inclinaison-plate" class="ev-curseur">
-          <span class="ev-km-estime">Vue réduite pour mieux distinguer les routes qui se croisent (redémarrer la navigation pour appliquer).</span>
+        <label class="gps-champ">📐 Inclinaison aux ronds-points/carrefours : <span id="gps-reglage-inclinaison-plate-val" class="gps-valeur">40</span>°
+          <input type="range" min="15" max="60" step="5" value="40" id="gps-reglage-inclinaison-plate" class="gps-curseur">
+          <span class="gps-km-estime">Vue réduite pour mieux distinguer les routes qui se croisent (redémarrer la navigation pour appliquer).</span>
         </label>
-        <label class="ev-champ">🔍 Zoom en navigation : <span id="ev-reglage-decalage-zoom-val" class="ev-valeur">0</span>
-          <input type="range" min="-2" max="2" step="0.5" value="0" id="ev-reglage-decalage-zoom" class="ev-curseur">
-          <span class="ev-km-estime">Ajout par-dessus le zoom automatique (vitesse, manœuvres) : négatif pour voir plus loin, positif pour voir plus près.</span>
+        <label class="gps-champ">🔍 Zoom en navigation : <span id="gps-reglage-decalage-zoom-val" class="gps-valeur">0</span>
+          <input type="range" min="-2" max="2" step="0.5" value="0" id="gps-reglage-decalage-zoom" class="gps-curseur">
+          <span class="gps-km-estime">Ajout par-dessus le zoom automatique (vitesse, manœuvres) : négatif pour voir plus loin, positif pour voir plus près.</span>
         </label>
-        <label class="ev-champ">🪧 Affichage en navigation
-            <select id="ev-reglage-taille-bandeau" class="ev-input">
+        <label class="gps-champ">🪧 Affichage en navigation
+            <select id="gps-reglage-taille-bandeau" class="gps-input">
               <option value="compact">Compact : la carte reste bien visible (conseillé)</option>
               <option value="grand">Grand : flèche, rue et infos en très gros</option>
             </select>
           </label>
-          <label class="ev-champ">Icône de la voiture
-            <select id="ev-reglage-icone" class="ev-input">
+          <label class="gps-champ">Icône de la voiture
+            <select id="gps-reglage-icone" class="gps-input">
               <option value="fleche_bleue">Flèche bleue</option>
               <option value="fleche_verte">Flèche verte</option>
               <option value="fleche_orange">Flèche orange</option>
@@ -282,220 +282,220 @@
               <option value="point">Point avec direction</option>
             </select>
           </label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-epure"> 🧘 Écran épuré en longue ligne droite (bandeau replié, autoroute : l'essentiel)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-nuit-douce"> 🌙 Écran moins lumineux la nuit</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-zoom-renforce"> 🔍 Zoom renforcé aux ronds-points, grands carrefours, sorties et entrées de voie rapide</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-vue-carrefour"> 🗺️ Dessin du vrai carrefour dans le panneau (ronds-points, carrefours à plusieurs routes)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-fenetre-voies"> 🛣️ Fenêtre des voies (comme Sygic) quand il faut choisir sa file</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-epure"> 🧘 Écran épuré en longue ligne droite (bandeau replié, autoroute : l'essentiel)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-nuit-douce"> 🌙 Écran moins lumineux la nuit</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-zoom-renforce"> 🔍 Zoom renforcé aux ronds-points, grands carrefours, sorties et entrées de voie rapide</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-vue-carrefour"> 🗺️ Dessin du vrai carrefour dans le panneau (ronds-points, carrefours à plusieurs routes)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-fenetre-voies"> 🛣️ Fenêtre des voies (comme Sygic) quand il faut choisir sa file</label>
         </details>
-        <details class="ev-sous-menu">
+        <details class="gps-sous-menu">
           <summary>🗣️ Voix et mains libres</summary>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix"> 🔊 Guidage vocal (on peut aussi le couper en route avec 🔊)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-reponses-voix"> 🗣️ Mains sur le volant : répondre à la voix (« oui », « non », « le premier »…) aux propositions</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-voies"> 🛣️ Dire quelle voie prendre (« prenez la voie de droite »)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-vibration"> 📳 Vibrer avant chaque manœuvre</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-notif"> 🔔 Guidage visible écran verrouillé (notification)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-voix"> 🔊 Guidage vocal (on peut aussi le couper en route avec 🔊)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-reponses-voix"> 🗣️ Mains sur le volant : répondre à la voix (« oui », « non », « le premier »…) aux propositions</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-voix-voies"> 🛣️ Dire quelle voie prendre (« prenez la voie de droite »)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-vibration"> 📳 Vibrer avant chaque manœuvre</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-notif"> 🔔 Guidage visible écran verrouillé (notification)</label>
         </details>
-        <details class="ev-sous-menu">
+        <details class="gps-sous-menu">
           <summary>⚠️ Alertes</summary>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-travaux"> 🚧 Annoncer les travaux, routes fermées et ralentissements</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-zones-danger"> ⚠️ Zones de danger (radars fixes, comme la loi l'autorise : zone sans emplacement précis)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur,</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-bip"> 🔔 Bip en cas d'excès de vitesse</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-voix-travaux"> 🚧 Annoncer les travaux, routes fermées et ralentissements</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-zones-danger"> ⚠️ Zones de danger (radars fixes, comme la loi l'autorise : zone sans emplacement précis)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur,</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-bip"> 🔔 Bip en cas d'excès de vitesse</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
         </details>
-        <button id="ev-reglages-conseilles-btn" class="ev-lien ev-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
+        <button id="gps-reglages-conseilles-btn" class="gps-lien gps-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-cartes">
+      <div class="gps-carte-bloc" id="gps-bloc-cartes">
         <h3>Cartes</h3>
-        <div class="ev-region-bloc">
-          <div class="ev-champ-titre"><strong>📥 Carte hors ligne de ma région</strong></div>
-          <div class="ev-hint">Télécharge la carte 3D autour de chez vous : elle s'affichera partout dans la région sans réseau. À faire en Wi-Fi. (Le guidage sans réseau reste celui des trajets préparés avec « Hors ligne ».)</div>
-          <label class="ev-champ">Rayon autour de la maison
-            <select id="ev-region-rayon" class="ev-input"></select>
+        <div class="gps-region-bloc">
+          <div class="gps-champ-titre"><strong>📥 Carte hors ligne de ma région</strong></div>
+          <div class="gps-hint">Télécharge la carte 3D autour de chez vous : elle s'affichera partout dans la région sans réseau. À faire en Wi-Fi. (Le guidage sans réseau reste celui des trajets préparés avec « Hors ligne ».)</div>
+          <label class="gps-champ">Rayon autour de la maison
+            <select id="gps-region-rayon" class="gps-input"></select>
           </label>
-          <button id="ev-region-btn" class="ev-btn ev-btn-plein" type="button">📥 Télécharger ma région</button>
-          <div id="ev-region-info" class="ev-hint"></div>
+          <button id="gps-region-btn" class="gps-btn gps-btn-plein" type="button">📥 Télécharger ma région</button>
+          <div id="gps-region-info" class="gps-hint"></div>
         </div>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
-        <label class="ev-champ">Fournisseur de la carte 3D
-          <select id="ev-reglage-carte3d" class="ev-input">
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
+        <label class="gps-champ">Fournisseur de la carte 3D
+          <select id="gps-reglage-carte3d" class="gps-input">
             <option value="libre">OpenFreeMap — gratuite, sans clé ni limite</option>
             <option value="tomtom">TomTom — utilise ta clé TomTom</option>
           </select>
         </label>
-        <div class="ev-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
+        <div class="gps-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
       </div>
 
 
-      <div class="ev-carte-bloc" id="ev-bloc-cles">
+      <div class="gps-carte-bloc" id="gps-bloc-cles">
         <h3>Clés API</h3>
-        <div class="ev-hint">Gratuites. Elles restent uniquement dans ce téléphone.</div>
-        <label class="ev-champ">Clé TomTom (itinéraires) — <a href="https://developer.tomtom.com/user/register" target="_blank" rel="noopener">créer</a>
-          <span class="ev-input-row">
-            <input type="text" id="ev-cle-tomtom" class="ev-input ev-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
-            <button type="button" id="ev-cle-tomtom-voir" class="ev-mini-btn" aria-label="Afficher la clé">👁️</button>
+        <div class="gps-hint">Gratuites. Elles restent uniquement dans ce téléphone.</div>
+        <label class="gps-champ">Clé TomTom (itinéraires) — <a href="https://developer.tomtom.com/user/register" target="_blank" rel="noopener">créer</a>
+          <span class="gps-input-row">
+            <input type="text" id="gps-cle-tomtom" class="gps-input gps-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
+            <button type="button" id="gps-cle-tomtom-voir" class="gps-mini-btn" aria-label="Afficher la clé">👁️</button>
           </span>
         </label>
-        <button id="ev-tester-tomtom-btn" class="ev-btn" type="button">🔍 Tester ma clé TomTom</button>
-        <div id="ev-tester-tomtom-resultat" class="ev-diagnostic hidden"></div>
+        <button id="gps-tester-tomtom-btn" class="gps-btn" type="button">🔍 Tester ma clé TomTom</button>
+        <div id="gps-tester-tomtom-resultat" class="gps-diagnostic hidden"></div>
       </div>
 
-      <button id="ev-profil-save-btn" class="ev-btn-principal" type="button">Enregistrer</button>
+      <button id="gps-profil-save-btn" class="gps-btn-principal" type="button">Enregistrer</button>
 
-      <div class="ev-carte-bloc" id="ev-bloc-sauvegarde">
+      <div class="gps-carte-bloc" id="gps-bloc-sauvegarde">
         <h3>💾 Sauvegarde de mes données</h3>
-        <div class="ev-hint">Envoie-toi ce lien par e-mail (Gmail…). Sur un nouveau téléphone, il suffit de le toucher : l'appli s'ouvre avec tes clés, ta voiture, tes favoris, ton journal et tes réglages. Le lien contient tes clés : ne le transfère à personne.</div>
-        <button id="ev-lien-sauvegarde-btn" class="ev-btn-principal" type="button">📧 M'envoyer le lien de restauration</button>
-        <div id="ev-lien-sauvegarde-info" class="ev-hint ev-lien-centre"></div>
-        <button id="ev-installer-btn" class="ev-btn ev-btn-plein hidden" type="button">📲 Installer l'appli sur ce téléphone</button>
-        <details class="ev-details" id="ev-drive-bloc">
+        <div class="gps-hint">Envoie-toi ce lien par e-mail (Gmail…). Sur un nouveau téléphone, il suffit de le toucher : l'appli s'ouvre avec tes clés, ta voiture, tes favoris, ton journal et tes réglages. Le lien contient tes clés : ne le transfère à personne.</div>
+        <button id="gps-lien-sauvegarde-btn" class="gps-btn-principal" type="button">📧 M'envoyer le lien de restauration</button>
+        <div id="gps-lien-sauvegarde-info" class="gps-hint gps-lien-centre"></div>
+        <button id="gps-installer-btn" class="gps-btn gps-btn-plein hidden" type="button">📲 Installer l'appli sur ce téléphone</button>
+        <details class="gps-details" id="gps-drive-bloc">
           <summary>☁️ Google Drive (sauvegarde automatique)</summary>
-          <div class="ev-hint">Compte Google gratuit suffisant. La sauvegarde va dans un dossier caché réservé à l'appli ; elle se refait seule en fin de trajet. Sur un nouveau téléphone : « Restaurer depuis Drive ».</div>
-          <label class="ev-champ">Identifiant client Google (avancé : laisser vide, celui de l'appli est déjà réglé)
-            <input type="text" id="ev-drive-client" class="ev-input" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+          <div class="gps-hint">Compte Google gratuit suffisant. La sauvegarde va dans un dossier caché réservé à l'appli ; elle se refait seule en fin de trajet. Sur un nouveau téléphone : « Restaurer depuis Drive ».</div>
+          <label class="gps-champ">Identifiant client Google (avancé : laisser vide, celui de l'appli est déjà réglé)
+            <input type="text" id="gps-drive-client" class="gps-input" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
           </label>
-          <div class="ev-grille-2">
-            <button id="ev-drive-sauver-btn" class="ev-btn" type="button">☁️ Sauvegarder maintenant</button>
-            <button id="ev-drive-restaurer-btn" class="ev-btn" type="button">⬇️ Restaurer depuis Drive</button>
+          <div class="gps-grille-2">
+            <button id="gps-drive-sauver-btn" class="gps-btn" type="button">☁️ Sauvegarder maintenant</button>
+            <button id="gps-drive-restaurer-btn" class="gps-btn" type="button">⬇️ Restaurer depuis Drive</button>
           </div>
-          <div id="ev-drive-info" class="ev-hint"></div>
+          <div id="gps-drive-info" class="gps-hint"></div>
         </details>
-        <div class="ev-hint">Ou avec un fichier :</div>
-        <div class="ev-grille-2">
-          <button id="ev-export-donnees-btn" class="ev-btn" type="button">⬆️ Exporter mes données</button>
-          <button id="ev-import-donnees-btn" class="ev-btn" type="button">⬇️ Importer une sauvegarde</button>
+        <div class="gps-hint">Ou avec un fichier :</div>
+        <div class="gps-grille-2">
+          <button id="gps-export-donnees-btn" class="gps-btn" type="button">⬆️ Exporter mes données</button>
+          <button id="gps-import-donnees-btn" class="gps-btn" type="button">⬇️ Importer une sauvegarde</button>
         </div>
-        <input type="file" id="ev-import-donnees-fichier" accept=".json,application/json" class="hidden">
+        <input type="file" id="gps-import-donnees-fichier" accept=".json,application/json" class="hidden">
       </div>
-      <div class="ev-carte-bloc" id="ev-bloc-raz">
+      <div class="gps-carte-bloc" id="gps-bloc-raz">
         <h3>🧹 Remise à zéro</h3>
-        <div class="ev-hint">Si l'appli se comporte bizarrement : efface réglages, favoris, historique, trajets et données apprises. <strong>Reste en place</strong> : votre carte régionale et vos clés.</div>
-        <button id="ev-remise-zero-btn" class="ev-btn ev-btn-plein" type="button">🧹 Remettre à zéro</button>
+        <div class="gps-hint">Si l'appli se comporte bizarrement : efface réglages, favoris, historique, trajets et données apprises. <strong>Reste en place</strong> : votre carte régionale et vos clés.</div>
+        <button id="gps-remise-zero-btn" class="gps-btn gps-btn-plein" type="button">🧹 Remettre à zéro</button>
       </div>
 
 
-      <div class="ev-carte-bloc" id="ev-bloc-etat">
+      <div class="gps-carte-bloc" id="gps-bloc-etat">
         <h3>🩺 État de l'appli</h3>
-        <div class="ev-hint">Ce qui marche et ce qui manque en ce moment. Rien n'est envoyé : tout est lu sur ce téléphone.</div>
-        <div id="ev-etat-liste" class="ev-etat-liste"></div>
-        <div class="ev-grille-2">
-          <button id="ev-etat-gps-btn" class="ev-btn" type="button">📍 Tester le GPS</button>
-          <button id="ev-etat-actualiser-btn" class="ev-btn" type="button">🔄 Actualiser</button>
+        <div class="gps-hint">Ce qui marche et ce qui manque en ce moment. Rien n'est envoyé : tout est lu sur ce téléphone.</div>
+        <div id="gps-etat-liste" class="gps-etat-liste"></div>
+        <div class="gps-grille-2">
+          <button id="gps-etat-gps-btn" class="gps-btn" type="button">📍 Tester le GPS</button>
+          <button id="gps-etat-actualiser-btn" class="gps-btn" type="button">🔄 Actualiser</button>
         </div>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-aide">
+      <div class="gps-carte-bloc" id="gps-bloc-aide">
         <h3>❓ Aide et astuces</h3>
-        <details class="ev-sous-menu">
+        <details class="gps-sous-menu">
           <summary>Sans réseau : ce qui marche, ce qui ne marche pas</summary>
-          <ul class="ev-aide-liste">
+          <ul class="gps-aide-liste">
             <li><strong>Toujours</strong> : l'appli s'ouvre, tes réglages, favoris, journal et statistiques.</li>
             <li><strong>Si le trajet a été préparé</strong> (bouton « 📥 Hors ligne » du résultat, en Wi-Fi) : la carte 3D le long du trajet, le guidage et ses consignes vocales.</li>
             <li><strong>Si la région a été téléchargée</strong> (Menu › Cartes) : la carte 3D autour de chez toi.</li>
             <li>Si tu quittes la route prévue sans réseau, l'appli ne peut pas te recalculer un chemin : elle garde l'itinéraire enregistré.</li>
           </ul>
         </details>
-        <details class="ev-sous-menu" id="ev-aide">
+        <details class="gps-sous-menu" id="gps-aide">
           <summary>En navigation, mains sur le volant</summary>
-          <ul class="ev-aide-liste">
+          <ul class="gps-aide-liste">
             <li><strong>Toucher le bandeau</strong> : les prochaines étapes. <strong>Appui long sur la carte</strong> : y aller ou en faire une étape.</li>
             <li><strong>Bouton barrière</strong> : route barrée devant, un autre chemin est cherché.</li>
           </ul>
         </details>
-        <details class="ev-sous-menu">
+        <details class="gps-sous-menu">
           <summary>Préparer un trajet</summary>
-          <ul class="ev-aide-liste">
+          <ul class="gps-aide-liste">
             <li>Sous chaque curseur : les km réels (et sur autoroute) que cela représente.</li>
             <li><strong>🏠 Chez moi / 💼 Travail</strong> : adresses dans le Profil. <strong>🎤</strong> : dicter la destination.</li>
             <li>Résumé du trajet : sorties et échangeurs, « Quand partir ? », partager le trajet.</li>
           </ul>
         </details>
-        <details class="ev-sous-menu" id="ev-diag-bloc">
+        <details class="gps-sous-menu" id="gps-diag-bloc">
           <summary>🛟 Signaler un problème</summary>
-          <div class="ev-hint">Quelque chose n'a pas marché ? En roulant, dites <strong>« signale un problème »</strong> : l'instant est noté. À l'arrêt, envoyez le rapport ci-dessous. Il contient l'état de l'appli et les derniers événements, <strong>sans vos clés ni vos adresses</strong>.</div>
-          <div class="ev-grille-2">
-            <button id="ev-diag-envoyer" type="button" class="ev-btn">📤 Envoyer le rapport</button>
-            <button id="ev-diag-effacer" type="button" class="ev-btn">🗑️ Effacer le journal</button>
+          <div class="gps-hint">Quelque chose n'a pas marché ? En roulant, dites <strong>« signale un problème »</strong> : l'instant est noté. À l'arrêt, envoyez le rapport ci-dessous. Il contient l'état de l'appli et les derniers événements, <strong>sans vos clés ni vos adresses</strong>.</div>
+          <div class="gps-grille-2">
+            <button id="gps-diag-envoyer" type="button" class="gps-btn">📤 Envoyer le rapport</button>
+            <button id="gps-diag-effacer" type="button" class="gps-btn">🗑️ Effacer le journal</button>
           </div>
-          <div id="ev-diag-info" class="ev-hint"></div>
+          <div id="gps-diag-info" class="gps-hint"></div>
         </details>
-        <details class="ev-sous-menu">
+        <details class="gps-sous-menu">
           <summary>Sur la carte et dans Outils</summary>
-          <ul class="ev-aide-liste">
+          <ul class="gps-aide-liste">
             <li>Changer de téléphone : Profil › Sauvegarde (lien par e-mail, ou Google Drive).</li>
           </ul>
         </details>
       </div>
-      <button id="ev-revoir-accueil-btn" class="ev-lien ev-lien-centre" type="button">❓ Revoir la présentation de l'appli</button>
-      <div class="ev-hint ev-lien-centre" id="ev-mention-profil"></div>
-      <details class="ev-sous-menu"><summary>⚖️ Mentions légales</summary><p class="ev-hint" id="ev-mention-legale"></p></details>
-      <div class="ev-hint ev-lien-centre">Version 98 : itinéraire le plus court ou sans autoroute, écran « État de l'appli », contraste renforcé</div>
+      <button id="gps-revoir-accueil-btn" class="gps-lien gps-lien-centre" type="button">❓ Revoir la présentation de l'appli</button>
+      <div class="gps-hint gps-lien-centre" id="gps-mention-profil"></div>
+      <details class="gps-sous-menu"><summary>⚖️ Mentions légales</summary><p class="gps-hint" id="gps-mention-legale"></p></details>
+      <div class="gps-hint gps-lien-centre">Version 98 : itinéraire le plus court ou sans autoroute, écran « État de l'appli », contraste renforcé</div>
     </div>
   </div>
 </section>
 
 <!-- Navigation -->
-<nav class="ev-nav">
-  <button type="button" class="ev-nav-btn actif" data-vue="accueil"><span>🗺️</span>Carte</button>
-  <button type="button" class="ev-nav-btn" data-vue="trajet"><span>🧭</span>Trajet</button>
-  <button type="button" class="ev-nav-btn" data-vue="menu"><span>☰</span>Menu</button>
+<nav class="gps-nav">
+  <button type="button" class="gps-nav-btn actif" data-vue="accueil"><span>🗺️</span>Carte</button>
+  <button type="button" class="gps-nav-btn" data-vue="trajet"><span>🧭</span>Trajet</button>
+  <button type="button" class="gps-nav-btn" data-vue="menu"><span>☰</span>Menu</button>
 </nav>
 
 <!-- Mode urgence -->
 
 <!-- Navigation GPS -->
-<div id="ev-navigation" class="ev-navigation hidden">
-  <div class="ev-nav-haut">
-    <div id="ev-nav-manoeuvre" class="ev-nav-manoeuvre">
-      <div class="ev-nav-manoeuvre-gauche">
-        <div id="ev-nav-fleche" class="ev-nav-fleche">⏳</div>
-        <div id="ev-nav-distance" class="ev-nav-distance"></div>
+<div id="gps-navigation" class="gps-navigation hidden">
+  <div class="gps-nav-haut">
+    <div id="gps-nav-manoeuvre" class="gps-nav-manoeuvre">
+      <div class="gps-nav-manoeuvre-gauche">
+        <div id="gps-nav-fleche" class="gps-nav-fleche">⏳</div>
+        <div id="gps-nav-distance" class="gps-nav-distance"></div>
       </div>
-      <div class="ev-nav-manoeuvre-texte">
-        <div id="ev-nav-rue" class="ev-nav-rue hidden"></div>
-        <div id="ev-nav-panneau" class="ev-nav-panneau hidden"></div>
-        <div id="ev-nav-instruction" class="ev-nav-instruction">Calcul du guidage…</div>
-        <div id="ev-nav-ensuite" class="ev-nav-ensuite hidden"></div>
+      <div class="gps-nav-manoeuvre-texte">
+        <div id="gps-nav-rue" class="gps-nav-rue hidden"></div>
+        <div id="gps-nav-panneau" class="gps-nav-panneau hidden"></div>
+        <div id="gps-nav-instruction" class="gps-nav-instruction">Calcul du guidage…</div>
+        <div id="gps-nav-ensuite" class="gps-nav-ensuite hidden"></div>
       </div>
     </div>
-    <div id="ev-nav-voies" class="ev-nav-voies hidden" aria-label="Voies à prendre"></div>
-    <div id="ev-nav-danger" class="ev-nav-danger hidden"></div>
-    <div id="ev-nav-vue-voies" class="ev-nav-vue-voies hidden" aria-label="Voie à prendre">
-      <div id="ev-nav-vue-voies-instruction" class="ev-nav-vue-voies-instruction"></div>
-      <div id="ev-nav-vue-voies-distance" class="ev-nav-vue-voies-distance"></div>
-      <div id="ev-nav-vue-voies-dessin"></div>
+    <div id="gps-nav-voies" class="gps-nav-voies hidden" aria-label="Voies à prendre"></div>
+    <div id="gps-nav-danger" class="gps-nav-danger hidden"></div>
+    <div id="gps-nav-vue-voies" class="gps-nav-vue-voies hidden" aria-label="Voie à prendre">
+      <div id="gps-nav-vue-voies-instruction" class="gps-nav-vue-voies-instruction"></div>
+      <div id="gps-nav-vue-voies-distance" class="gps-nav-vue-voies-distance"></div>
+      <div id="gps-nav-vue-voies-dessin"></div>
     </div>
-    <div id="ev-nav-alerte" class="ev-nav-alerte hidden"></div>
-    <div id="ev-nav-gps" class="ev-nav-gps hidden" role="status"></div>
+    <div id="gps-nav-alerte" class="gps-nav-alerte hidden"></div>
+    <div id="gps-nav-gps" class="gps-nav-gps hidden" role="status"></div>
   </div>
 
-  <div class="ev-nav-vitesse-bloc">
-    <div id="ev-nav-aires" class="ev-nav-aires hidden" aria-label="Aires de repos devant"></div>
-    <div id="ev-nav-limite" class="ev-nav-limite hidden"></div>
-    <div id="ev-nav-vitesse" class="ev-nav-vitesse"><strong>0</strong><span>km/h</span></div>
+  <div class="gps-nav-vitesse-bloc">
+    <div id="gps-nav-aires" class="gps-nav-aires hidden" aria-label="Aires de repos devant"></div>
+    <div id="gps-nav-limite" class="gps-nav-limite hidden"></div>
+    <div id="gps-nav-vitesse" class="gps-nav-vitesse"><strong>0</strong><span>km/h</span></div>
   </div>
 
-  <div class="ev-nav-boutons">
-    <button id="ev-nav-voix-btn" class="ev-fab" type="button" title="Couper / remettre la voix"></button>
-    <button id="ev-nav-micro-btn" class="ev-fab" type="button" title="Commande vocale" data-icone="micro"></button>
-    <button id="ev-nav-3d-btn" class="ev-fab ev-fab-texte" type="button" title="Vue 3D / 2D">3D</button>
-    <button id="ev-nav-barree-btn" class="ev-fab" type="button" title="Route barrée devant : chercher un autre chemin" data-icone="barriere"></button>
-    <button id="ev-nav-menu-btn" class="ev-fab ev-fab-texte" type="button" title="Plus d'options" data-icone="menu"></button>
+  <div class="gps-nav-boutons">
+    <button id="gps-nav-voix-btn" class="gps-fab" type="button" title="Couper / remettre la voix"></button>
+    <button id="gps-nav-micro-btn" class="gps-fab" type="button" title="Commande vocale" data-icone="micro"></button>
+    <button id="gps-nav-3d-btn" class="gps-fab gps-fab-texte" type="button" title="Vue 3D / 2D">3D</button>
+    <button id="gps-nav-barree-btn" class="gps-fab" type="button" title="Route barrée devant : chercher un autre chemin" data-icone="barriere"></button>
+    <button id="gps-nav-menu-btn" class="gps-fab gps-fab-texte" type="button" title="Plus d'options" data-icone="menu"></button>
   </div>
-  <button id="ev-nav-recentrer-btn" class="ev-nav-recentrer hidden" type="button">🎯 Recentrer</button>
+  <button id="gps-nav-recentrer-btn" class="gps-nav-recentrer hidden" type="button">🎯 Recentrer</button>
 
 
-  <div id="ev-nav-menu" class="ev-nav-carte ev-nav-menu hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">Options <button type="button" class="ev-fermer ev-fermer-grand" data-fermer aria-label="Fermer les options">✕ Fermer</button></div>
-    <div class="ev-nav-menu-grille">
-      <button type="button" data-nav-action="sos" class="ev-menu-sos">🆘<span>SOS / urgence</span></button>
-      <button id="ev-nav-apercu-btn" type="button">🗺️<span>Aperçu du trajet</span></button>
-      <button id="ev-nav-orientation-btn" type="button">🧭<span>Nord en haut</span></button>
+  <div id="gps-nav-menu" class="gps-nav-carte gps-nav-menu hidden">
+    <div class="gps-nav-carte-titre gps-titre-fermer">Options <button type="button" class="gps-fermer gps-fermer-grand" data-fermer aria-label="Fermer les options">✕ Fermer</button></div>
+    <div class="gps-nav-menu-grille">
+      <button type="button" data-nav-action="sos" class="gps-menu-sos">🆘<span>SOS / urgence</span></button>
+      <button id="gps-nav-apercu-btn" type="button">🗺️<span>Aperçu du trajet</span></button>
+      <button id="gps-nav-orientation-btn" type="button">🧭<span>Nord en haut</span></button>
       <button type="button" data-nav-action="partage">📤<span>Partager mon arrivée</span></button>
-      <button type="button" data-nav-action="suivi" id="ev-nav-suivi-btn">📡<span>Position en direct</span></button>
+      <button type="button" data-nav-action="suivi" id="gps-nav-suivi-btn">📡<span>Position en direct</span></button>
       <button type="button" data-nav-action="aide">❓<span>Astuces (à l'arrêt)</span></button>
       <button type="button" data-nav-action="signaler">🛟<span>Signaler un problème</span></button>
       <button type="button" data-nav-action="radar">📍<span>Signaler un radar ici</span></button>
@@ -506,81 +506,81 @@
     </div>
   </div>
 
-  <div id="ev-nav-hud" class="ev-nav-hud" aria-label="Mode tête haute">
-    <div class="ev-hud-contenu">
-      <div id="ev-hud-fleche" class="ev-hud-fleche"></div>
-      <div id="ev-hud-distance" class="ev-hud-distance"></div>
-      <div id="ev-hud-texte" class="ev-hud-texte"></div>
-      <div class="ev-hud-vitesses"><span id="ev-hud-vitesse" class="ev-hud-vitesse">0</span><span id="ev-hud-limite" class="ev-hud-limite hidden"></span></div>
+  <div id="gps-nav-hud" class="gps-nav-hud" aria-label="Mode tête haute">
+    <div class="gps-hud-contenu">
+      <div id="gps-hud-fleche" class="gps-hud-fleche"></div>
+      <div id="gps-hud-distance" class="gps-hud-distance"></div>
+      <div id="gps-hud-texte" class="gps-hud-texte"></div>
+      <div class="gps-hud-vitesses"><span id="gps-hud-vitesse" class="gps-hud-vitesse">0</span><span id="gps-hud-limite" class="gps-hud-limite hidden"></span></div>
     </div>
   </div>
 
 
-  <div id="ev-nav-recherche" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">🔍 Le long du trajet <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
-    <div class="ev-nav-carte-sous">🎤 En roulant, dites plutôt « trouve une boulangerie » : je vous lis les résultats.</div>
-    <div id="ev-nav-recherche-cats" class="ev-nav-menu-grille"></div>
-    <div id="ev-nav-recherche-res" class="ev-nav-resultats"></div>
+  <div id="gps-nav-recherche" class="gps-nav-carte hidden">
+    <div class="gps-nav-carte-titre gps-titre-fermer">🔍 Le long du trajet <button type="button" class="gps-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div class="gps-nav-carte-sous">🎤 En roulant, dites plutôt « trouve une boulangerie » : je vous lis les résultats.</div>
+    <div id="gps-nav-recherche-cats" class="gps-nav-menu-grille"></div>
+    <div id="gps-nav-recherche-res" class="gps-nav-resultats"></div>
   </div>
 
 
-  <div id="ev-nav-ecoute" class="ev-nav-ecoute hidden" aria-live="polite">🎤 J'écoute…</div>
+  <div id="gps-nav-ecoute" class="gps-nav-ecoute hidden" aria-live="polite">🎤 J'écoute…</div>
 
-  <div id="ev-nav-feuille" class="ev-nav-feuille hidden" aria-label="Feuille de route">
-    <div class="ev-nav-carte-titre">🧾 Prochaines étapes <small>(toucher pour fermer)</small></div>
-    <div id="ev-nav-feuille-liste" class="ev-feuille-liste"></div>
+  <div id="gps-nav-feuille" class="gps-nav-feuille hidden" aria-label="Feuille de route">
+    <div class="gps-nav-carte-titre">🧾 Prochaines étapes <small>(toucher pour fermer)</small></div>
+    <div id="gps-nav-feuille-liste" class="gps-feuille-liste"></div>
   </div>
 
-  <div id="ev-nav-point" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">📍 Point choisi sur la carte <button type="button" class="ev-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
-    <div class="ev-grille-2">
-      <button type="button" class="ev-btn" data-point="etape">➕ Ajouter comme étape</button>
-      <button type="button" class="ev-btn" data-point="aller">🏁 Y aller</button>
+  <div id="gps-nav-point" class="gps-nav-carte hidden">
+    <div class="gps-nav-carte-titre gps-titre-fermer">📍 Point choisi sur la carte <button type="button" class="gps-fermer" data-point="fermer" aria-label="Fermer">✕</button></div>
+    <div class="gps-grille-2">
+      <button type="button" class="gps-btn" data-point="etape">➕ Ajouter comme étape</button>
+      <button type="button" class="gps-btn" data-point="aller">🏁 Y aller</button>
     </div>
   </div>
 
 
-  <div id="ev-nav-parkings" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">🅿️ Parkings près de l'arrivée <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
-    <div id="ev-nav-parkings-liste" class="ev-nav-resultats"></div>
+  <div id="gps-nav-parkings" class="gps-nav-carte hidden">
+    <div class="gps-nav-carte-titre gps-titre-fermer">🅿️ Parkings près de l'arrivée <button type="button" class="gps-fermer" data-fermer aria-label="Fermer">✕</button></div>
+    <div id="gps-nav-parkings-liste" class="gps-nav-resultats"></div>
   </div>
 
 
-  <div class="ev-nav-bas">
-    <button id="ev-nav-stop-btn" class="ev-nav-stop" type="button" title="Arrêter la navigation">✕</button>
-    <div class="ev-nav-infos">
-      <div><strong id="ev-nav-eta">--:--</strong><span>arrivée</span></div>
-      <div><strong id="ev-nav-reste-temps">—</strong><span>restant</span></div>
-      <div><strong id="ev-nav-reste-km">—</strong><span>km</span></div>
+  <div class="gps-nav-bas">
+    <button id="gps-nav-stop-btn" class="gps-nav-stop" type="button" title="Arrêter la navigation">✕</button>
+    <div class="gps-nav-infos">
+      <div><strong id="gps-nav-eta">--:--</strong><span>arrivée</span></div>
+      <div><strong id="gps-nav-reste-temps">—</strong><span>restant</span></div>
+      <div><strong id="gps-nav-reste-km">—</strong><span>km</span></div>
     </div>
   </div>
 </div>
 
-<div id="ev-toast" class="ev-toast"></div>
+<div id="gps-toast" class="gps-toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script type="module" src="./js/main.js"></script>
 <!-- 🆘 SOS : position exacte, 112, consignes -->
-<div id="ev-sos" class="ev-sos hidden" role="dialog" aria-label="SOS">
-  <div class="ev-sos-carte">
-    <div class="ev-sos-tete"><strong>🆘 SOS — ma position</strong><button id="ev-sos-fermer" type="button" class="ev-fermer" aria-label="Fermer">✕</button></div>
-    <div id="ev-sos-position" class="ev-sos-position"></div>
-    <a class="ev-sos-appel" href="tel:112">📞 Appeler le 112</a>
-    <div class="ev-grille-2">
-      <button id="ev-sos-partager" type="button" class="ev-btn">📤 Envoyer ma position</button>
-      <button id="ev-sos-lire" type="button" class="ev-btn">🔊 Lire à voix haute</button>
+<div id="gps-sos" class="gps-sos hidden" role="dialog" aria-label="SOS">
+  <div class="gps-sos-carte">
+    <div class="gps-sos-tete"><strong>🆘 SOS — ma position</strong><button id="gps-sos-fermer" type="button" class="gps-fermer" aria-label="Fermer">✕</button></div>
+    <div id="gps-sos-position" class="gps-sos-position"></div>
+    <a class="gps-sos-appel" href="tel:112">📞 Appeler le 112</a>
+    <div class="gps-grille-2">
+      <button id="gps-sos-partager" type="button" class="gps-btn">📤 Envoyer ma position</button>
+      <button id="gps-sos-lire" type="button" class="gps-btn">🔊 Lire à voix haute</button>
     </div>
-    <details class="ev-sous-menu">
+    <details class="gps-sous-menu">
       <summary>⚠️ Sur autoroute ou voie express</summary>
-      <ul class="ev-aide-liste">
+      <ul class="gps-aide-liste">
         <li>Feux de détresse, puis <strong>gilet avant de sortir</strong>, par la droite.</li>
         <li>Tous les passagers <strong>derrière la glissière</strong>, loin des voies. Pas de triangle sur autoroute.</li>
         <li>Sur autoroute, le dépannage se fait <strong>uniquement par les dépanneurs agréés</strong>, envoyés par ces appels.</li>
       </ul>
     </details>
-    <div class="ev-hint">Numéros : 112 (urgences), 15 (SAMU), 17 (police), 18 (pompiers), 114 (par SMS).</div>
+    <div class="gps-hint">Numéros : 112 (urgences), 15 (SAMU), 17 (police), 18 (pompiers), 114 (par SMS).</div>
   </div>
 </div>
 </body>

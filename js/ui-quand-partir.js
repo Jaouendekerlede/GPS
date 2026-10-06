@@ -12,12 +12,12 @@ const DECALAGES_MIN = [0, 30, 60, 120, 180];
 const heure = (d) => d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
 export function boutonQuandPartir() {
-  return `<button type="button" id="ev-quand-partir-btn" class="ev-btn ev-btn-plein">🕐 Quand partir ? (trafic prévu)</button><div id="ev-quand-partir" class="ev-quand-partir"></div>`;
+  return `<button type="button" id="gps-quand-partir-btn" class="gps-btn gps-btn-plein">🕐 Quand partir ? (trafic prévu)</button><div id="gps-quand-partir" class="gps-quand-partir"></div>`;
 }
 
 export async function quandPartir(p) {
-  const zone = $("ev-quand-partir");
-  zone.innerHTML = `<div class="ev-hint">⏳ Calcul selon l'heure de départ…</div>`;
+  const zone = $("gps-quand-partir");
+  zone.innerHTML = `<div class="gps-hint">⏳ Calcul selon l'heure de départ…</div>`;
   const cle = getApiKeys().tomtom;
   const etapes = (p.arrets || []).map((a) => ({ lat: a.lat, lon: a.lon }));
   const charge = p.temps_charge_total_min || 0;
@@ -28,7 +28,7 @@ export async function quandPartir(p) {
     if (!r.erreur) lignes.push({ d, depart, min: Math.round(r.summary.travelTimeInSeconds / 60) + charge });
   }
   if (!lignes.length) {
-    zone.innerHTML = `<div class="ev-hint">⚠️ Trafic prévu indisponible pour le moment.</div>`;
+    zone.innerHTML = `<div class="gps-hint">⚠️ Trafic prévu indisponible pour le moment.</div>`;
     return;
   }
   const max = Math.max(...lignes.map((l) => l.min));
@@ -38,7 +38,7 @@ export async function quandPartir(p) {
       const arrivee = new Date(l.depart.getTime() + l.min * 60000);
       const libelle = l.d ? heure(l.depart) : "Maintenant";
       const titre = `Départ ${libelle} → arrivée ${heure(arrivee)} (${formaterMinutes(l.min)})`;
-      return `<div class="ev-qp-ligne" title="${titre}"><span class="ev-qp-heure">${libelle}</span><span class="ev-qp-barre"><i style="width:${Math.max(6, (l.min / max) * 100).toFixed(1)}%"></i></span><span class="ev-qp-valeur">${formaterMinutes(l.min)}${l.min === meilleur ? " ⭐" : ""}<small>→ ${heure(arrivee)}</small></span></div>`;
+      return `<div class="gps-qp-ligne" title="${titre}"><span class="gps-qp-heure">${libelle}</span><span class="gps-qp-barre"><i style="width:${Math.max(6, (l.min / max) * 100).toFixed(1)}%"></i></span><span class="gps-qp-valeur">${formaterMinutes(l.min)}${l.min === meilleur ? " ⭐" : ""}<small>→ ${heure(arrivee)}</small></span></div>`;
     })
-    .join("") + `<div class="ev-hint">⭐ = le plus court. Recharges comprises ; trafic prévu par TomTom.</div>`;
+    .join("") + `<div class="gps-hint">⭐ = le plus court. Recharges comprises ; trafic prévu par TomTom.</div>`;
 }

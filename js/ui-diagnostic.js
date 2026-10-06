@@ -65,13 +65,13 @@ export async function envoyerRapport() {
 }
 
 export function majCompteurJournal() {
-  const el = $("ev-diag-info");
+  const el = $("gps-diag-info");
   if (el) el.textContent = `${lister().length} événement(s) dans le journal de ce téléphone.`;
 }
 
 export function cablerDiagnostic() {
-  $("ev-diag-envoyer").addEventListener("click", envoyerRapport);
-  $("ev-diag-effacer").addEventListener("click", () => {
+  $("gps-diag-envoyer").addEventListener("click", envoyerRapport);
+  $("gps-diag-effacer").addEventListener("click", () => {
     if (!confirm("Effacer le journal de diagnostic ?")) return;
     effacer();
     majCompteurJournal();

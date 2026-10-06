@@ -23,7 +23,7 @@ function ficheParkingHtml(p) {
     p.hauteur_max ? `↕️ Hauteur max ${p.hauteur_max} m` : "",
     p.clients ? "Réservé aux clients" : "",
   ].filter(Boolean);
-  return `<div class="ev-fiche-parking">
+  return `<div class="gps-fiche-parking">
     <strong>🅿️ ${escapeHtml(p.nom)}</strong>
     ${infos.length ? `<div>${infos.map(escapeHtml).join(" · ")}</div>` : ""}
     ${p.horaires ? `<div>🕐 ${escapeHtml(p.horaires)}</div>` : ""}
@@ -46,7 +46,7 @@ async function chargerParkings() {
 }
 
 export function cablerParkings() {
-  const chip = $("ev-parkings-chip");
+  const chip = $("gps-parkings-chip");
   const appliquer = (actif) => {
     parkingsActifs = actif;
     chip.classList.toggle("actif", actif);
@@ -71,7 +71,7 @@ export function planifierParkings() {
 
 // Puce « 🚦 Trafic » : routes en vert, orange, rouge selon la circulation.
 export function cablerTrafic() {
-  const chip = $("ev-trafic-chip");
+  const chip = $("gps-trafic-chip");
   const appliquer = (actif) => {
     chip.classList.toggle("actif", actif);
     afficherTrafic(actif);

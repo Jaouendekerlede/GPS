@@ -24,7 +24,7 @@ function suivi() {
 
 function majInfo() {
   const s = suivi();
-  const el = $("ev-drive-info");
+  const el = $("gps-drive-info");
   if (!el) return;
   el.textContent = s.le ? `Dernière sauvegarde sur Drive : ${new Date(s.le).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : "Pas encore de sauvegarde sur Drive : touchez « Sauvegarder maintenant ».";
 }
@@ -49,7 +49,7 @@ export async function sauvegarderSurDrive({ silencieux = false } = {}) {
     if (!silencieux) {
       toast(`⚠️ Drive : ${e.message}`);
       // Le toast disparaît vite : le message complet reste dans le bloc Drive.
-      const info = $("ev-drive-info");
+      const info = $("gps-drive-info");
       if (info) info.textContent = `⚠️ ${e.message}`;
     }
     return false;
@@ -70,7 +70,7 @@ async function restaurerDepuisDrive() {
     setTimeout(() => location.reload(), 1200);
   } catch (e) {
     toast(`⚠️ Drive : ${e.message}`);
-    const info = $("ev-drive-info");
+    const info = $("gps-drive-info");
     if (info) info.textContent = `⚠️ ${e.message}`;
   }
 }
@@ -85,13 +85,13 @@ export function sauvegardeApresTrajet() {
 }
 
 export function cablerDrive() {
-  $("ev-drive-client").value = lireReglages().drive_client_id || "";
-  $("ev-drive-client").placeholder = "Identifiant de l'appli (laisser vide)";
-  $("ev-drive-client").addEventListener("change", (e) => {
+  $("gps-drive-client").value = lireReglages().drive_client_id || "";
+  $("gps-drive-client").placeholder = "Identifiant de l'appli (laisser vide)";
+  $("gps-drive-client").addEventListener("change", (e) => {
     sauverReglages({ drive_client_id: e.target.value.trim() });
     majInfo();
   });
-  $("ev-drive-sauver-btn").addEventListener("click", () => sauvegarderSurDrive());
-  $("ev-drive-restaurer-btn").addEventListener("click", restaurerDepuisDrive);
+  $("gps-drive-sauver-btn").addEventListener("click", () => sauvegarderSurDrive());
+  $("gps-drive-restaurer-btn").addEventListener("click", restaurerDepuisDrive);
   majInfo();
 }

@@ -8,7 +8,7 @@ const nomCourt = (n) => String(n || "").split(",")[0].trim();
 const heure = (ms) => new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
 export function boutonPartage() {
-  return `<button type="button" id="ev-partager-trajet-btn" class="ev-btn ev-btn-plein">📤 Partager ce trajet</button>`;
+  return `<button type="button" id="gps-partager-trajet-btn" class="gps-btn gps-btn-plein">📤 Partager ce trajet</button>`;
 }
 
 export function texteTrajet(p) {

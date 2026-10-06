@@ -81,7 +81,7 @@ export function svgCarrefour(routes, chemin, centre, cap) {
     [xb - dy * 11, yb + dx * 11],
     [xb + dy * 11, yb - dx * 11],
   ];
-  const id = `ev-cc${++numeroDessin}`;
+  const id = `gps-cc${++numeroDessin}`;
   const m = TAILLE_SVG / 2;
   return `<svg viewBox="0 0 ${TAILLE_SVG} ${TAILLE_SVG}" aria-hidden="true"><defs><clipPath id="${id}"><circle cx="${m}" cy="${m}" r="${m - 1}"/></clipPath></defs><g clip-path="url(#${id})"><circle cx="${m}" cy="${m}" r="${m - 1}" fill="rgba(0,0,0,0.22)"/><g opacity="0.38" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">${fonds}</g><path d="${chemins(trace)}" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><polygon points="${pointe.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ")}" fill="#fff"/></g></svg>`;
 }

@@ -482,7 +482,7 @@ async function creerCarte(fournisseur, fond, relief) {
   // Invisible mais à sa taille pendant le chargement : MapLibre a besoin
   // des dimensions, et l'écran ne reste pas noir en attendant.
   conteneur.classList.remove("hidden");
-  conteneur.classList.add("ev-3d-invisible");
+  conteneur.classList.add("gps-3d-invisible");
   carte = new maplibregl.Map({
     container: conteneur,
     style,
@@ -584,7 +584,7 @@ async function preparerMaintenant({ sombre = true, fond = sombre ? "sombre" : "p
     raisonEchec = "WebGL absent sur ce navigateur";
     return false;
   }
-  conteneur = document.getElementById("ev-carte-3d");
+  conteneur = document.getElementById("gps-carte-3d");
   try {
     await chargerMapLibre();
   } catch (e) {
@@ -613,7 +613,7 @@ async function preparerMaintenant({ sombre = true, fond = sombre ? "sombre" : "p
       if (echecs.length) avertissement = `${echecs.join(" ; ")} : carte ${FOURNISSEURS[f]} utilisée à la place`;
       // Reste affichée si la carte des bornes est déjà en 3D.
       if (!explo.actif && !enNavigation) conteneur.classList.add("hidden");
-      conteneur.classList.remove("ev-3d-invisible");
+      conteneur.classList.remove("gps-3d-invisible");
       return true;
     } catch (e) {
       dernierEchecFournisseur[f] = Date.now();
@@ -626,7 +626,7 @@ async function preparerMaintenant({ sombre = true, fond = sombre ? "sombre" : "p
   carte = null;
   styleCharge = null;
   conteneur.classList.add("hidden");
-  conteneur.classList.remove("ev-3d-invisible");
+  conteneur.classList.remove("gps-3d-invisible");
   return false;
 }
 
@@ -738,7 +738,7 @@ function grappe(groupe) {
   const lat = groupe.reduce((s, b) => s + b.lat, 0) / groupe.length;
   const lon = groupe.reduce((s, b) => s + b.lon, 0) / groupe.length;
   const el = document.createElement("div");
-  el.className = `ev-grappe ${classePuissance(kwMax)}`;
+  el.className = `gps-grappe ${classePuissance(kwMax)}`;
   el.textContent = String(groupe.length);
   el.addEventListener("click", (ev) => {
     ev.stopPropagation();
@@ -801,7 +801,7 @@ function rendrePosition() {
   explo.marqueurPosition = null;
   if (!carte || !explo.position) return;
   const el = document.createElement("div");
-  el.innerHTML = '<div class="ev-position"></div>';
+  el.innerHTML = '<div class="gps-position"></div>';
   explo.marqueurPosition = afficherSiVisible(marqueur(el, explo.position.lat, explo.position.lon));
 }
 
@@ -810,9 +810,9 @@ function rendreCurseur() {
   explo.marqueurCurseur = null;
   if (!carte || !explo.curseur) return;
   const el = pastille(22, "rgba(0,229,255,.95)");
-  el.classList.add("ev-curseur-3d");
-  el.insertAdjacentHTML("beforeend", `<span class="ev-curseur-3d-texte"></span>`);
-  el.querySelector(".ev-curseur-3d-texte").textContent = explo.curseur.label || "Position estimée";
+  el.classList.add("gps-curseur-3d");
+  el.insertAdjacentHTML("beforeend", `<span class="gps-curseur-3d-texte"></span>`);
+  el.querySelector(".gps-curseur-3d-texte").textContent = explo.curseur.label || "Position estimée";
   explo.marqueurCurseur = afficherSiVisible(marqueur(el, explo.curseur.lat, explo.curseur.lon));
 }
 
@@ -830,7 +830,7 @@ function marqueurArret(arret, taille, couleur, titre) {
   const batterie = texteBatterieArret(arret);
   if (batterie) {
     el.style.position = "relative";
-    el.insertAdjacentHTML("beforeend", `<span class="ev-etiquette-arret ev-etiquette-arret-3d"></span>`);
+    el.insertAdjacentHTML("beforeend", `<span class="gps-etiquette-arret gps-etiquette-arret-3d"></span>`);
     el.lastElementChild.textContent = batterie;
   }
   el.style.cursor = "pointer";
@@ -1097,7 +1097,7 @@ function appliquerTrafic() {
 
 function pastille(taille, couleur, contenu = "") {
   const el = document.createElement("div");
-  el.innerHTML = `<div class="ev-point-trajet" style="width:${taille}px;height:${taille}px;background:${couleur};box-shadow:0 0 12px ${couleur};">${contenu}</div>`;
+  el.innerHTML = `<div class="gps-point-trajet" style="width:${taille}px;height:${taille}px;background:${couleur};box-shadow:0 0 12px ${couleur};">${contenu}</div>`;
   return el;
 }
 
@@ -1365,8 +1365,8 @@ function iconeBorne(b, selectionnee = false) {
   const kw = puissanceBorne(b);
   const cb = b.officiel && !b.officiel.indisponible && ["oui", "partiel"].includes(b.officiel.paiement_cb);
   const el = document.createElement("div");
-  el.className = "ev-pin-3d";
-  el.innerHTML = `<div class="ev-pin ${classePuissance(kw)}${selectionnee ? " selection" : ""}"><span>${kw || "?"}</span>${cb ? '<b class="ev-pin-cb">CB</b>' : ""}</div>`;
+  el.className = "gps-pin-3d";
+  el.innerHTML = `<div class="gps-pin ${classePuissance(kw)}${selectionnee ? " selection" : ""}"><span>${kw || "?"}</span>${cb ? '<b class="gps-pin-cb">CB</b>' : ""}</div>`;
   return el;
 }
 
@@ -1395,7 +1395,7 @@ export function exploVoitureGaree(pos) {
   marqueurGaree = null;
   if (!pos || !carte) return;
   const el = document.createElement("div");
-  el.className = "ev-garee";
+  el.className = "gps-garee";
   el.textContent = "🚗";
   marqueurGaree = marqueur(el, pos.lat, pos.lon).addTo(carte);
 }
