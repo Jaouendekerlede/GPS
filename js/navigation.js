@@ -1347,7 +1347,43 @@ function surveillerSignal() {
   majEcran();
 }
 
+// Lissage des relevés GPS : on écarte les mesures trop imprécises ou impossibles (saut trop grand),
+// puis moyenne pondérée (poids = 1/précision²) des dernières mesures valables.
+const PRECISION_MAX_M = 40;
+const VITESSE_MAX_MS = 70;
+const FENETRE_LISSAGE = 3;
+let mesuresRecentes = [];
+let refusConsecutifs = 0;
+
+function filtrerPosition(p) {
+  if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) return null;
+  const precision = Number.isFinite(p.precision) ? p.precision : 25;
+  if (precision > PRECISION_MAX_M) return null;
+  const derniere = mesuresRecentes[mesuresRecentes.length - 1];
+  if (derniere) {
+    const dt = Math.max(0.2, (p.t - derniere.t) / 1000);
+    const dist = haversineKm(derniere.lat, derniere.lon, p.lat, p.lon) * 1000;
+    if (dist / dt > VITESSE_MAX_MS && dist > 50) {
+      // Refus répétés : la nouvelle position est la bonne (tunnel, perte de signal) -> on repart d'elle.
+      if (++refusConsecutifs < 4) return null;
+      mesuresRecentes = [];
+    }
+  }
+  refusConsecutifs = 0;
+  mesuresRecentes.push({ lat: p.lat, lon: p.lon, t: p.t, precision });
+  mesuresRecentes = mesuresRecentes.slice(-FENETRE_LISSAGE);
+  let sw = 0, slat = 0, slon = 0;
+  for (const m of mesuresRecentes) {
+    const w = 1 / (m.precision * m.precision);
+    sw += w;
+    slat += w * m.lat;
+    slon += w * m.lon;
+  }
+  return { ...p, lat: slat / sw, lon: slon / sw, precision: Math.min(...mesuresRecentes.map((m) => m.precision)) };
+}
+
 function demarrerGps() {
+  mesuresRecentes = [];
   etat.surveillanceSignal = setInterval(surveillerSignal, 1000);
   etat.watchId = navigator.geolocation.watchPosition(
     (pos) => {
@@ -1355,7 +1391,7 @@ function demarrerGps() {
         etat.alerteGps = false;
         afficherAlerte(null);
       }
-      surPosition({
+      const lisse = filtrerPosition({
         lat: pos.coords.latitude,
         lon: pos.coords.longitude,
         vitesse: pos.coords.speed ?? NaN,
@@ -1363,6 +1399,7 @@ function demarrerGps() {
         precision: pos.coords.accuracy,
         t: pos.timestamp,
       });
+      if (lisse) surPosition(lisse);
     },
     (err) => {
       if (!etat) return;

@@ -1170,3 +1170,9 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 /* ✕ de la suggestion « 💡 … ? » (1.29.0) */
 .gps-sugg-x { display: inline-block; margin-left: 6px; padding: 0 4px; opacity: .6; font-weight: 800; }
 .gps-raccourcis .gps-raccourci { flex: 0 0 auto; }
+
+/* Indicateur stations et aires : rectangle lisible, plus grand (1.30.0) */
+.gps-nav-aires { display: flex; flex-direction: column; gap: 6px; align-items: stretch; padding: 10px 14px; border-radius: 12px; background: rgb(15 23 42 / 82%); color: #fff; font-size: 16px; font-weight: 800; min-width: 150px; box-shadow: 0 6px 18px rgb(0 0 0 / 30%); border: 1px solid rgb(255 255 255 / 12%); }
+.gps-nav-aires > span { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.gps-nav-aires i { display: none; }
+.gps-nav-services-bas { font-size: 15px; }
