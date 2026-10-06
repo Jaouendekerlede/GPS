@@ -440,7 +440,9 @@ function majEcran() {
   afficherVoies(instr);
 
   // Vitesse et limitation
-  const kmh = Math.round((pos.vitesse || 0) * 3.6);
+  // Vitesse aberrante (saut de position) : affichée à 0 plutôt qu'une valeur fausse.
+  const kmhBrut = Math.round((pos.vitesse || 0) * 3.6);
+  const kmh = kmhBrut > 250 ? 0 : kmhBrut;
   const limite = route.limites[etat.idx];
   $("gps-nav-vitesse").innerHTML = `<strong>${kmh}</strong><span>km/h</span>`;
   $("gps-nav-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
