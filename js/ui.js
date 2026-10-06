@@ -1605,6 +1605,39 @@ function majInfoRegion() {
 }
 
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
+// Interrupteurs du menu « Outils » : même réglage que dans Profil › Navigation,
+// appliqué tout de suite. Le contraste est activé par défaut à « non ».
+const ACTIF_PAR_DEFAUT = { contraste_fort: false };
+
+function estActifReglage(cle) {
+  const r = lireReglages();
+  return cle in ACTIF_PAR_DEFAUT ? r[cle] === true : r[cle] !== false;
+}
+
+function majBasculesMenu() {
+  document.querySelectorAll("[data-basculer]").forEach((b) => {
+    b.querySelector(".gps-menu-detail").textContent = estActifReglage(b.dataset.basculer) ? "Activé" : "Désactivé";
+  });
+}
+
+function cablerBasculesMenu() {
+  $("vue-menu").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-basculer]");
+    if (!b) return;
+    const cle = b.dataset.basculer;
+    const on = !estActifReglage(cle);
+    sauverReglages({ [cle]: on });
+    const reglage = $(b.dataset.id);
+    if (reglage) {
+      reglage.checked = on;
+      reglage.dispatchEvent(new Event("change"));
+    }
+    majBasculesMenu();
+    toast(`${b.querySelector(".gps-menu-nom").textContent} : ${on ? "activé" : "désactivé"}`);
+  });
+  majBasculesMenu();
+}
+
 function cablerRechercheBas() {
   // ✕ de la suggestion : ne la propose plus (capture : empêche le lancement du trajet).
   $("gps-suggestion-trajet").addEventListener("click", (e) => {
@@ -1676,6 +1709,7 @@ function cablerRechercheBas() {
   });
   rendreRaccourcis();
   cablerPresDeMoi();
+  cablerBasculesMenu();
 }
 
 // Raccourcis sous la recherche : Maison, Travail, puis les dernières destinations.
