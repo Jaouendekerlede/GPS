@@ -72,6 +72,9 @@ window.addEventListener("pageshow", (e) => {
 const VERIFICATION_MAJ_MS = 30 * 60 * 1000;
 
 // Recharge avec la nouvelle version dès que le guidage est arrêté.
+// Version de cette copie de l'application (à mettre à jour à chaque publication, avec le cache du service worker).
+const VERSION_EN_COURS = "gps-v25";
+
 // Bandeau « Mettre à jour » : la mise à jour n'est plus automatique, vous la lancez quand vous voulez.
 function afficherBandeauMiseAJour() {
   if (document.querySelector(".gps-bandeau-maj")) return;
@@ -107,3 +110,18 @@ if ("serviceWorker" in navigator) {
     }
   });
 }
+
+// Vérifie à chaque ouverture (et au retour sur l'appli) si une version plus récente est publiée.
+async function verifierNouvelleVersion() {
+  try {
+    const texte = await (await fetch("./service-worker.js", { cache: "no-store" })).text();
+    const m = texte.match(/CACHE_NOM = "([^"]+)"/);
+    if (m && m[1] !== VERSION_EN_COURS) afficherBandeauMiseAJour();
+  } catch {
+    // Hors ligne : pas de vérification.
+  }
+}
+verifierNouvelleVersion();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") verifierNouvelleVersion();
+});
