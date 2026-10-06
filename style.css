@@ -1166,3 +1166,6 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 .gps-nav-services-bas:empty { display: none; }
 .gps-nav-services-titre { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .6; }
 .gps-nav-services-bas i { font-style: normal; opacity: .5; }
+
+/* ✕ de la suggestion « 💡 … ? » (1.29.0) */
+.gps-sugg-x { display: inline-block; margin-left: 6px; padding: 0 4px; opacity: .6; font-weight: 800; }

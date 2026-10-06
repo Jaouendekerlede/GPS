@@ -1470,15 +1470,26 @@ export function proposerRechargeMaison() {
 }
 
 // « 💡 Travail ? » : destination souvent prise à cette heure-ci.
+// Suggestions masquées par l'utilisateur (✕) : mémorisées sur l'appareil.
+const CLE_SUGGESTIONS_MASQUEES = "gps_suggestions_masquees";
+function suggestionsMasquees() {
+  try {
+    return JSON.parse(localStorage.getItem(CLE_SUGGESTIONS_MASQUEES) || "[]");
+  } catch {
+    return [];
+  }
+}
+
 function majSuggestionTrajet() {
   let d = destinationHabituelle();
+  if (d && suggestionsMasquees().includes(d)) d = null;
   // « Chez moi » et « Travail » ont déjà leur bouton : pas de doublon avec l'adresse.
   if (/^(Chez moi|Travail) \(/.test(d || "")) d = null;
   const b = $("gps-suggestion-trajet");
   b.classList.toggle("hidden", !d);
   if (d) {
     b.dataset.dest = d;
-    b.textContent = `💡 ${nomCourt(d).split(",")[0]} ?`;
+    b.innerHTML = `💡 ${escapeHtml(nomCourt(d).split(",")[0])} ? <span class="gps-sugg-x" data-x="1" aria-label="Ne plus proposer">✕</span>`;
   }
 }
 
@@ -1632,6 +1643,15 @@ function majInfoRegion() {
 
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
 function cablerRechercheBas() {
+  // ✕ de la suggestion : ne la propose plus (capture : empêche le lancement du trajet).
+  $("gps-suggestion-trajet").addEventListener("click", (e) => {
+    if (!e.target.closest("[data-x]")) return;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    const d = $("gps-suggestion-trajet").dataset.dest;
+    if (d) localStorage.setItem(CLE_SUGGESTIONS_MASQUEES, JSON.stringify([...suggestionsMasquees(), d]));
+    majSuggestionTrajet();
+  }, true);
   $("gps-raccourcis").addEventListener("click", (e) => {
     const x = e.target.closest("[data-oublier]");
     if (!x) return;
