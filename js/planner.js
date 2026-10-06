@@ -52,7 +52,6 @@ export function kmSurTrace(coords, lat, lon) {
   }
   return meilleur;
 }
-import { rechercherBornesProches, borneCompatible } from "./ocm.js";
 
 
 

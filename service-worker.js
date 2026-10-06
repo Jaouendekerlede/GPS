@@ -6,7 +6,7 @@
 // préparées. Les autres services (TomTom, bornes, météo) ne passent pas ici :
 // TomTom interdit de stocker ses cartes, et les autres doivent être frais.
 
-const CACHE_NOM = "gps-v7";
+const CACHE_NOM = "gps-v8";
 // Empreinte des fichiers ci-dessous, vérifiée par les tests : les téléphones
 // ne reçoivent une modification que si ce fichier change. À chaque
 // publication : augmenter CACHE_NOM et recopier l'empreinte donnée par le test.
@@ -19,17 +19,14 @@ const FICHIERS_COQUILLE = [
   "./js/main.js",
   "./js/ui.js",
   "./js/ui-commun.js",
-  "./js/ui-journal.js",
-  "./js/ui-abonnements.js",
-  "./js/ui-sauvegarde.js",
+      "./js/ui-sauvegarde.js",
   "./js/ui-parkings.js",
-  "./js/ui-accueil.js",
-  "./js/ui-installation.js",
+    "./js/ui-installation.js",
   "./js/restauration.js",
   "./js/trajet.js",
   "./js/planner.js",
-  "./js/energie.js",
-  "./js/courbe.js",
+  
+  
   "./js/carte.js",
   "./js/carte3d.js",
   "./js/parkings.js",
@@ -43,31 +40,26 @@ const FICHIERS_COQUILLE = [
   "./js/icones-voiture.js",
   "./js/recherche-route.js",
   "./js/ui-suggestions.js",
-  "./js/ui-voiture.js",
-  "./js/commandes-vocales.js",
-  "./js/graphique-batterie.js",
+    "./js/commandes-vocales.js",
+  
   "./js/meteo-route.js",
-  "./js/statistiques.js",
-  "./js/ui-stats.js",
-  "./js/ui-quand-partir.js",
-  "./js/ui-arret-impose.js",
-  "./js/ui-partage.js",
+      "./js/ui-quand-partir.js",
+    "./js/ui-partage.js",
   "./js/drive.js",
   "./js/ui-drive.js",
   "./js/icones.js",
   "./js/sos.js",
   "./js/ui-sos.js",
   "./js/nav-outils.js",
-  "./js/presentation.js",
-  "./js/reprise.js",
+    "./js/reprise.js",
   "./js/recalage.js",
   "./js/etat-appli.js",
   "./js/partage-position.js",
   "./js/journal-erreurs.js",
   "./js/ui-diagnostic.js",
-  "./js/irve.js",
-  "./js/ocm.js",
-  "./js/paiement.js",
+  
+  
+  
   "./js/tomtom.js",
   "./js/geo.js",
   "./js/storage.js",

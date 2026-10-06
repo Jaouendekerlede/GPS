@@ -428,9 +428,7 @@ function majEcran() {
   majFlecheCarte(instr, instr ? instr.offset - etat.offset : Infinity);
   majZoneDanger();
   verifierApprocheRadar();
-  majFrise();
   majAires();
-  document.body.classList.toggle("ev-borne-bas", !$("ev-nav-borne").classList.contains("hidden"));
   // Affichage compact : une seule info sous le bandeau (alerte, sinon voies,
   // sinon prochaine borne) pour garder la carte visible.
   if (document.body.classList.contains("ev-bandeau-compact")) {
@@ -879,7 +877,7 @@ function arriveeDestination() {
     garerVoiture(etat.pos.lat, etat.pos.lon, (finale || etat.destination).nom || "");
     document.dispatchEvent(new Event("ev-voiture-garee"));
   }
-  const carteFin = $("ev-nav-etape-borne");
+  const carteFin = $("ev-nav-point");
   carteFin.innerHTML = `
     <div class="ev-nav-carte-titre">🏁 Vous êtes arrivé</div>
     <div>${escapeHtml(etat.destination.nom || "")}</div>
@@ -1488,10 +1486,6 @@ function cablerBoutons() {
   });
   document.addEventListener("pointerdown", () => etat && reveillerBoutons(), true);
   // Valeurs au toucher du graphique de batterie (crosshair).
-  $("ev-nav-secours").addEventListener("click", (e) => {
-    if (e.target.closest("[data-fermer]")) return $("ev-nav-secours").classList.add("hidden");
-    const i = e.target.closest("[data-secours]")?.dataset.secours;
-  });
   $("ev-nav-recherche-cats").innerHTML = CATEGORIES_TRAJET.map((c) => `<button type="button" data-requete="${escapeHtml(c.requete)}">${c.icone}<span>${escapeHtml(c.nom)}</span></button>`).join("");
   $("ev-nav-recherche").addEventListener("click", (e) => {
     if (e.target.closest("[data-fermer]")) return $("ev-nav-recherche").classList.add("hidden");
@@ -2113,29 +2107,6 @@ function majHud(kmh, limite) {
 
 // Frise du trajet restant (comme Sygic) : bouchons, travaux, zones de
 // danger, bornes et arrivée, la voiture qui avance dessus.
-function majFrise() {
-  const el = $("ev-nav-frise");
-  const route = etat.route;
-  if (!route || etat.arrive || !(route.total > 0)) {
-    el.classList.add("hidden");
-    return;
-  }
-  const cle = `${route.total}|${Math.round((etat.offset / route.total) * 300)}|${route.troncons.length}|${(route.zonesDanger || []).length}`;
-  if (el.dataset.cle === cle) return;
-  el.dataset.cle = cle;
-  const pct = (m) => Math.max(0, Math.min(100, (m / route.total) * 100));
-  const bande = (a, b, classe) => `<span class="${classe}" style="left:${pct(a).toFixed(2)}%;width:${Math.max(0.8, pct(b) - pct(a)).toFixed(2)}%"></span>`;
-  let html = bande(0, etat.offset, "fait");
-  for (const t of route.travaux) if ((t.fin ?? t.offset) > etat.offset) html += bande(t.offset, t.fin ?? t.offset + 200, t.bouchon ? "bouchon" : "travaux");
-  for (const z of route.zonesDanger || []) if (z.fin > etat.offset) html += bande(z.debut, z.fin, "danger");
-  html += route.troncons
-    .slice(0, -1)
-    .map((t) => `<i class="borne" style="left:${pct(t.fin).toFixed(2)}%">🔋</i>`)
-    .join("");
-  html += `<i class="voiture" style="left:${pct(etat.offset).toFixed(2)}%"></i><i class="arrivee">🏁</i>`;
-  el.innerHTML = html;
-  el.classList.remove("hidden");
-}
 
 // Même fond (nuit, jour, satellite) et mêmes réglages que la carte des bornes.
 function optionsCarte3D() {
@@ -2346,14 +2317,13 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   $("ev-nav-menu").classList.add("hidden");
   $("ev-nav-recherche").classList.add("hidden");
   $("ev-nav-parkings").classList.add("hidden");
-  $("ev-nav-secours").classList.add("hidden");
   $("ev-nav-feuille").classList.add("hidden");
   $("ev-nav-point").classList.add("hidden");
   carte2D.definirAppuiLong(surAppuiLong);
   demanderPermissionNotifications();
   $("ev-nav-recherche-res").innerHTML = "";
   $("ev-navigation").classList.remove("hidden");
-  $("ev-nav-etape-borne").classList.add("hidden");
+  $("ev-nav-point").classList.add("hidden");
   $("ev-nav-recentrer-btn").classList.add("hidden");
   $("ev-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
   majBoutonOrientation();

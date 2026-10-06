@@ -504,7 +504,6 @@
   </div>
   <button id="ev-nav-recentrer-btn" class="ev-nav-recentrer hidden" type="button">🎯 Recentrer</button>
 
-  <div id="ev-nav-etape-borne" class="ev-nav-carte hidden"></div>
 
   <div id="ev-nav-menu" class="ev-nav-carte ev-nav-menu hidden">
     <div class="ev-nav-carte-titre ev-titre-fermer">Options <button type="button" class="ev-fermer ev-fermer-grand" data-fermer aria-label="Fermer les options">✕ Fermer</button></div>
@@ -514,14 +513,10 @@
       <button id="ev-nav-orientation-btn" type="button">🧭<span>Nord en haut</span></button>
       <button type="button" data-nav-action="partage">📤<span>Partager mon arrivée</span></button>
       <button type="button" data-nav-action="suivi" id="ev-nav-suivi-btn">📡<span>Position en direct</span></button>
-      <button type="button" data-nav-action="batterie">🔋<span>Batterie prévue / réelle</span></button>
-      <button type="button" data-nav-action="secours">🔌<span>Changer de borne</span></button>
       <button type="button" data-nav-action="aide">❓<span>Astuces (à l'arrêt)</span></button>
       <button type="button" data-nav-action="signaler">🛟<span>Signaler un problème</span></button>
       <button type="button" data-nav-action="radar">📍<span>Signaler un radar ici</span></button>
       <button type="button" data-nav-action="oublier-radar">🗑️<span>Oublier le dernier radar signalé</span></button>
-      <button type="button" data-nav-action="borne-perso">🔌<span>Signaler une borne ici</span></button>
-      <button type="button" data-nav-action="oublier-borne">🗑️<span>Oublier la dernière borne signalée</span></button>
       <button type="button" data-nav-action="hud">🪞<span>Tête haute</span></button>
       <button type="button" data-nav-action="recherche">🔍<span>Le long du trajet</span></button>
       <button type="button" data-nav-action="parkings">🅿️<span>Parkings à l'arrivée</span></button>
@@ -561,10 +556,6 @@
     </div>
   </div>
 
-  <div id="ev-nav-secours" class="ev-nav-carte hidden">
-    <div class="ev-nav-carte-titre ev-titre-fermer">🔌 Autre borne <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
-    <div id="ev-nav-secours-liste" class="ev-nav-resultats"></div>
-  </div>
 
   <div id="ev-nav-parkings" class="ev-nav-carte hidden">
     <div class="ev-nav-carte-titre ev-titre-fermer">🅿️ Parkings près de l'arrivée <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
