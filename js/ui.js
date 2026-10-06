@@ -218,7 +218,6 @@ function appliquerRubrique(vue, rubrique) {
   for (const el of racine.children) {
     let visible = !bloc || el === entete || el === bloc;
     // « Enregistrer » ne concerne que les réglages placés avant lui.
-    if (bloc && el.id === "ev-profil-save-btn") visible = !!(el.compareDocumentPosition(bloc) & Node.DOCUMENT_POSITION_PRECEDING);
     // Présentation, mentions légales et version suivent l'aide.
     if (bloc?.id === "ev-bloc-aide" && apresBloc) visible = true;
     if (el === bloc) apresBloc = true;
@@ -293,10 +292,6 @@ function cablerNavigation() {
   });
   window.addEventListener("popstate", () => {
     if (navigationActive() || retourNavigationEnCours()) return;
-    if (!$("ev-urgence-panel").classList.contains("hidden")) {
-      $("ev-urgence-panel").classList.add("hidden");
-      return;
-    }
     if (vueCourante === "borne") revenirDeBorne();
     // Retour depuis une rubrique : on revient au Menu.
     else if (rubriqueOuverte) afficherVue("menu", { historique: history.state?.vue !== "menu" });
@@ -307,11 +302,6 @@ function cablerNavigation() {
     if (!l) return;
     if (l.dataset.bloc) ouvrirBloc(l.dataset.bloc);
     else ouvrirRubrique(l.dataset.vue, null, `${l.querySelector(".ev-menu-icone").textContent} ${l.querySelector(".ev-menu-nom").textContent}`);
-  });
-  $("ev-cles-manquantes").addEventListener("click", () => ouvrirBloc("ev-bloc-cles"));
-  $("ev-recherche-rapide").addEventListener("click", () => {
-    afficherVue("trajet");
-    setTimeout(() => $("ev-destination-input").focus(), 320);
   });
 }
 
@@ -474,7 +464,6 @@ function cablerCarte() {
       localStorage.setItem("tve_essais", JSON.stringify(essais));
     });
   }
-  $("ev-urgence-btn").addEventListener("click", () => ouvrirSOS({}));
   $("ev-reglages-conseilles-btn").addEventListener("click", () => {
     if (!confirm("Revenir aux réglages de navigation conseillés ?")) return;
     const cles = ["taille_texte_nav", "taille_bandeau", "icone_voiture", "ecran_epure", "nuit_douce", "zoom_renforce", "vue_carrefour", "fenetre_voies", "voix_guidage", "reponses_voix", "voix_voies", "vibration", "notif_guidage", "voix_travaux", "zones_danger", "bip_vitesse", "meteo_route", "feux", "voix_bornes", "prechauffage", "aires_autoroute", "parking_arrivee", "pause_mi_parcours"];
@@ -540,10 +529,6 @@ function cablerCarte() {
   });
 
   $("ev-localiser-btn").addEventListener("click", localiser);
-  $("ev-recherche-effacer").addEventListener("click", () => {
-    rechercheManuelle = null;
-    derniereZone = null;
-  });
 }
 
 async function localiser() {
@@ -921,8 +906,6 @@ function afficherResultat(p) {
   $("ev-trajet-summary").innerHTML = `<div class="ev-tuiles">${tuiles}</div>${peage}`;
 
   $("ev-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
-  $("ev-partager-trajet-btn").addEventListener("click", () => partagerTrajet(p));
-  $("ev-quand-partir-btn").addEventListener("click", () => quandPartir(p));
 
   $("ev-maps-link").href = lienGoogleMaps(p.to_lat, p.to_lon);
   $("ev-qrcode-box").classList.add("hidden");
@@ -1239,7 +1222,6 @@ function renderFavoris() {
   document.querySelectorAll(".ev-fav-onglet").forEach((b) => b.classList.toggle("active", b.dataset.onglet === ongletFavoris));
   $("ev-favoris-list").classList.toggle("hidden", ongletFavoris !== "trajets");
   $("ev-historique-bloc").classList.toggle("hidden", ongletFavoris !== "historique");
-  $("ev-bornes-favorites-list").classList.toggle("hidden", ongletFavoris !== "bornes");
 
   const favoris = listerTrajetsFavoris();
   listesAffichees.set("ev-favoris-list", favoris);
@@ -1266,8 +1248,6 @@ function renderFavoris() {
       .join("") || hint("Aucun trajet calculé pour le moment.");
 
   const bornes = listerBornesFavorites();
-  listesAffichees.set("ev-bornes-favorites-list", bornes);
-  $("ev-bornes-favorites-list").innerHTML =
     bornes.map((b, i) => ligneSimple(`🔌 ${escapeHtml(b.nom)}`, escapeHtml(b.adresse || ""), i, b.id)).join("") ||
     hint("Aucune borne favorite. Ouvre la fiche d'une borne et touche ☆ Favori.");
 }
@@ -1294,16 +1274,6 @@ function cablerFavoris() {
     });
   gerer("ev-favoris-list", (f) => chargerEtLancerTrajet(f.depart, f.destination, null, f.etapes), retirerTrajetFavori);
   gerer("ev-historique-list", (h) => chargerEtLancerTrajet(h.depart, h.destination, h.reglages), supprimerTrajetHistorique);
-  gerer(
-    "ev-bornes-favorites-list",
-    (f) => {
-      const connue = bornesZone.find((b) => haversineKm(b.lat, b.lon, f.lat, f.lon) < 0.06);
-    },
-    (id) => {
-      const f = listerBornesFavorites().find((x) => x.id === id);
-      if (f) basculerFavoriBorne(f.nom, f.lat, f.lon, f.adresse);
-    },
-  );
   $("ev-historique-clear-btn").addEventListener("click", () => {
     // Efface aussi une éventuelle reprise en attente (trajet de test coupé
     // sans passer par "Arrêter") : sans ça, la bannière "Reprendre ?"
@@ -1336,17 +1306,6 @@ let dernierCalculRecharge = { minutes: 0, cible: 80 };
 function rendreProfil() {
   const profil = obtenirProfilVehicule();
   $("ev-vehicule-badge").textContent = profil.nom || "";
-  $("ev-profil-nom").value = profil.nom || "";
-  $("ev-profil-capacite").value = profil.capacite_kwh;
-  $("ev-profil-conso").value = profil.consommation_kwh_100km;
-  $("ev-profil-ac").value = profil.puissance_ac_kw;
-  $("ev-profil-dc").value = profil.puissance_dc_kw;
-  $("ev-profil-domicile").value = profil.puissance_domicile_kw ?? "";
-  $("ev-profil-connecteurs").value = (profil.connecteurs_acceptes || []).join(", ");
-  $("ev-profil-saison").value = profil.saison || "mi_saison";
-  $("ev-profil-prix-hc").value = profil.prix_hc_eur_kwh;
-  $("ev-profil-prix-hp").value = profil.prix_hp_eur_kwh;
-  $("ev-profil-part-hc").value = profil.part_hc_pct;
   rendreReglagesProfil();
 }
 
@@ -1358,38 +1317,29 @@ function rendreReglagesProfil() {
   $("ev-reglage-domicile").value = reglages.adresse_domicile || "";
   $("ev-reglage-travail").value = reglages.adresse_travail || "";
   $("ev-reglage-annonce").checked = !!reglages.annonce_vocale;
-  $("ev-reglage-mode-eco").checked = reglages.mode_eco === true;
   $("ev-reglage-carte3d").value = reglages.carte_3d || "libre";
-  $("ev-reglage-relief").checked = reglages.relief_3d === true;
   // Trop gourmand en 3D sur téléphone (tracé qui clignote, écran noir par
   // intermittence, confirmé par l'utilisateur le 2026-09-27) : la préférence
   // reste enregistrable, mais n'est jamais appliquée sur écran tactile
   // (voir carte3d.js) -- désactivé ici pour ne pas laisser croire qu'il
   // sert à quelque chose sur ce type d'appareil.
   if (matchMedia("(pointer: coarse)").matches) {
-    $("ev-reglage-relief").checked = false;
-    $("ev-reglage-relief").disabled = true;
-    $("ev-reglage-relief").closest("label").title = "Indisponible sur téléphone : trop gourmand pour la 3D en conduite.";
   }
   $("ev-reglage-jour-nuit").checked = reglages.jour_nuit_auto !== false;
-  $("ev-reglage-mode-voiture").checked = reglages.mode_voiture === true;
   $("ev-reglage-taille-bandeau").value = reglages.taille_bandeau === "grand" ? "grand" : "compact";
   $("ev-reglage-zoom-renforce").checked = reglages.zoom_renforce !== false;
   $("ev-reglage-voix").checked = reglages.voix_guidage !== false;
   $("ev-reglage-voix-voies").checked = reglages.voix_voies !== false;
   $("ev-reglage-voix-travaux").checked = reglages.voix_travaux !== false;
-  $("ev-reglage-voix-bornes").checked = reglages.voix_bornes !== false;
   $("ev-reglage-bip").checked = reglages.bip_vitesse !== false;
   $("ev-reglage-fenetre-voies").checked = reglages.fenetre_voies !== false;
   $("ev-reglage-vue-carrefour").checked = reglages.vue_carrefour !== false;
   $("ev-reglage-icone").value = reglages.icone_voiture || "fleche_bleue";
   $("ev-reglage-parking-arrivee").checked = reglages.parking_arrivee !== false;
-  $("ev-reglage-privilegier-abos").checked = reglages.privilegier_abonnements !== false;
   $("ev-reglage-meteo-route").checked = reglages.meteo_route !== false;
   $("ev-reglage-aires").checked = reglages.aires_autoroute !== false;
   $("ev-reglage-epure").checked = reglages.ecran_epure !== false;
   $("ev-reglage-reponses-voix").checked = reglages.reponses_voix !== false;
-  $("ev-reglage-prechauffage").checked = reglages.prechauffage !== false;
   $("ev-reglage-inclinaison").value = String(reglages.inclinaison_3d ?? 70);
   $("ev-reglage-inclinaison-val").textContent = String(reglages.inclinaison_3d ?? 70);
   $("ev-reglage-inclinaison-plate").value = String(reglages.inclinaison_ronds_points ?? 40);
@@ -1516,80 +1466,6 @@ function cablerProfil() {
       $(`${id}-voir`).textContent = masquee ? "👁️" : "🙈";
     });
   }
-  // « Enregistrer » est loin en bas : dès qu'un réglage placé avant lui est
-  // modifié, il reste affiché en bas de l'écran jusqu'à l'enregistrement.
-  const enregistrer = $("ev-profil-save-btn");
-  const marquerModifie = (e) => {
-    if (enregistrer.compareDocumentPosition(e.target) & Node.DOCUMENT_POSITION_PRECEDING) enregistrer.classList.add("ev-a-enregistrer");
-  };
-  $("vue-profil").addEventListener("input", marquerModifie);
-  $("vue-profil").addEventListener("change", marquerModifie);
-  enregistrer.addEventListener("click", () => enregistrer.classList.remove("ev-a-enregistrer"));
-  $("ev-profil-save-btn").addEventListener("click", () => {
-    const avaitCleOcm = !!getApiKeys().openChargeMap;
-    const connecteurs = $("ev-profil-connecteurs").value.split(",").map((s) => s.trim()).filter(Boolean);
-    definirProfilVehicule({
-      nom: $("ev-profil-nom").value.trim() || undefined,
-      capacite_kwh: nombreOuUndefined($("ev-profil-capacite").value),
-      consommation_kwh_100km: nombreOuUndefined($("ev-profil-conso").value),
-      puissance_ac_kw: nombreOuUndefined($("ev-profil-ac").value),
-      puissance_dc_kw: nombreOuUndefined($("ev-profil-dc").value),
-      puissance_domicile_kw: nombreOuUndefined($("ev-profil-domicile").value),
-      prix_hc_eur_kwh: nombreOuUndefined($("ev-profil-prix-hc").value),
-      prix_hp_eur_kwh: nombreOuUndefined($("ev-profil-prix-hp").value),
-      part_hc_pct: nombreOuUndefined($("ev-profil-part-hc").value),
-      connecteurs_acceptes: connecteurs.length ? connecteurs : undefined,
-      saison: $("ev-profil-saison").value,
-    });
-    sauverReglages({
-      adresse_domicile: $("ev-reglage-domicile").value.trim(),
-      adresse_travail: $("ev-reglage-travail").value.trim(),
-      annonce_vocale: $("ev-reglage-annonce").checked,
-      carte_3d: $("ev-reglage-carte3d").value,
-      relief_3d: $("ev-reglage-relief").checked,
-      jour_nuit_auto: $("ev-reglage-jour-nuit").checked,
-      mode_voiture: $("ev-reglage-mode-voiture").checked,
-      taille_bandeau: $("ev-reglage-taille-bandeau").value,
-      zoom_renforce: $("ev-reglage-zoom-renforce").checked,
-      voix_guidage: $("ev-reglage-voix").checked,
-      voix_voies: $("ev-reglage-voix-voies").checked,
-      voix_travaux: $("ev-reglage-voix-travaux").checked,
-      voix_bornes: $("ev-reglage-voix-bornes").checked,
-      bip_vitesse: $("ev-reglage-bip").checked,
-      fenetre_voies: $("ev-reglage-fenetre-voies").checked,
-      vue_carrefour: $("ev-reglage-vue-carrefour").checked,
-      icone_voiture: $("ev-reglage-icone").value,
-      parking_arrivee: $("ev-reglage-parking-arrivee").checked,
-      privilegier_abonnements: $("ev-reglage-privilegier-abos").checked,
-      meteo_route: $("ev-reglage-meteo-route").checked,
-      aires_autoroute: $("ev-reglage-aires").checked,
-      ecran_epure: $("ev-reglage-epure").checked,
-      reponses_voix: $("ev-reglage-reponses-voix").checked,
-      prechauffage: $("ev-reglage-prechauffage").checked,
-      taille_texte_nav: Number($("ev-reglage-taille-texte").value),
-      inclinaison_3d: Number($("ev-reglage-inclinaison").value),
-      inclinaison_ronds_points: Number($("ev-reglage-inclinaison-plate").value),
-      decalage_zoom_nav: Number($("ev-reglage-decalage-zoom").value),
-      vibration: $("ev-reglage-vibration").checked,
-      nuit_douce: $("ev-reglage-nuit-douce").checked,
-      notif_guidage: $("ev-reglage-notif").checked,
-      feux: $("ev-reglage-feux").checked,
-      zones_danger: $("ev-reglage-zones-danger").checked,
-      pause_mi_parcours: $("ev-reglage-pause-mi-parcours").checked,
-      mode_eco: $("ev-reglage-mode-eco").checked,
-    });
-    const ancienneCleTomTom = getApiKeys().tomtom;
-    setApiKeys({ tomtom: $("ev-cle-tomtom").value.trim(), openChargeMap: $("ev-cle-ocm").value.trim() });
-    if (getApiKeys().tomtom !== ancienneCleTomTom) {
-      rechargerFond();
-      if (getApiKeys().tomtom) testerCleTomTom(getApiKeys().tomtom);
-    }
-    rendreProfil();
-    toast("✅ Profil et réglages enregistrés");
-    if (!avaitCleOcm && getApiKeys().openChargeMap) {
-      derniereZone = null;
-    }
-  });
 }
 
 // ── Démarrage ──────────────────────────────────────────────────────────────
@@ -1701,14 +1577,12 @@ async function rendreEtatAppli() {
   const cles = getApiKeys();
   const prepare = guidagePrepare();
   const diag = navigationActive() ? etatDiagnostic() : null;
-  const ageEtats = ageEtatsDynamiques();
   const lignes = lignesEtat({
     enLigne: navigator.onLine,
     gpsPermission,
     gpsTest: dernierTestGps,
     cles: { tomtom: !!cles.tomtom, openChargeMap: !!cles.openChargeMap },
     quota: { utilise: appelsTomTomDuJour(), max: QUOTA_TOMTOM_JOUR },
-    etatsBornesAgeMin: ageEtats === null ? null : ageEtats / 60000,
     guidagePrepare: prepare ? { ageMin: (Date.now() - prepare.ts) / 60000, nbArrets: prepare.nbArrets } : null,
     regionPreparee: !!regionPreparee(),
     guidage: diag ? { signal: diag.gps_signal, niveau: diag.gps_niveau, age_s: Number(diag.gps_age_s), ecartees: diag.gps_mesures_ecartees, estimations: diag.gps_passages_a_l_estime } : null,

@@ -42,7 +42,6 @@
 <!-- Barre du haut : recherche + filtres -->
 <header class="ev-haut">
   <div class="ev-haut-ligne">
-    <button id="ev-recherche-rapide" class="ev-barre-recherche" type="button">
       <span class="ev-loupe">🔍</span><span>Où allez-vous ?</span>
     </button>
   </div>
@@ -58,12 +57,10 @@
     <button class="ev-chip" type="button" id="ev-autonomie-chip" title="Jusqu'où je peux aller avec la batterie">🔋 Autonomie</button>
     <button class="ev-chip hidden" type="button" id="ev-voiture-chip" title="Où est garée ma voiture">🚗 Ma voiture</button>
   </div>
-  <button type="button" id="ev-cles-manquantes" class="ev-bandeau hidden">⚠️ Clés API manquantes : touche ici pour les ajouter (Menu › Clés API).</button>
 </header>
 
 <!-- Boutons flottants sur la carte -->
 <div class="ev-fabs">
-  <button id="ev-urgence-btn" class="ev-fab ev-fab-urgence" type="button" title="Mode urgence : bornes les plus proches"><span class="ev-fab-sos">SOS</span></button>
   <button id="ev-fond-btn" class="ev-fab" type="button" title="Changer le fond de carte"></button>
   <button id="ev-carte3d-btn" class="ev-fab ev-fab-texte" type="button" title="Carte en 3D / 2D">3D</button>
   <button id="ev-localiser-btn" class="ev-fab" type="button" title="Me localiser" data-icone="localiser"></button>
@@ -88,7 +85,6 @@
     <div id="vue-bornes" class="ev-vue">
       <div class="ev-vue-entete">
         <h2 id="ev-bornes-titre">📍 Bornes à proximité</h2>
-        <button id="ev-recherche-effacer" class="ev-lien hidden" type="button">✕ Effacer la recherche</button>
       </div>
       <div class="ev-legende">
         <span><i class="ev-point ultra"></i>≥150 kW</span>
@@ -261,7 +257,6 @@
         <button id="ev-historique-clear-btn" class="ev-lien" type="button">🗑️ Effacer tout l'historique</button>
         <div id="ev-historique-list" class="ev-liste"></div>
       </div>
-      <div id="ev-bornes-favorites-list" class="ev-liste hidden"></div>
     </div>
 
     <!-- ══ Outils ══ -->
@@ -285,7 +280,6 @@
       <div class="ev-carte-bloc" id="ev-bloc-journal">
         <h3>📒 Journal des recharges</h3>
         <div class="ev-hint">Rempli tout seul en navigation (à « Reprendre la route »), ou à la main ci-dessous.</div>
-        <div id="ev-journal-bilan"></div>
         <details class="ev-details">
           <summary>➕ Ajouter une recharge à la main</summary>
           <div class="ev-grille-2">
@@ -295,81 +289,14 @@
             <button id="ev-journal-ajouter-btn" class="ev-btn" type="button">Ajouter</button>
           </div>
         </details>
-        <div id="ev-journal-liste" class="ev-journal-liste"></div>
       </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-recherche">
         <h3>🔍 Rechercher des bornes</h3>
-        <div class="ev-colonne">
-          <label class="ev-champ">Zone (ville, adresse, « Ma position »…)
-            <span class="ev-input-row">
-              <input type="text" id="ev-recherche-lieu-input" class="ev-input" value="Ma position">
-              <button id="ev-recherche-gps-btn" class="ev-mini-btn" type="button" title="Ma position">📍</button>
-            </span>
-          </label>
-          <label class="ev-champ">Enseigne / opérateur
-            <select id="ev-recherche-operateur-select" class="ev-input">
-              <option value="">Toutes les enseignes</option>
-              <option value="TotalEnergies">TotalEnergies</option>
-              <option value="Electra">Electra</option>
-              <option value="Ionity">Ionity</option>
-              <option value="Fastned">Fastned</option>
-              <option value="Freshmile">Freshmile</option>
-              <option value="IZIVIA">IZIVIA (EDF)</option>
-              <option value="Tesla">Tesla</option>
-              <option value="Allego">Allego</option>
-              <option value="Powerdot">Powerdot</option>
-              <option value="Leclerc">E.Leclerc</option>
-              <option value="Carrefour">Carrefour</option>
-              <option value="Lidl">Lidl</option>
-              <option value="Bouygues">Bouygues</option>
-              <option value="Engie">Engie</option>
-              <option value="__autre__">Autre (saisir ci-dessous)</option>
-            </select>
-            <input type="text" id="ev-recherche-operateur-input" class="ev-input hidden" placeholder="Nom de l'enseigne…">
-          </label>
-          <label class="ev-champ">Type d'accès
-            <select id="ev-recherche-acces-select" class="ev-input">
-              <option value="">Tous types d'accès</option>
-              <option value="Pay At Location">Paiement sur place</option>
-              <option value="Membership Required">Abonnement requis</option>
-              <option value="Notice Required">Réservation / préavis requis</option>
-              <option value="Private">Privé</option>
-            </select>
-          </label>
-          <label class="ev-champ">Rayon : <span id="ev-recherche-rayon-value" class="ev-valeur">20</span> km
-            <input type="range" min="5" max="50" value="20" id="ev-recherche-rayon-input" class="ev-curseur">
-          </label>
-          <label class="ev-check"><input type="checkbox" id="ev-recherche-cb-checkbox"> 💳 Uniquement celles qui acceptent la carte bancaire</label>
-          <button id="ev-recherche-run-btn" class="ev-btn-principal" type="button">Afficher sur la carte</button>
-          <div id="ev-recherche-etat" class="ev-hint"></div>
-        </div>
       </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-calculateur">
         <h3>⏱️ Calculateur de recharge</h3>
-        <div class="ev-colonne">
-          <label class="ev-champ"><span class="ev-champ-titre">Batterie actuelle : <span id="ev-calc-debut-val" class="ev-valeur">20</span> %</span>
-            <input type="range" min="0" max="100" step="1" value="20" id="ev-calc-debut-input" class="ev-curseur">
-          </label>
-          <label class="ev-champ"><span class="ev-champ-titre">Recharger jusqu'à : <span id="ev-calc-cible-val" class="ev-valeur">80</span> %</span>
-            <input type="range" min="0" max="100" step="1" value="80" id="ev-calc-cible-input" class="ev-curseur">
-          </label>
-          <label class="ev-champ"><span class="ev-champ-titre">Énergie à ajouter : <span id="ev-calc-kwh-val" class="ev-valeur">40</span> kWh</span>
-            <input type="range" min="0" max="65" step="0.5" value="40" id="ev-calc-kwh-input" class="ev-curseur">
-          </label>
-          <label class="ev-champ">Type de charge
-            <select id="ev-calc-type-select" class="ev-input">
-              <option value="lente">Lente (prise domestique)</option>
-              <option value="domicile">Borne à domicile</option>
-              <option value="normale">Normale (borne AC)</option>
-              <option value="rapide" selected>Rapide (borne DC)</option>
-            </select>
-          </label>
-          <div id="ev-calc-result" class="ev-resultat-calc"></div>
-          <button id="ev-calc-minuteur-btn" class="ev-btn" type="button">🔔 Me prévenir à la fin de cette recharge</button>
-          <div id="ev-calc-minuteur" class="ev-hint hidden"></div>
-        </div>
       </div>
 
       <div class="ev-hint">ℹ️ Paiement CB, tarifs, horaires et accès : Base nationale officielle des bornes (IRVE, data.gouv.fr), déclarée par les opérateurs. « CB probable (non confirmé) » = borne non déclarée mais ≥50 kW, où le terminal CB est obligatoire sur les bornes neuves depuis avril 2024. En cas de doute, vérifie sur place.</div>
@@ -392,22 +319,6 @@
 
       <div class="ev-carte-bloc" id="ev-bloc-vehicule">
         <h3>Véhicule</h3>
-        <div class="ev-grille-champs">
-          <label class="ev-champ ev-large">Nom<input type="text" id="ev-profil-nom" class="ev-input"></label>
-          <label class="ev-champ">Batterie (kWh)<input type="number" step="0.1" id="ev-profil-capacite" class="ev-input" inputmode="decimal"></label>
-          <label class="ev-champ">Conso (kWh/100 km)<input type="number" step="0.1" id="ev-profil-conso" class="ev-input" inputmode="decimal"><small id="ev-conso-mesuree" class="ev-aide-champ"></small></label>
-          <label class="ev-champ">Charge AC max (kW)<input type="number" step="0.1" id="ev-profil-ac" class="ev-input" inputmode="decimal"></label>
-          <label class="ev-champ">Charge DC max (kW)<input type="number" step="0.1" id="ev-profil-dc" class="ev-input" inputmode="decimal"><small class="ev-aide-champ">Puissance max réelle (Kona 64 kWh : 77)</small></label>
-          <label class="ev-champ">Borne à domicile (kW)<input type="number" step="0.1" id="ev-profil-domicile" class="ev-input" inputmode="decimal"><small class="ev-aide-champ">Borne « 7 kW » = 7,4</small></label>
-          <label class="ev-champ ev-large">Prises acceptées<input type="text" id="ev-profil-connecteurs" class="ev-input" placeholder="CCS, Type 2"></label>
-          <label class="ev-champ ev-large">Saison (si la météo réelle n'est pas utilisée)
-            <select id="ev-profil-saison" class="ev-input">
-              <option value="ete">Été (consommation normale)</option>
-              <option value="mi_saison">Mi-saison (+10 %)</option>
-              <option value="hiver">Hiver (+25 %, chauffage)</option>
-            </select>
-          </label>
-        </div>
         <a href="https://jaouendekerlede.github.io/noticekona/" target="_blank" rel="noopener" class="ev-btn-secondaire" style="display:inline-block;text-decoration:none;text-align:center;margin-top:10px;">📖 Notice Kona (fonctions, commandes, sécurité — hors-ligne)</a>
       </div>
 
@@ -493,8 +404,6 @@
         </details>
         <details class="ev-sous-menu">
           <summary>🔋 Voiture électrique</summary>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-voix-bornes"> 🔋 Annoncer les bornes de recharge prévues</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-prechauffage"> 🌡️ Rappeler de préchauffer la batterie avant une borne rapide</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-aires"> 🛣️ Sur autoroute et voie express : prochaine borne et aires (en bas à gauche)</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-parking-arrivee"> 🅿️ Proposer des parkings à 2 km de l'arrivée</label>
         </details>
@@ -512,28 +421,19 @@
           <button id="ev-region-btn" class="ev-btn ev-btn-plein" type="button">📥 Télécharger ma région</button>
           <div id="ev-region-info" class="ev-hint"></div>
         </div>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-mode-eco"> 🔋 Mode éco (économise la batterie du téléphone) : navigation en 2D, tracé et guidage toujours aussi visibles</label>
         <label class="ev-check"><input type="checkbox" id="ev-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-mode-voiture"> 🚗 Mode voiture : grands boutons et textes pendant la navigation</label>
         <label class="ev-champ">Fournisseur de la carte 3D
           <select id="ev-reglage-carte3d" class="ev-input">
             <option value="libre">OpenFreeMap — gratuite, sans clé ni limite</option>
             <option value="tomtom">TomTom — utilise ta clé TomTom</option>
           </select>
         </label>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-relief"> ⛰️ Relief du terrain (collines, vallées) — utile en montagne ; en ville, les bâtiments peuvent masquer le tracé, et un peu plus de batterie. Ordinateur uniquement : trop gourmand en 3D sur téléphone</label>
         <div class="ev-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
       </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-abonnements">
         <h3>💳 Mes abonnements de recharge</h3>
-        <label class="ev-check"><input type="checkbox" id="ev-reglage-privilegier-abos"> ⭐ Privilégier ces réseaux dans le choix des arrêts</label>
         <div class="ev-hint">Réseau tel qu'il apparaît sur les bornes (ex. Ionity, Tesla, Electra) et ton prix au kWh avec l'abonnement : il remplace le tarif public dans les calculs.</div>
-        <div id="ev-abonnements-liste" class="ev-journal-liste"></div>
-        <div class="ev-grille-2">
-          <input type="text" id="ev-abo-reseau" class="ev-input" placeholder="Réseau (ex. Ionity)">
-          <input type="number" id="ev-abo-prix" class="ev-input" min="0" step="0.01" placeholder="Prix €/kWh" inputmode="decimal">
-        </div>
         <button id="ev-abo-ajouter-btn" class="ev-btn" type="button">➕ Ajouter l'abonnement</button>
       </div>
 
@@ -548,7 +448,6 @@
         </label>
         <button id="ev-tester-tomtom-btn" class="ev-btn" type="button">🔍 Tester ma clé TomTom</button>
         <div id="ev-tester-tomtom-resultat" class="ev-diagnostic hidden"></div>
-        <div id="ev-quota-tomtom" class="ev-hint"></div>
         <label class="ev-champ">Clé Open Charge Map (bornes) — <a href="https://openchargemap.org/site/signup" target="_blank" rel="noopener">créer</a>
           <span class="ev-input-row">
             <input type="text" id="ev-cle-ocm" class="ev-input ev-cle-masquee" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">
@@ -596,7 +495,6 @@
         <details class="ev-sous-menu" open>
           <summary>Mes moyens de paiement</summary>
           <div class="ev-hint">Coche ce que tu as. La fiche de chaque borne te dit alors si tu peux y payer, et le filtre « ✅ Je peux payer » de la carte ne garde que ces bornes.</div>
-          <div id="ev-moyens-paiement" class="ev-colonne"></div>
         </details>
         <details class="ev-sous-menu">
           <summary>Les façons de payer</summary>
@@ -757,13 +655,6 @@
 </nav>
 
 <!-- Mode urgence -->
-<div id="ev-urgence-panel" class="ev-urgence hidden">
-  <div class="ev-urgence-entete">
-    <span>🆘 URGENCE — AUTONOMIE CRITIQUE</span>
-    <button id="ev-urgence-close-btn" class="ev-urgence-fermer" type="button">✖️ Fermer</button>
-  </div>
-  <div id="ev-urgence-body" class="ev-urgence-corps"></div>
-</div>
 
 <!-- Navigation GPS -->
 <div id="ev-navigation" class="ev-navigation hidden">
@@ -839,7 +730,6 @@
     </div>
   </div>
 
-  <div id="ev-nav-frise" class="ev-nav-frise hidden" aria-label="Trajet restant"></div>
 
   <div id="ev-nav-recherche" class="ev-nav-carte hidden">
     <div class="ev-nav-carte-titre ev-titre-fermer">🔍 Le long du trajet <button type="button" class="ev-fermer" data-fermer aria-label="Fermer">✕</button></div>
@@ -881,7 +771,6 @@
       <div><strong id="ev-nav-eta">--:--</strong><span>arrivée</span></div>
       <div><strong id="ev-nav-reste-temps">—</strong><span>restant</span></div>
       <div><strong id="ev-nav-reste-km">—</strong><span>km</span></div>
-      <button id="ev-nav-batt-btn" class="ev-nav-batt" type="button"><strong id="ev-nav-batt">—</strong><span>batterie ✎</span></button>
     </div>
   </div>
 </div>
