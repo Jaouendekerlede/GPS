@@ -173,7 +173,8 @@ function instructionsOsm(legs, coords) {
 async function itineraireOsm(points, options) {
   const coords = points.map((p) => `${p.lon},${p.lat}`).join(";");
   const alternatives = options.maxAlternatives === 0 ? "false" : "true";
-  const url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=${alternatives}`;
+  const profil = { voiture: "routed-car", velo: "routed-bike", pieton: "routed-foot" }[options.mode] || "routed-car";
+  const url = `https://routing.openstreetmap.de/${profil}/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true&alternatives=${alternatives}`;
   try {
     const resp = await fetch(url);
     if (!resp.ok) return { erreur: `osm_${resp.status}` };
@@ -196,7 +197,8 @@ async function itineraireOsm(points, options) {
 export async function calculerItineraireTomTom(apiKey, lat1, lon1, lat2, lon2, options = {}) {
   const etapes = options.etapes || [];
   const points = [{ lat: lat1, lon: lon1 }, ...etapes, { lat: lat2, lon: lon2 }];
-  if (!apiKey) return itineraireOsm(points, options);
+  // TomTom ne traite que la voiture ici : vélo et piéton passent par OpenStreetMap.
+  if (!apiKey || (options.mode && options.mode !== "voiture")) return itineraireOsm(points, options);
   const support = !etapes.length && options.traceImposee?.length >= 2 ? allegerTrace(options.traceImposee) : null;
   try {
     // Filets de sécurité : sans les sections de vitesse (requête d'origine

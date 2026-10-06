@@ -56,6 +56,7 @@ async function calculerItineraire(depart, destination, opts) {
     eviterFerries: opts.eviter_ferries,
     eviterZonesFaiblesEmissions: opts.eviter_zones_faibles_emissions,
     eviterRoutesNonRevetues: opts.eviter_routes_non_revetues,
+    mode: opts.mode || "voiture",
     // TomTom prévoit alors le trafic à cette heure-là
     departAt: departMs > Date.now() + 5 * 60000 ? new Date(departMs).toISOString().replace(/\.\d{3}Z$/, "Z") : null,
     traceImposee: opts.trace_imposee,

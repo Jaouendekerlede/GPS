@@ -729,6 +729,7 @@ function construireOptions() {
     points_passage: pointsPassage.slice(),
   };
   for (const [cle, id] of Object.entries(CASES)) options[cle] = $(id).checked;
+  options.mode = $("gps-mode-transport").value;
   dernieresOptions = options;
   return options;
 }
@@ -861,6 +862,7 @@ function etapesHtml(p) {
 }
 
 function afficherResultat(p) {
+  annoncerHeureDepart(p);
   dernierTrajet = p;
   trajetAffiche = true;
   $("gps-voir-resultat-btn").classList.remove("hidden");
@@ -1317,6 +1319,10 @@ function rendreReglagesProfil() {
   $("gps-reglage-distance-virage").value = String(reglages.distance_virage || 300);
   $("gps-reglage-alerte-passages").checked = reglages.alerte_passages_niveau !== false;
   $("gps-reglage-alerte-stops").checked = reglages.alerte_stops !== false;
+  $("gps-reglage-debutant").checked = reglages.debutant === true;
+  $("gps-reglage-alerte-lieux").checked = reglages.alerte_lieux === true;
+  $("gps-reglage-daltonien").checked = reglages.daltonien === true;
+  document.body.classList.toggle("gps-daltonien", reglages.daltonien === true);
   $("gps-reglage-conso").value = reglages.conso_l_100 ?? "";
   $("gps-reglage-prix-carburant").value = reglages.prix_carburant_l ?? "";
   $("gps-reglage-taille-globale").value = String(reglages.taille_globale ?? 100);
@@ -1614,7 +1620,7 @@ function majInfoRegion() {
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
 // Interrupteurs du menu « Outils » : même réglage que dans Profil › Navigation,
 // appliqué tout de suite. Le contraste est activé par défaut à « non ».
-const ACTIF_PAR_DEFAUT = { contraste_fort: false };
+const ACTIF_PAR_DEFAUT = { contraste_fort: false, debutant: false, daltonien: false, alerte_lieux: false };
 
 function estActifReglage(cle) {
   const r = lireReglages();
@@ -1659,9 +1665,132 @@ function exporterTrajetsCsv() {
   toast(`📄 ${lignes.length - 1} trajet(s) exporté(s).`);
 }
 
+// Heure de départ conseillée : fixée par un rendez-vous importé, puis calculée au premier résultat.
+let arriveeSouhaitee = null;
+
+function heureCourte(ms) {
+  return new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+// Rendez-vous d'un fichier .ics, triés par date (début et lieu ou titre).
+function lireRendezVous(texte) {
+  const evenements = [];
+  for (const bloc of texte.split("BEGIN:VEVENT").slice(1)) {
+    const contenu = bloc.split("END:VEVENT")[0].replace(/\r?\n[ \t]/g, "");
+    const debut = /DTSTART[^:]*:(\d{8})(?:T(\d{2})(\d{2})(\d{2})?)?(Z?)/.exec(contenu);
+    if (!debut) continue;
+    const [, d, hh = "00", mm = "00", ss = "00", z] = debut;
+    const ms = new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T${hh}:${mm}:${ss}${z ? "Z" : ""}`).getTime();
+    const lieu = /LOCATION:(.*)/.exec(contenu)?.[1]?.trim().replace(/\\,/g, ",");
+    const titre = /SUMMARY:(.*)/.exec(contenu)?.[1]?.trim().replace(/\\,/g, ",");
+    if (Number.isFinite(ms)) evenements.push({ ms, lieu, titre });
+  }
+  return evenements.sort((a, b) => a.ms - b.ms);
+}
+
+function importerRendezVous() {
+  const champ = document.createElement("input");
+  champ.type = "file";
+  champ.accept = ".ics,text/calendar";
+  champ.addEventListener("change", async () => {
+    const f = champ.files?.[0];
+    if (!f) return;
+    const evenements = lireRendezVous(await f.text());
+    const prochain = evenements.find((e) => e.ms > Date.now()) || evenements[evenements.length - 1];
+    const destination = prochain?.lieu || prochain?.titre || "";
+    if (!destination) return toast("Aucun rendez-vous avec lieu trouvé dans ce fichier.");
+    arriveeSouhaitee = prochain.ms;
+    $("gps-destination-input").value = destination;
+    $("gps-destination-input").dispatchEvent(new Event("change"));
+    afficherVue("trajet");
+    lancerTrajet();
+  });
+  champ.click();
+}
+
+// Si un rendez-vous est fixé : dit l'heure de départ à prendre pour arriver à l'heure.
+function annoncerHeureDepart(p) {
+  const duree = p.duree_totale_min || p.duree_min;
+  if (!arriveeSouhaitee || !duree) return;
+  toast(`🕐 Pour arriver à ${heureCourte(arriveeSouhaitee)}, partez vers ${heureCourte(arriveeSouhaitee - duree * 60000)}.`);
+  arriveeSouhaitee = null;
+}
+
+// Statistiques des trajets enregistrés (kilomètres, moyenne, carburant estimé).
+function afficherStatistiques() {
+  const h = listerHistoriqueTrajets();
+  if (!h.length) return toast("Pas encore de trajet enregistré.");
+  const km = h.reduce((s, t) => s + (Number(t.distance_km) || 0), 0);
+  const carb = h.reduce((s, t) => s + (coutCarburant(Number(t.distance_km)) || 0), 0);
+  bandeau({
+    id: "gps-statistiques",
+    texte: `📊 ${h.length} trajet(s) · ${nombre(Math.round(km))} km au total · ${nombre(Math.round(km / h.length))} km en moyenne${carb ? ` · carburant environ ${euros(carb)}` : ""}`,
+    boutons: [{ libelle: "OK", action: () => {} }],
+  });
+}
+
+// Réglages en fichier : les clés d'accès (TomTom, Open Charge Map) ne sont jamais exportées.
+const CLES_NON_EXPORTEES = /cle|key|token|secret|tomtom|openchargemap/i;
+
+function exporterReglages() {
+  const propres = Object.fromEntries(Object.entries(lireReglages()).filter(([k]) => !CLES_NON_EXPORTEES.test(k)));
+  telechargerTexte("reglages-gps.json", JSON.stringify(propres, null, 2));
+  toast("📄 Réglages exportés (les clés d'accès ne sont pas incluses).");
+}
+
+function importerReglages() {
+  const champ = document.createElement("input");
+  champ.type = "file";
+  champ.accept = ".json,application/json";
+  champ.addEventListener("change", async () => {
+    const f = champ.files?.[0];
+    if (!f) return;
+    try {
+      const lus = JSON.parse(await f.text());
+      if (!lus || typeof lus !== "object" || Array.isArray(lus)) throw new Error("format");
+      const propres = Object.fromEntries(Object.entries(lus).filter(([k]) => !CLES_NON_EXPORTEES.test(k)));
+      sauverReglages(propres);
+      rendreReglagesProfil();
+      appliquerTheme();
+      majBasculesMenu();
+      toast(`✅ ${Object.keys(propres).length} réglage(s) importé(s).`);
+    } catch {
+      toast("⚠️ Ce fichier de réglages ne peut pas être lu.");
+    }
+  });
+  champ.click();
+}
+
+// Rappel une fois par jour quand un trajet est prévu dans les 36 prochaines heures.
+function afficherRappelCarteDemain() {
+  const t = trajetPrevu();
+  const maintenant = Date.now();
+  if (!t?.ts || t.ts < maintenant || t.ts - maintenant > 36 * 3600000) return;
+  const jour = new Date().toDateString();
+  if (lireReglages().carte_demain_vu === jour) return;
+  sauverReglages({ carte_demain_vu: jour });
+  bandeau({
+    id: "gps-rappel-carte",
+    texte: `🗺️ Trajet prévu vers ${nomCourt(t.destination || "").split(",")[0]} : téléchargez la carte de la région pour rouler sans réseau.`,
+    boutons: [
+      { libelle: "Télécharger", action: () => document.querySelector('.gps-menu-ligne[data-bloc="gps-bloc-cartes"]')?.click() },
+      { libelle: "Plus tard", action: () => {} },
+    ],
+  });
+}
+
+const ACTIONS_MENU = {
+  "exporter-trajets": () => exporterTrajetsCsv(),
+  "exporter-reglages": () => exporterReglages(),
+  "importer-reglages": () => importerReglages(),
+  "importer-rdv": () => importerRendezVous(),
+  statistiques: () => afficherStatistiques(),
+};
+
 function cablerBasculesMenu() {
   $("vue-menu").addEventListener("click", (e) => {
-    if (e.target.closest("[data-action='exporter-trajets']")) return exporterTrajetsCsv();
+    const action = e.target.closest("[data-action]");
+    if (action) return ACTIONS_MENU[action.dataset.action]?.();
     const b = e.target.closest("[data-basculer]");
     if (!b) return;
     const cle = b.dataset.basculer;
@@ -1697,6 +1826,7 @@ function cablerRechercheBas() {
     toast(`${nomCourt(dest).split(",")[0]} retiré des raccourcis.`);
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
+  $("gps-reglage-daltonien").addEventListener("change", (e) => document.body.classList.toggle("gps-daltonien", e.target.checked));
   $("gps-reglage-taille-globale").addEventListener("input", (e) => {
     $("gps-reglage-taille-globale-val").textContent = e.target.value;
     appliquerTailleGlobale(e.target.value);
@@ -1736,6 +1866,9 @@ function cablerRechercheBas() {
       distance_virage: Number($("gps-reglage-distance-virage").value),
       alerte_passages_niveau: $("gps-reglage-alerte-passages").checked,
       alerte_stops: $("gps-reglage-alerte-stops").checked,
+      debutant: $("gps-reglage-debutant").checked,
+      alerte_lieux: $("gps-reglage-alerte-lieux").checked,
+      daltonien: $("gps-reglage-daltonien").checked,
       conso_l_100: Number($("gps-reglage-conso").value) || null,
       prix_carburant_l: Number($("gps-reglage-prix-carburant").value) || null,
       taille_globale: Number($("gps-reglage-taille-globale").value),
@@ -1757,6 +1890,7 @@ function cablerRechercheBas() {
   rendreRaccourcis();
   cablerPresDeMoi();
   cablerBasculesMenu();
+  afficherRappelCarteDemain();
 }
 
 // Raccourcis sous la recherche : Maison, Travail, puis les dernières destinations.

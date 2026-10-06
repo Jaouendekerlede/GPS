@@ -160,6 +160,15 @@ function majFlecheCarte(instr, distance) {
 // Dernière consigne prononcée : « répète » la redit.
 let derniereConsigne = "";
 
+// Commandes sur l'écran verrouillé (contrôles multimédia) : lecture redit la consigne,
+// pause coupe la voix. Le téléphone ne les montre qu'avec un son actif, selon le système.
+function preparerEcranVerrouille() {
+  if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+  navigator.mediaSession.metadata = new MediaMetadata({ title: "GPS : guidage en cours", artist: "Touchez lecture pour réentendre la consigne" });
+  navigator.mediaSession.setActionHandler("play", () => parler(derniereConsigne, true));
+  navigator.mediaSession.setActionHandler("pause", () => speechSynthesis.cancel());
+}
+
 function parler(texte, prioritaire = false) {
   if (texte) derniereConsigne = texte;
   if (!etat?.voix || !texte || !("speechSynthesis" in window)) return;
@@ -189,6 +198,7 @@ async function calculerRouteNav(pos, cap, { sansSecours = false } = {}) {
     instructions: true,
     cap,
     zonesEvitees: etat.zonesEvitees,
+    mode: o.mode,
     eviterPeages: o.eviter_peages,
     eviterAutoroutes: o.eviter_autoroutes,
     plusCourt: o.plus_court,
@@ -255,7 +265,7 @@ async function chercherAlertesConduite(route) {
 }
 
 // Annonces à distance (200 à 300 m selon le type), une seule fois par lieu.
-const SEUIL_ALERTE_M = { passage: 300, stop: 150, cedez: 150 };
+const SEUIL_ALERTE_M = { passage: 300, stop: 150, cedez: 150, boulangerie: 200, pharmacie: 200 };
 
 function verifierAlertesConduite() {
   const liste = etat.route?.alertesConduite;
@@ -264,18 +274,24 @@ function verifierAlertesConduite() {
   for (const a of liste) {
     const d = a.offset - etat.offset;
     if (d <= 30) continue;
-    const actif = a.type === "virage" ? etat.prefs.alerteVirages : a.type === "passage" ? etat.prefs.alertePassages : etat.prefs.alerteStops;
+    const actif = a.type === "virage" ? etat.prefs.alerteVirages
+      : a.type === "passage" ? etat.prefs.alertePassages
+        : a.type === "boulangerie" || a.type === "pharmacie" ? etat.prefs.alerteLieux
+          : etat.prefs.alerteStops;
     if (!actif) continue;
-    const seuil = a.type === "virage" ? etat.prefs.distVirage : SEUIL_ALERTE_M[a.type];
+    // Conseils débutants : annonces plus tôt (distances × 1,5).
+    const coef = etat.prefs.debutant ? 1.5 : 1;
+    const seuil = Math.round((a.type === "virage" ? etat.prefs.distVirage : SEUIL_ALERTE_M[a.type]) * coef);
     if (d > seuil) continue;
     const cle = `${a.type}|${Math.round(a.offset)}`;
     if (etat.alertesAnnoncees.has(cle)) continue;
     etat.alertesAnnoncees.add(cle);
+    const nomLieu = { boulangerie: "Boulangerie", pharmacie: "Pharmacie", stop: "Stop", cedez: "Cédez le passage" };
     const texte = a.type === "virage"
       ? `${texteVirage(a.angle)} dans ${seuil} mètres, ralentissez.`
       : a.type === "passage"
         ? `Passage à niveau dans ${seuil} mètres, ralentissez.`
-        : `${a.type === "stop" ? "Stop" : "Cédez le passage"} dans ${seuil} mètres.`;
+        : `${nomLieu[a.type]} dans ${seuil} mètres.`;
     parler(texte, true);
   }
 }
@@ -2437,6 +2453,8 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
       distVirage: Number(reglages.distance_virage) || 300,
       alertePassages: reglages.alerte_passages_niveau !== false,
       alerteStops: reglages.alerte_stops !== false,
+      debutant: reglages.debutant === true,
+      alerteLieux: reglages.alerte_lieux === true,
       feux: reglages.feux !== false,
       fenetreVoies: reglages.fenetre_voies !== false,
       vueCarrefour: reglages.vue_carrefour !== false,
@@ -2463,6 +2481,7 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   document.documentElement.style.setProperty("--echelle-nav", String((reglages.taille_texte_nav || 100) / 100));
   reveillerBoutons();
   carte2D.definirIconeVoiture(reglages.icone_voiture);
+  preparerEcranVerrouille();
   carte3D.definirInclinaison3D(reglages.inclinaison_3d ?? 70);
   carte3D.definirInclinaisonPlate(reglages.inclinaison_ronds_points ?? 40);
   carte3D.definirIconeVoiture(reglages.icone_voiture);

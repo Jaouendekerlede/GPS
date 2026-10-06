@@ -1184,3 +1184,9 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 .gps-nav-aires > span { font-size: 13px; gap: 6px; }
 .gps-nav-aires-bascule { align-self: flex-start; min-width: 34px; height: 26px; padding: 0 8px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 15%); background: rgb(15 23 42 / 82%); color: #fff; font-size: 13px; font-weight: 800; line-height: 1; }
 body.gps-aires-replie .gps-nav-aires { display: none !important; }
+
+/* Palette daltonien : orange et bleu au lieu du rouge et du vert */
+body.gps-daltonien .gps-nav-vitesse.exces { background: #c2410c; border-color: #fdba74; }
+body.gps-daltonien .gps-nav-vitesse.exces span { color: #fff; }
+body.gps-daltonien .gps-nav-limite { border-color: #1d4ed8; }
+body.gps-daltonien .gps-nav-danger { background: #c2410c; }

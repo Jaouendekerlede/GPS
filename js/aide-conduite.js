@@ -81,11 +81,12 @@ export function texteVirage(angle) {
 // `points` : { lat, lon, type } avec type « passage », « stop » ou « cedez ».
 export function alertesSurTrace(points, route) {
   const retour = [];
-  const types = { passage: "passage", stop: "stop", cedez: "cedez" };
-  for (const type of Object.keys(types)) {
+  // Distance maximale au tracé : 25 m pour la signalisation, 60 m pour les commerces.
+  const distances = { passage: 25, stop: 25, cedez: 25, boulangerie: 60, pharmacie: 60 };
+  for (const [type, maxD] of Object.entries(distances)) {
     const pts = points.filter((p) => p.type === type);
     if (!pts.length) continue;
-    for (const offset of positionsSurTrace(pts, route.coords, route.cum, 25)) retour.push({ offset, type });
+    for (const offset of positionsSurTrace(pts, route.coords, route.cum, maxD)) retour.push({ offset, type });
   }
   return retour;
 }
