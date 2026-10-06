@@ -256,3 +256,27 @@ export async function airesLeLongDe(morceaux) {
   }
   return { ok: true, lieux };
 }
+
+// Stations-service et aires de repos le long du tracé (pour l'affichage discret en navigation).
+export async function servicesLeLongDe(morceaux) {
+  const rectangles = morceaux.filter((m) => m.length >= 2).flatMap((m) => rectanglesLeLongDu(m, 0.004, 40));
+  if (!rectangles.length) return { ok: true, essence: [], repos: [] };
+  const requete = `[out:json][timeout:25];(${rectangles.map((b) => `nwr["amenity"="fuel"](${b});nwr["highway"~"^(services|rest_area)$"](${b});`).join("")});out center tags;`;
+  const r = await interrogerOverpass(requete);
+  if (!r.ok) return r;
+  const vus = new Set();
+  const essence = [];
+  const repos = [];
+  for (const e of r.elements) {
+    const cle = `${e.type}/${e.id}`;
+    if (vus.has(cle)) continue;
+    vus.add(cle);
+    const lat = e.lat ?? e.center?.lat;
+    const lon = e.lon ?? e.center?.lon;
+    if (lat == null) continue;
+    const t = e.tags || {};
+    if (t.amenity === "fuel") essence.push({ lat, lon, nom: t.name || t.brand || "" });
+    else repos.push({ lat, lon, nom: t.name || "", type: t.highway === "services" ? "service" : "repos" });
+  }
+  return { ok: true, essence, repos };
+}

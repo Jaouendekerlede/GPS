@@ -26,7 +26,7 @@ import { heure, distanceAffichee, distanceParlee, messageCourt, minusculeInitial
 // Réexportés pour les autres modules (ui.js, essais).
 export { traceRestante, dessinVoies } from "./nav-outils.js";
 
-import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, airesLeLongDe, LABELS_TYPE_RADAR } from "./osm-route.js";
+import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, servicesLeLongDe, LABELS_TYPE_RADAR } from "./osm-route.js";
 import { textesPanneau, classeNumero, estAutoroute, svgCarrefour } from "./panneau-nav.js";
 import { zonesDeDanger, radarsSurTrace, positionsSurTrace, compterFeux, messageAvecFeu, partDifferente, projeterSurTrace, airesSurRoute } from "./alertes-route.js";
 import { haversineKm, carresSurTrace, traceTraverseCarres, flecheManoeuvre } from "./geo.js";
@@ -534,54 +534,59 @@ export function oublierDernierRadarSignale() {
 const FENETRE_AIRES_M = 200000;
 const RELANCE_AIRES_M = 50000;
 
+// Stations-service et aires de repos sur les prochains 80 km (une requête, relancée en roulant).
+const FENETRE_SERVICES_M = 80000;
+
 async function chercherAires() {
-  if (!etat?.prefs.aires || !etat.route?.autoroutes?.length || etat.airesEnCours) return;
+  if (!etat?.route || etat.airesEnCours) return;
   const route = etat.route;
-  const [debut, fin] = [etat.offset, etat.offset + FENETRE_AIRES_M];
-  const morceaux = route.autoroutes
-    .filter(([a, b]) => b > debut && a < fin)
-    .map(([a, b]) => route.coords.filter((_, i) => route.cum[i] >= Math.max(a, debut) && route.cum[i] <= Math.min(b, fin)));
+  const [debut, fin] = [etat.offset, Math.min(route.total, etat.offset + FENETRE_SERVICES_M)];
+  const morceau = route.coords.filter((_, i) => route.cum[i] >= debut && route.cum[i] <= fin);
   etat.airesEnCours = true;
-  etat.airesOdometreFin = etat.odometre + Math.min(fin, route.total) - debut;
-  const r = await airesLeLongDe(morceaux);
+  etat.airesOdometreFin = etat.odometre + (fin - debut);
+  const r = await servicesLeLongDe([morceau]);
   if (!etat) return;
   etat.airesEnCours = false;
   if (!etat.route || !r.ok) {
-    etat.airesOdometreFin = etat.odometre + 20000; // nouvel essai un peu plus loin
+    etat.airesOdometreFin = etat.odometre + 20000;
     return;
   }
-  const connus = new Set((etat.airesOsm || []).map((l) => `${l.lat},${l.lon}`));
-  etat.airesOsm = [...(etat.airesOsm || []), ...r.lieux.filter((l) => !connus.has(`${l.lat},${l.lon}`))];
-  etat.route.aires = airesSurRoute(etat.airesOsm, etat.route.coords, etat.route.cum, etat.route.autoroutes || []);
+  // Position sur le tracé de chaque lieu (index le plus proche, puis distance cumulée).
+  const surTrace = (lieux) => lieux.map((l) => {
+    let meilleur = 0, dmin = Infinity;
+    for (let i = 0; i < route.coords.length; i++) {
+      const dx = route.coords[i][0] - l.lon, dy = route.coords[i][1] - l.lat;
+      const d = dx * dx + dy * dy;
+      if (d < dmin) { dmin = d; meilleur = i; }
+    }
+    return route.cum[meilleur];
+  }).sort((a, b) => a - b);
+  etat.servicesEssence = surTrace(r.essence);
+  etat.servicesRepos = surTrace(r.repos);
 }
+
 
 // Colonne en bas à gauche (comme Sygic) : prochaine borne sur la route,
 // puis les deux aires suivantes, avec la distance.
 const HORIZON_AIRES_M = 150000;
 
+// Une seule ligne discrète : distance à la prochaine station-service et à la prochaine aire de repos.
 function majAires() {
   const el = $("gps-nav-aires");
-  const route = etat.route;
-  const surRapide = (route.autoroutes || []).some(([a, b]) => etat.offset >= a - 200 && etat.offset <= b);
-  const devant = surRapide && etat.prefs.aires && !etat.aLaBorne ? (route.aires || []).filter((x) => x.offset > etat.offset && x.offset - etat.offset < HORIZON_AIRES_M) : [];
-  const borne = devant.find((x) => x.type === "recharge");
-  const aires = devant.filter((x) => x.type !== "recharge").slice(0, document.body.classList.contains("gps-bandeau-compact") ? 1 : 2);
-  const liste = [borne, ...aires].filter(Boolean).sort((a, b) => a.offset - b.offset);
-  const html = liste
-    .map((x) => {
-      const d = distanceAffichee(x.offset - etat.offset);
-      const icone = x.type === "recharge" ? "⚡" : x.type === "service" ? "🍴" : "🌳";
-      const plus = x.type === "recharge" && x.puissance_kw ? `<small>${Math.round(x.puissance_kw)} kW</small>` : x.recharge ? "<small>⚡</small>" : "";
-      const titre = `${x.type === "recharge" ? "Borne" : x.type === "service" ? "Aire de service" : "Aire de repos"}${x.nom ? ` ${x.nom}` : ""}`;
-      return `<div class="gps-aire gps-aire-${x.type}" title="${escapeHtml(titre)}"><span>${icone}</span><strong>${d}</strong>${plus}</div>`;
-    })
-    .join("");
+  const suivante = (liste) => (liste || []).find((x) => x > etat.offset + 50);
+  const essence = suivante(etat.servicesEssence);
+  const repos = suivante(etat.servicesRepos);
+  const morceaux = [];
+  if (essence !== undefined) morceaux.push(`<span>⛽ ${distanceAffichee(essence - etat.offset)}</span>`);
+  if (repos !== undefined) morceaux.push(`<span>🌳 ${distanceAffichee(repos - etat.offset)}</span>`);
+  const html = morceaux.join("<i>·</i>");
   if (el.dataset.html !== html) {
     el.dataset.html = html;
     el.innerHTML = html;
   }
   el.classList.toggle("hidden", !html);
 }
+
 
 function majZoneDanger() {
   const zone = etat.prefs.dangers && !etat.aLaBorne ? (etat.route.zonesDanger || []).find((z) => etat.offset >= z.debut && etat.offset <= z.fin) : null;
@@ -1164,7 +1169,7 @@ function surPosition(p) {
   preparerCarrefours();
   verifierMeteo();
   verifierMiParcours();
-  if (etat.prefs.aires && etat.airesOdometreFin != null && etat.odometre > etat.airesOdometreFin - RELANCE_AIRES_M && etat.offset < etat.route.total - RELANCE_AIRES_M) chercherAires();
+  if (etat.airesOdometreFin != null && etat.odometre > etat.airesOdometreFin - RELANCE_AIRES_M && etat.offset < etat.route.total - RELANCE_AIRES_M) chercherAires();
   if (etat.prefs.parkingArrivee && !etat.parkingsProposes && !etat.arretsRestants.length && !etat.destinationFinale && etat.odometre > 500 && etat.route.total - etat.offset < DISTANCE_PROPOSITION_PARKING_M) {
     proposerParkings();
   }

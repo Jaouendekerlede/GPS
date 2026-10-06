@@ -1,76 +1,19 @@
 {
+  "id": "/GPS/",
   "name": "GPS",
   "short_name": "GPS",
-  "description": "Planification de trajet en véhicule électrique avec recherche de bornes réelles",
+  "description": "Itinéraires, carte et guidage GPS sans compte.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "theme_color": "#2563eb",
   "lang": "fr",
   "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-192-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Trajet vers la maison",
-      "short_name": "Chez moi",
-      "url": "./index.html?action=maison",
-      "icons": [
-        {
-          "src": "./icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Bornes autour de moi",
-      "short_name": "Bornes",
-      "url": "./index.html?action=bornes",
-      "icons": [
-        {
-          "src": "./icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Où est garée ma voiture",
-      "short_name": "Ma voiture",
-      "url": "./index.html?action=voiture",
-      "icons": [
-        {
-          "src": "./icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    }
+    { "src": "./icons/gps-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/gps-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/gps-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/gps-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

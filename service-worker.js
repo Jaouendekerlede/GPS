@@ -6,7 +6,7 @@
 // préparées. Les autres services (TomTom, bornes, météo) ne passent pas ici :
 // TomTom interdit de stocker ses cartes, et les autres doivent être frais.
 
-const CACHE_NOM = "gps-v13";
+const CACHE_NOM = "gps-v14";
 // Empreinte des fichiers ci-dessous, vérifiée par les tests : les téléphones
 // ne reçoivent une modification que si ce fichier change. À chaque
 // publication : augmenter CACHE_NOM et recopier l'empreinte donnée par le test.
@@ -65,8 +65,8 @@ const FICHIERS_COQUILLE = [
   "./js/storage.js",
   "./js/config.js",
   "./js/util.js",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
+  "./icons/gps-192.png", "./icons/gps-192-maskable.png",
+  "./icons/gps-512.png", "./icons/gps-512-maskable.png",
 ];
 
 self.addEventListener("install", (event) => {
