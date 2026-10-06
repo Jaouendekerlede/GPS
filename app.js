@@ -1,4 +1,4 @@
-const APP_VERSION = '1.22.1';
+const APP_VERSION = '1.22.2';
 const ROUTERS = {
   driving: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
   cycling: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
@@ -23,7 +23,7 @@ const DEFAULT_SETTINGS = {
   showFuel: true,
   showSignals: true,
   showCameras: true,
-  autoNight: true,
+  autoNight: false,
   map3dSource: 'openfreemap',
   voiceVolume: 1,
   voiceFrequency: 'all',
