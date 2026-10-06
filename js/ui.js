@@ -243,6 +243,7 @@ function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
   appliquerRubrique(vue, rubrique);
   for (const v of VUES) $(`vue-${v}`).classList.toggle("hidden", v !== vue);
   vueCourante = vue;
+  if (vue === "accueil") rendreRaccourcis();
   if (vue === "trajet") {
     majSuggestionTrajet();
   }
@@ -1631,4 +1632,30 @@ function cablerRechercheBas() {
     afficherVue("trajet");
     $("gps-destination-input").focus();
   });
+  $("gps-raccourcis").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-dest]");
+    if (!b) return;
+    $("gps-destination-input").value = b.dataset.dest;
+    $("gps-destination-input").dispatchEvent(new Event("change"));
+    afficherVue("trajet");
+    lancerTrajet();
+  });
+  rendreRaccourcis();
+}
+
+// Raccourcis sous la recherche : Maison, Travail, puis les dernières destinations.
+function rendreRaccourcis() {
+  const r = lireReglages();
+  const items = [];
+  if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Maison", dest: "Chez moi" });
+  if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail" });
+  const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 3);
+  for (const d of recents) items.push({ icone: "🕐", texte: nomCourt(d).split(",")[0], dest: d });
+  if (!items.length) {
+    $("gps-raccourcis").innerHTML = '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
+    return;
+  }
+  $("gps-raccourcis").innerHTML = items
+    .map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`)
+    .join("");
 }
