@@ -450,7 +450,9 @@ function majEcran() {
   if (document.body.classList.contains("gps-hud")) majHud(kmh, limite);
 
   // Bas de l'écran : heure d'arrivée, temps et km restants
-  const secondes = secondesRestantesJusqua(route.total);
+  // Secours : sans durées par tronçon, on estime à 50 km/h.
+  const calcule = secondesRestantesJusqua(route.total);
+  const secondes = Number.isFinite(calcule) ? calcule : ((route.total - etat.offset) / 1000 / 50) * 3600;
   $("gps-nav-eta").textContent = heure(Date.now() + secondes * 1000);
   $("gps-nav-reste-temps").textContent = formaterMinutes(secondes / 60);
   $("gps-nav-reste-km").textContent = `${Math.round((route.total - etat.offset) / 1000)}`;
@@ -2222,10 +2224,6 @@ export function navigationActive() {
 // onReplanifier(depart, chargePct) -> nouveau plan ; onFin() à l'arrêt.
 export async function demarrerNavigation(plan, { options = {}, demo = false, chargeDepartPct, onReplanifier, onFin } = {}) {
   if (etat) return;
-  if (!getApiKeys().tomtom) {
-    alert("Clé TomTom manquante : ajoute-la dans Menu › Clés API.");
-    return;
-  }
   cablerBoutons();
   noter("nav", `navigation démarrée${demo ? " (démo)" : ""}, ${plan.distance_km ?? "?"} km, ${(plan.arrets || []).length} borne(s)`);
   const reglages = lireReglages();

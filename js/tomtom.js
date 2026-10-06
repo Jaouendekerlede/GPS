@@ -115,7 +115,61 @@ export async function diagnostiquerCleTomTom(cle) {
 // l'API), donc ignorée s'il y en a.
 // options.zonesEvitees : rectangles { southWestCorner, northEastCorner }
 // ({ latitude, longitude }) que la route ne doit pas traverser (10 au plus).
-// Sans clé TomTom : itinéraire OpenStreetMap (OSRM), renvoyé dans la même forme.
+// Traduit une manœuvre OpenStreetMap (OSRM) dans le vocabulaire TomTom utilisé par le guidage.
+function traduireManoeuvre(type, modifier, exit) {
+  if (type === "arrive") return { code: "ARRIVE", message: "Vous êtes arrivé à destination." };
+  if (type === "roundabout" || type === "rotary") {
+    const sortie = exit ? `Au rond-point, prenez la ${exit}${exit === 1 ? "re" : "e"} sortie.` : "Au rond-point, continuez.";
+    return { code: "ROUNDABOUT_CROSS", message: sortie };
+  }
+  if (modifier === "uturn") return { code: "U_TURN", message: "Faites demi-tour." };
+  if (type === "off ramp" || type === "exit roundabout") {
+    const cote = modifier && modifier.includes("left") ? "LEFT" : "RIGHT";
+    return { code: `EXIT_${cote}`, message: `Prenez la sortie à ${cote === "LEFT" ? "gauche" : "droite"}.` };
+  }
+  if (modifier === "sharp left") return { code: "SHARP_LEFT", message: "Tournez franchement à gauche." };
+  if (modifier === "sharp right") return { code: "SHARP_RIGHT", message: "Tournez franchement à droite." };
+  if (modifier === "left") return { code: "TURN_LEFT", message: "Tournez à gauche." };
+  if (modifier === "right") return { code: "TURN_RIGHT", message: "Tournez à droite." };
+  if (modifier === "slight left") return { code: "BEAR_LEFT", message: "Restez à gauche." };
+  if (modifier === "slight right") return { code: "BEAR_RIGHT", message: "Restez à droite." };
+  return { code: "STRAIGHT", message: "Continuez tout droit." };
+}
+
+// Instructions de guidage à partir des étapes OSRM : position sur le tracé (pointIndex) et message.
+function instructionsOsm(legs, coords) {
+  const sortie = [];
+  for (const leg of legs || []) {
+    for (const etape of leg.steps || []) {
+      const m = etape.maneuver || {};
+      if (m.type === "depart" || !Array.isArray(m.location)) continue;
+      const [lon, lat] = m.location;
+      let meilleur = 0;
+      let distMin = Infinity;
+      for (let i = 0; i < coords.length; i++) {
+        const dx = coords[i][0] - lon;
+        const dy = coords[i][1] - lat;
+        const d = dx * dx + dy * dy;
+        if (d < distMin) { distMin = d; meilleur = i; }
+      }
+      const { code, message } = traduireManoeuvre(m.type, m.modifier, m.exit);
+      sortie.push({
+        pointIndex: meilleur,
+        message,
+        maneuver: code,
+        instructionType: code.startsWith("ROUNDABOUT") ? "ROUNDABOUT" : "TURN",
+        junctionType: "",
+        street: etape.name || "",
+        roadNumbers: etape.ref ? etape.ref.split(/[;\s]+/).filter(Boolean) : [],
+        exitNumber: m.exit ? String(m.exit) : "",
+        roundaboutExitNumber: m.type === "roundabout" || m.type === "rotary" ? (m.exit ?? null) : null,
+      });
+    }
+  }
+  return sortie;
+}
+
+// Sans clé TomTom : itinéraire OpenStreetMap (OSRM), renvoyé dans la même forme que TomTom.
 async function itineraireOsm(points, options) {
   const coords = points.map((p) => `${p.lon},${p.lat}`).join(";");
   const alternatives = options.maxAlternatives === 0 ? "false" : "true";
@@ -125,10 +179,11 @@ async function itineraireOsm(points, options) {
     if (!resp.ok) return { erreur: `osm_${resp.status}` };
     const data = await resp.json();
     const routes = (data.routes || []).map((r) => ({
-      coords: r.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+      coords: r.geometry.coordinates,
       summary: { lengthInMeters: r.distance, travelTimeInSeconds: r.duration, trafficDelayInSeconds: 0 },
       sections: [],
-      guidance: { instructions: [] },
+      guidance: { instructions: instructionsOsm(r.legs, r.geometry.coordinates) },
+      legs: [{ summary: { travelTimeInSeconds: r.duration }, nbPoints: r.geometry.coordinates.length }],
     }));
     if (!routes.length) return { erreur: "aucun_itineraire" };
     return { ...routes[0], alternatives: routes.slice(1), traceSuivie: false, erreur: null };
