@@ -1434,7 +1434,7 @@ function cablerProfil() {
     if (fichier && confirm("Remplacer toutes les données de ce téléphone par celles de la sauvegarde ?")) importerSauvegarde(fichier);
   });
   $("ev-tester-tomtom-btn").addEventListener("click", () => testerCleTomTom($("ev-cle-tomtom").value.trim() || getApiKeys().tomtom));
-  for (const id of ["ev-cle-tomtom", "ev-cle-ocm"]) {
+  for (const id of ["ev-cle-tomtom"]) {
     $(`${id}-voir`).addEventListener("click", () => {
       // Masquage par le style, pas par un champ « mot de passe » : sinon le
       // téléphone prend la destination pour un identifiant et propose
