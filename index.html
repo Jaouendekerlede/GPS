@@ -304,6 +304,14 @@
           <label class="gps-check"><input type="checkbox" id="gps-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
         </details>
+        <details class="gps-sous-menu">
+          <summary>🛡️ Aide à la conduite</summary>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-virages"> 〰️ Annoncer les virages serrés à l'avance</label>
+          <label class="gps-champ">Distance d'annonce des virages<select id="gps-reglage-distance-virage" class="gps-input"><option value="150">150 m</option><option value="300">300 m</option><option value="500">500 m</option></select></label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-passages"> 🚧 Annoncer les passages à niveau</label>
+          <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-stops"> 🛑 Annoncer les stops et cédez-le-passage</label>
+          <p class="gps-hint">Les virages sont repérés sur le tracé lui-même. Les passages à niveau, stops et cédez-le-passage viennent d'OpenStreetMap, comme les feux.</p>
+        </details>
         <button id="gps-reglages-conseilles-btn" class="gps-lien gps-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
       </div>
 

@@ -26,7 +26,8 @@ import { heure, distanceAffichee, distanceParlee, messageCourt, minusculeInitial
 // Réexportés pour les autres modules (ui.js, essais).
 export { traceRestante, dessinVoies } from "./nav-outils.js";
 
-import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, servicesLeLongDe, LABELS_TYPE_RADAR } from "./osm-route.js";
+import { radarsLeLongDu, feuxLeLongDe, routesAutourDe, servicesLeLongDe, alertesLeLongDu, LABELS_TYPE_RADAR } from "./osm-route.js";
+import { virages, texteVirage, alertesSurTrace } from "./aide-conduite.js";
 import { textesPanneau, classeNumero, estAutoroute, svgCarrefour } from "./panneau-nav.js";
 import { zonesDeDanger, radarsSurTrace, positionsSurTrace, compterFeux, messageAvecFeu, partDifferente, projeterSurTrace, airesSurRoute } from "./alertes-route.js";
 import { haversineKm, carresSurTrace, traceTraverseCarres, flecheManoeuvre } from "./geo.js";
@@ -229,6 +230,42 @@ function installerRoute(route) {
     if (etat.dernierFixe) etat.dernierFixe = { ...etat.dernierFixe, offset: m.offset, d: m.d };
   }
   chercherFeux(route);
+  route.alertesConduite = virages(route).map((v) => ({ offset: v.offset, type: "virage", angle: v.angle }));
+  chercherAlertesConduite(route);
+}
+
+// Passages à niveau, stops et cédez-le-passage du tracé (une requête par tracé).
+async function chercherAlertesConduite(route) {
+  if (!etat?.prefs || !(etat.prefs.alertePassages || etat.prefs.alerteStops)) return;
+  const r = await alertesLeLongDu(route.coords);
+  if (!etat?.route || etat.route !== route || !r.ok) return;
+  route.alertesConduite.push(...alertesSurTrace(r.points, route).map((a) => ({ ...a, angle: 0 })));
+}
+
+// Annonces à distance (200 à 300 m selon le type), une seule fois par lieu.
+const SEUIL_ALERTE_M = { passage: 300, stop: 150, cedez: 150 };
+
+function verifierAlertesConduite() {
+  const liste = etat.route?.alertesConduite;
+  if (!liste?.length || !etat.prefs) return;
+  etat.alertesAnnoncees ??= new Set();
+  for (const a of liste) {
+    const d = a.offset - etat.offset;
+    if (d <= 30) continue;
+    const actif = a.type === "virage" ? etat.prefs.alerteVirages : a.type === "passage" ? etat.prefs.alertePassages : etat.prefs.alerteStops;
+    if (!actif) continue;
+    const seuil = a.type === "virage" ? etat.prefs.distVirage : SEUIL_ALERTE_M[a.type];
+    if (d > seuil) continue;
+    const cle = `${a.type}|${Math.round(a.offset)}`;
+    if (etat.alertesAnnoncees.has(cle)) continue;
+    etat.alertesAnnoncees.add(cle);
+    const texte = a.type === "virage"
+      ? `${texteVirage(a.angle)} dans ${seuil} mètres, ralentissez.`
+      : a.type === "passage"
+        ? `Passage à niveau dans ${seuil} mètres, ralentissez.`
+        : `${a.type === "stop" ? "Stop" : "Cédez le passage"} dans ${seuil} mètres.`;
+    parler(texte, true);
+  }
 }
 
 // Projette la position sur l'itinéraire (recherche autour du dernier point connu).
@@ -428,6 +465,7 @@ function majEcran() {
   majFlecheCarte(instr, instr ? instr.offset - etat.offset : Infinity);
   majZoneDanger();
   verifierApprocheRadar();
+  verifierAlertesConduite();
   majAires();
   // Affichage compact : une seule info sous le bandeau (alerte, sinon voies,
   // sinon prochaine borne) pour garder la carte visible.
@@ -2339,6 +2377,10 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
       margeVitesse: reglages.marge_vitesse ?? TOLERANCE_VITESSE_KMH,
       zoomRenforce: reglages.zoom_renforce !== false,
       dangers: reglages.zones_danger !== false,
+      alerteVirages: reglages.alerte_virages !== false,
+      distVirage: Number(reglages.distance_virage) || 300,
+      alertePassages: reglages.alerte_passages_niveau !== false,
+      alerteStops: reglages.alerte_stops !== false,
       feux: reglages.feux !== false,
       fenetreVoies: reglages.fenetre_voies !== false,
       vueCarrefour: reglages.vue_carrefour !== false,

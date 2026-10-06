@@ -6,7 +6,7 @@
 // préparées. Les autres services (TomTom, bornes, météo) ne passent pas ici :
 // TomTom interdit de stocker ses cartes, et les autres doivent être frais.
 
-const CACHE_NOM = "gps-v31";
+const CACHE_NOM = "gps-v32";
 // Empreinte des fichiers ci-dessous, vérifiée par les tests : les téléphones
 // ne reçoivent une modification que si ce fichier change. À chaque
 // publication : augmenter CACHE_NOM et recopier l'empreinte donnée par le test.
@@ -17,7 +17,7 @@ const FICHIERS_COQUILLE = [
   "./style.css",
   "./manifest.json",
   "./js/main.js",
-  "./js/ui.js", "./js/radars-carte.js", "./js/presentation.js", "./js/pres-de-moi.js",
+  "./js/ui.js", "./js/radars-carte.js", "./js/presentation.js", "./js/aide-conduite.js", "./js/pres-de-moi.js",
   "./js/ui-commun.js",
       "./js/ui-sauvegarde.js",
   "./js/ui-parkings.js",

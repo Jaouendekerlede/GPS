@@ -1311,6 +1311,10 @@ function rendreReglagesProfil() {
   $("gps-reglage-feux").checked = reglages.feux !== false;
   $("gps-reglage-zones-danger").checked = reglages.zones_danger !== false;
   $("gps-reglage-pause-mi-parcours").checked = reglages.pause_mi_parcours !== false;
+  $("gps-reglage-alerte-virages").checked = reglages.alerte_virages !== false;
+  $("gps-reglage-distance-virage").value = String(reglages.distance_virage || 300);
+  $("gps-reglage-alerte-passages").checked = reglages.alerte_passages_niveau !== false;
+  $("gps-reglage-alerte-stops").checked = reglages.alerte_stops !== false;
 
   const { tomtom, openChargeMap } = getApiKeys();
   $("gps-cle-tomtom").value = tomtom || "";
@@ -1651,6 +1655,10 @@ function cablerRechercheBas() {
       feux: $("gps-reglage-feux").checked,
       zones_danger: $("gps-reglage-zones-danger").checked,
       pause_mi_parcours: $("gps-reglage-pause-mi-parcours").checked,
+      alerte_virages: $("gps-reglage-alerte-virages").checked,
+      distance_virage: Number($("gps-reglage-distance-virage").value),
+      alerte_passages_niveau: $("gps-reglage-alerte-passages").checked,
+      alerte_stops: $("gps-reglage-alerte-stops").checked,
     });
     toast("✅ Réglages enregistrés");
   });
