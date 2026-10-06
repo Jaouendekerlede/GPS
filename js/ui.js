@@ -24,6 +24,7 @@ import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
 import { boutonPartage, partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
 import { demarrerRadarsCarte } from "./radars-carte.js";
+import { cablerPresDeMoi } from "./pres-de-moi.js";
 import { icone, iconeFond } from "./icones.js";
 import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
@@ -1643,6 +1644,7 @@ function cablerRechercheBas() {
     lancerTrajet();
   });
   rendreRaccourcis();
+  cablerPresDeMoi();
 }
 
 // Raccourcis sous la recherche : Maison, Travail, puis les dernières destinations.
@@ -1653,11 +1655,10 @@ function rendreRaccourcis() {
   if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail" });
   const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 3);
   for (const d of recents) items.push({ icone: "🕐", texte: nomCourt(d).split(",")[0], dest: d });
-  if (!items.length) {
-    $("gps-raccourcis").innerHTML = '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
-    return;
-  }
-  $("gps-raccourcis").innerHTML = items
-    .map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`)
-    .join("");
+  const personnels = items.length
+    ? items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("")
+    : '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
+  const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restaurant"]];
+  const ligneActions = actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci gps-raccourci-action" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`).join("");
+  $("gps-raccourcis").innerHTML = ligneActions + personnels;
 }
