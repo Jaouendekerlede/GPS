@@ -1147,3 +1147,6 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 /* Bandeau de mise à jour (1.24.0) */
 .gps-bandeau-maj { position: absolute; z-index: 1300; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 15px; border-radius: 12px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgb(0 0 0 / 30%); }
 .gps-bandeau-maj button { padding: 7px 12px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-weight: 800; cursor: pointer; }
+
+/* Recherche en bas, façon Waze (1.25.0) */
+.gps-recherche-bas { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: 0; border-radius: 16px; background: #f1f5f9; color: #334155; font-size: 16px; font-weight: 700; text-align: left; cursor: pointer; box-shadow: inset 0 0 0 1px #e2e8f0; }

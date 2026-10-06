@@ -34,8 +34,6 @@
 <!-- Barre du haut : recherche + filtres -->
 <header class="gps-haut">
   <div class="gps-haut-ligne">
-      <span class="gps-loupe">🔍</span><span>Où allez-vous ?</span>
-    </button>
   </div>
   <div class="gps-chips" id="gps-filtres">
     <button class="gps-chip" type="button" id="gps-parkings-chip" title="Afficher les parkings (OpenStreetMap)">🅿️ Parkings</button>
@@ -60,9 +58,8 @@
 <section id="gps-feuille" class="gps-feuille" data-etat="bas">
   <div id="gps-poignee" class="gps-poignee-zone"><div class="gps-poignee"></div></div>
   <div id="gps-feuille-corps" class="gps-feuille-corps">
-    <div class="gps-vue" id="vue-accueil" style="padding:18px 6px">
-      <h2 style="margin:0 0 6px">🧭 Où allez-vous ?</h2>
-      <p style="margin:0;opacity:.7;font-size:14px">Touchez la barre de recherche ou « Trajet » pour planifier un itinéraire.</p>
+    <div class="gps-vue" id="vue-accueil" style="padding:14px 4px 6px">
+      <button type="button" id="gps-recherche-bas" class="gps-recherche-bas"><span aria-hidden="true">🔍</span><span>Où allez-vous ?</span></button>
     </div>
 
 

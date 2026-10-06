@@ -1606,6 +1606,7 @@ export function initialiserUI() {
   cablerProfil();
   cablerComplements();
 
+  cablerRechercheBas();
   chargerPrefs();
   rendreProfil();
   appliquerTheme();
@@ -1620,4 +1621,12 @@ function majInfoRegion() {
   $("gps-region-info").textContent = r
     ? `✅ Région prête : ${r.rayon_km} km autour de ${new Date(r.date).toLocaleDateString("fr-FR")} (${Math.round((r.tuiles * 25) / 1024)} Mo environ).`
     : "Pas encore de région téléchargée.";
+}
+
+// Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
+function cablerRechercheBas() {
+  $("gps-recherche-bas").addEventListener("click", () => {
+    afficherVue("trajet");
+    $("gps-destination-input").focus();
+  });
 }
