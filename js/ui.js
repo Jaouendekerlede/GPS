@@ -28,21 +28,20 @@ import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
 import { reconnaissanceDispo, ecouter, interpreterCommande } from "./commandes-vocales.js";
 import { cablerParkings, planifierParkings, cablerTrafic } from "./ui-parkings.js";
-import { afficherAccueil } from "./ui-accueil.js";
 import { demarrerNavigation, etatDiagnostic, navigationActive, retourNavigationEnCours, traceRestante, navigationInterrompue, oublierNavigationInterrompue } from "./navigation.js";
 import { ageTexte } from "./reprise.js";
 import { cablerDiagnostic } from "./ui-diagnostic.js";
 import { estimerPreparation, preparerHorsLigne, guidagePrepare, bilanPreparation, RAYONS_REGION_KM, estimerRegion, preparerRegion, regionPreparee } from "./hors-ligne.js";
 
-const VUES = ["bornes", "borne", "trajet", "resultat", "menu", "favoris", "outils", "profil"];
+const VUES = ["accueil", "trajet", "resultat", "menu", "favoris", "outils", "profil"];
 const ETAT_FEUILLE_PAR_VUE = { bornes: "bas", borne: "mi", trajet: "haut", resultat: "mi", menu: "haut", favoris: "haut", outils: "haut", profil: "haut" };
-const ONGLET_PAR_VUE = { bornes: "bornes", trajet: "trajet", resultat: "trajet", menu: "menu", favoris: "menu", outils: "menu", profil: "menu" };
+const ONGLET_PAR_VUE = { bornes: "accueil", trajet: "trajet", resultat: "trajet", menu: "menu", favoris: "menu", outils: "menu", profil: "menu" };
 const LABELS_MODE = { rapide: "⚡ Rapide", economique: "💶 Économique", confort: "🛋️ Confort", prudent: "🛡️ Prudent" };
 const BOUTONS_CALCUL = ["ev-trajet-run-btn", "ev-aller-retour-btn"];
 const HAUTEUR_REPLIEE = 172;
 
-let vueCourante = "bornes";
-let vueAvantBorne = "bornes";
+let vueCourante = "accueil";
+let vueAvantBorne = "accueil";
 let etatFeuille = "bas";
 let modeTrajet = "confort";
 // Suit si marge/objectif ont été touchés à la main APRÈS le choix d'un mode :
@@ -239,7 +238,7 @@ function ouvrirBloc(bloc) {
 }
 
 function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
-  if (vue === "borne" && vueCourante !== "borne") vueAvantBorne = vueCourante;
+  if (vue === "fiche" && vueCourante !== "fiche") vueAvantBorne = vueCourante;
   appliquerRubrique(vue, rubrique);
   for (const v of VUES) $(`vue-${v}`).classList.toggle("hidden", v !== vue);
   vueCourante = vue;
@@ -260,12 +259,12 @@ function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
   if (onglet) document.querySelectorAll(".ev-nav-btn").forEach((b) => b.classList.toggle("actif", b.dataset.vue === onglet));
   $("ev-feuille-corps").scrollTop = 0;
   definirFeuille(etat || ETAT_FEUILLE_PAR_VUE[vue]);
-  const contexteTrajet = vue === "resultat" || (vue === "borne" && vueAvantBorne === "resultat");
+  const contexteTrajet = vue === "resultat" || (vue === "fiche" && vueAvantBorne === "resultat");
   montrerBornes(!contexteTrajet);
 
   // Le bouton "retour" d'Android revient en arrière dans l'appli au lieu de la quitter.
-  if (historique && vue !== "bornes") {
-    if (vue === "borne" || !history.state?.vue) history.pushState({ vue }, "");
+  if (historique && vue !== "accueil") {
+    if (vue === "fiche" || !history.state?.vue) history.pushState({ vue }, "");
     else history.replaceState({ vue }, "");
   }
 }
@@ -273,7 +272,7 @@ function afficherVue(vue, { etat, historique = true, rubrique = null } = {}) {
 function revenirDeBorne() {
   selectionnerBorne(null);
   borneOuverte = null;
-  afficherVue(vueAvantBorne === "borne" ? "bornes" : vueAvantBorne, { historique: false });
+  afficherVue(vueAvantBorne === "fiche" ? "accueil" : vueAvantBorne, { historique: false });
 }
 
 function cablerNavigation() {
@@ -281,21 +280,17 @@ function cablerNavigation() {
     btn.addEventListener("click", () => {
       const cible = btn.dataset.vue;
       if (cible === "trajet" && trajetAffiche && vueCourante !== "resultat") afficherVue("resultat");
-      else if (cible === "bornes") afficherVue("bornes", { etat: vueCourante === "bornes" ? (etatFeuille === "bas" ? "mi" : "bas") : "bas", historique: false });
+      else if (cible === "accueil") afficherVue("accueil", { etat: vueCourante === "accueil" ? (etatFeuille === "bas" ? "mi" : "bas") : "bas", historique: false });
       else afficherVue(cible);
       if (cible === "favoris") renderFavoris();
     }),
   );
-  $("ev-borne-retour").addEventListener("click", () => {
-    if (history.state?.vue === "borne") history.back();
-    else revenirDeBorne();
-  });
   window.addEventListener("popstate", () => {
     if (navigationActive() || retourNavigationEnCours()) return;
-    if (vueCourante === "borne") revenirDeBorne();
+    if (vueCourante === "fiche") revenirDeBorne();
     // Retour depuis une rubrique : on revient au Menu.
     else if (rubriqueOuverte) afficherVue("menu", { historique: history.state?.vue !== "menu" });
-    else if (vueCourante !== "bornes") afficherVue("bornes", { historique: false });
+    else if (vueCourante !== "accueil") afficherVue("accueil", { historique: false });
   });
   $("vue-menu").addEventListener("click", (e) => {
     const l = e.target.closest(".ev-menu-ligne");
@@ -333,7 +328,7 @@ const OUI_NON = { oui: "✅ oui", partiel: "⚠️ sur une partie des points", n
 function surDeplacementCarte() {
   // Parkings : aussi sur l'écran du trajet (se garer à l'arrivée).
   planifierParkings();
-  const contexteTrajet = vueCourante === "resultat" || (vueCourante === "borne" && vueAvantBorne === "resultat");
+  const contexteTrajet = vueCourante === "resultat" || (vueCourante === "fiche" && vueAvantBorne === "resultat");
   if (rechercheManuelle || contexteTrajet || navigationActive()) return;
   clearTimeout(minuteurDeplacement);
 }
@@ -481,21 +476,6 @@ function cablerCarte() {
     $("ev-destination-input").dispatchEvent(new Event("change"));
     lancerTrajet();
   });
-  $("ev-traces-liste").addEventListener("click", (e) => {
-    const aSupprimer = e.target.closest("[data-suppr-trace]")?.dataset.supprTrace;
-    if (aSupprimer !== undefined) {
-      const t = listerTraces().find((x) => String(x.date) === aSupprimer);
-      if (!t || !confirm(`Supprimer le trajet du ${new Date(t.date).toLocaleDateString("fr-FR")} (${nomCourt(t.destination || "Trajet").split(",")[0]}, ${nombre(t.km)} km) ?\n\nIl sera retiré de cette liste et des statistiques.`)) return;
-      supprimerTrace(t.date);
-      return;
-    }
-    const i = e.target.closest("[data-trace]")?.dataset.trace;
-    const t = i !== undefined ? listerTraces()[Number(i)] : null;
-    if (!t) return;
-    afficherVue("bornes", { etat: "bas" });
-    afficherTrajet({ coords: t.coords, arrets: [], bouchons: [] });
-    toast(`🗺️ ${nomCourt(t.destination || "Trajet")} · ${nombre(t.km)} km`);
-  });
   $("ev-reglage-taille-texte").addEventListener("input", (e) => ($("ev-reglage-taille-texte-val").textContent = e.target.value));
   $("ev-reglage-inclinaison").addEventListener("input", (e) => ($("ev-reglage-inclinaison-val").textContent = e.target.value));
   $("ev-reglage-inclinaison-plate").addEventListener("input", (e) => ($("ev-reglage-inclinaison-plate-val").textContent = e.target.value));
@@ -524,7 +504,7 @@ function cablerCarte() {
       else filtres.add(f);
       chip.classList.toggle("actif", filtres.has(f));
       sauverReglages({ filtres_carte: [...filtres] });
-      if (vueCourante !== "bornes" && vueCourante !== "resultat") afficherVue("bornes", { etat: "mi", historique: false });
+      if (vueCourante !== "accueil" && vueCourante !== "resultat") afficherVue("accueil", { etat: "mi", historique: false });
     });
   });
 
@@ -1042,7 +1022,7 @@ function afficherItineraires(p) {
 function quitterTrajet() {
   effacerTrajet();
   trajetAffiche = false;
-  afficherVue("bornes", { etat: "bas", historique: false });
+  afficherVue("accueil", { etat: "bas", historique: false });
 }
 
 // Navigation coupée (appli fermée, téléphone redémarré…) : on propose de la
@@ -1335,9 +1315,7 @@ function rendreReglagesProfil() {
   $("ev-reglage-fenetre-voies").checked = reglages.fenetre_voies !== false;
   $("ev-reglage-vue-carrefour").checked = reglages.vue_carrefour !== false;
   $("ev-reglage-icone").value = reglages.icone_voiture || "fleche_bleue";
-  $("ev-reglage-parking-arrivee").checked = reglages.parking_arrivee !== false;
   $("ev-reglage-meteo-route").checked = reglages.meteo_route !== false;
-  $("ev-reglage-aires").checked = reglages.aires_autoroute !== false;
   $("ev-reglage-epure").checked = reglages.ecran_epure !== false;
   $("ev-reglage-reponses-voix").checked = reglages.reponses_voix !== false;
   $("ev-reglage-inclinaison").value = String(reglages.inclinaison_3d ?? 70);
@@ -1449,7 +1427,6 @@ function cablerProfil() {
   $("ev-installer-btn").addEventListener("click", installerAppli);
   majInfoLien();
   majBoutonInstallation();
-  $("ev-revoir-accueil-btn").addEventListener("click", () => afficherAccueil(afficherVue));
   $("ev-import-donnees-btn").addEventListener("click", () => $("ev-import-donnees-fichier").click());
   $("ev-import-donnees-fichier").addEventListener("change", (e) => {
     const fichier = e.target.files?.[0];
@@ -1511,12 +1488,11 @@ export function executerAction(action) {
     $("ev-depart-input").value = "Ma position";
     $("ev-destination-input").value = "Chez moi";
     lancerTrajet();
-  } else if (action === "bornes") {
-    afficherVue("bornes");
+  } else if (action === "accueil") {
+    afficherVue("accueil");
     localiser();
   } else if (action === "voiture") {
-    afficherVue("bornes");
-    $("ev-voiture-chip")?.click();
+    afficherVue("accueil");
   }
 }
 
@@ -1634,11 +1610,10 @@ export function initialiserUI() {
   chargerPrefs();
   rendreProfil();
   appliquerTheme();
-  afficherVue("bornes", { etat: "bas", historique: false });
+  afficherVue("accueil", { etat: "bas", historique: false });
   positionDeDepart();
   proposerRepriseNavigation();
   // Nouveaux utilisateurs seulement (aucune clé encore saisie).
-  if (!lireReglages().accueil_vu && !getApiKeys().tomtom && !getApiKeys().openChargeMap) afficherAccueil((vue) => (vue === "profil" ? ouvrirBloc("ev-bloc-cles") : afficherVue(vue)));
 }
 
 function majInfoRegion() {

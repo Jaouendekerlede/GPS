@@ -25,14 +25,6 @@
 <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-<div id="ev-presentation" class="ev-presentation hidden" role="dialog" aria-label="Présentation">
-  <img src="./icons/icon-192.png" alt="" width="96" height="96">
-  <h1>GPS</h1>
-  <p class="ev-presentation-sous">Vos trajets et recharges en voiture électrique</p>
-  <p class="ev-presentation-mention"></p>
-  <p class="ev-presentation-legal"></p>
-  <p class="ev-presentation-suite">Toucher pour continuer</p>
-</div>
 
 <!-- Carte plein écran -->
 <div id="ev-carte" class="ev-carte"></div>
@@ -68,37 +60,14 @@
 <section id="ev-feuille" class="ev-feuille" data-etat="bas">
   <div id="ev-poignee" class="ev-poignee-zone"><div class="ev-poignee"></div></div>
   <div id="ev-feuille-corps" class="ev-feuille-corps">
-    <div class="ev-vue" id="vue-accueil-gps" style="padding:18px 6px">
+    <div class="ev-vue" id="vue-accueil" style="padding:18px 6px">
       <h2 style="margin:0 0 6px">🧭 Où allez-vous ?</h2>
       <p style="margin:0;opacity:.7;font-size:14px">Touchez la barre de recherche ou « Trajet » pour planifier un itinéraire.</p>
     </div>
 
     <!-- ══ Bornes autour ══ -->
-    <div id="vue-bornes" class="ev-vue">
-      <div class="ev-vue-entete">
-        <h2 id="ev-bornes-titre">📍 Bornes à proximité</h2>
-      </div>
-      <div class="ev-legende">
-        <span><i class="ev-point ultra"></i>≥150 kW</span>
-        <span><i class="ev-point rapide"></i>50–149</span>
-        <span><i class="ev-point acc"></i>22–49</span>
-        <span><i class="ev-point lent"></i>&lt;22</span>
-        <span><b class="ev-mini-cb">CB</b> carte acceptée</span>
-      </div>
-      <div id="ev-bornes-liste" class="ev-liste"></div>
-    </div>
 
     <!-- ══ Fiche borne ══ -->
-    <div id="vue-borne" class="ev-vue hidden">
-      <button id="ev-borne-retour" class="ev-retour" type="button">‹ Retour</button>
-      <div id="ev-borne-contenu"></div>
-      <div class="ev-carte-bloc">
-        <label class="ev-champ">📝 Note personnelle
-          <textarea id="ev-station-note-input" class="ev-input" rows="2" placeholder="Ex : accès difficile, souvent occupée…"></textarea>
-        </label>
-        <button id="ev-station-note-save-btn" class="ev-btn-secondaire" type="button">Enregistrer la note</button>
-      </div>
-    </div>
 
     <!-- ══ Préparer un trajet ══ -->
     <div id="vue-trajet" class="ev-vue hidden">
@@ -246,41 +215,9 @@
     <div id="vue-outils" class="ev-vue hidden">
       <div class="ev-vue-entete"><h2>⚡ Outils</h2></div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-stats">
-        <h3>📊 Mes statistiques</h3>
-        <div class="ev-segments ev-stats-periodes">
-          <button type="button" data-periode="mois" class="active">Ce mois</button>
-          <button type="button" data-periode="annee">Cette année</button>
-          <button type="button" data-periode="tout">Depuis le début</button>
-        </div>
-        <div id="ev-stats-tuiles" class="ev-tuiles"></div>
-        <details class="ev-details">
-          <summary>🗺️ Revoir mes derniers trajets</summary>
-          <div id="ev-traces-liste" class="ev-journal-liste"></div>
-        </details>
-      </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-journal">
-        <h3>📒 Journal des recharges</h3>
-        <div class="ev-hint">Rempli tout seul en navigation (à « Reprendre la route »), ou à la main ci-dessous.</div>
-        <details class="ev-details">
-          <summary>➕ Ajouter une recharge à la main</summary>
-          <div class="ev-grille-2">
-            <label class="ev-champ">Lieu <input type="text" id="ev-journal-lieu" class="ev-input" placeholder="Domicile"></label>
-            <label class="ev-champ">Énergie (kWh) <input type="number" id="ev-journal-kwh" class="ev-input" min="0" step="0.1"></label>
-            <label class="ev-champ">Coût (€) <input type="number" id="ev-journal-cout" class="ev-input" min="0" step="0.01"></label>
-            <button id="ev-journal-ajouter-btn" class="ev-btn" type="button">Ajouter</button>
-          </div>
-        </details>
-      </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-recherche">
-        <h3>🔍 Rechercher des bornes</h3>
-      </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-calculateur">
-        <h3>⏱️ Calculateur de recharge</h3>
-      </div>
 
       <div class="ev-hint">ℹ️ Paiement CB, tarifs, horaires et accès : Base nationale officielle des bornes (IRVE, data.gouv.fr), déclarée par les opérateurs. « CB probable (non confirmé) » = borne non déclarée mais ≥50 kW, où le terminal CB est obligatoire sur les bornes neuves depuis avril 2024. En cas de doute, vérifie sur place.</div>
     </div>
@@ -300,20 +237,7 @@
         <label class="ev-check"><input type="checkbox" id="ev-reglage-contraste"> 🔆 Contraste renforcé (textes et contours plus marqués)</label>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-vehicule">
-        <h3>Véhicule</h3>
-        <a href="https://jaouendekerlede.github.io/noticekona/" target="_blank" rel="noopener" class="ev-btn-secondaire" style="display:inline-block;text-decoration:none;text-align:center;margin-top:10px;">📖 Notice Kona (fonctions, commandes, sécurité — hors-ligne)</a>
-      </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-electricite">
-        <h3>Électricité à domicile</h3>
-        <div class="ev-grille-champs">
-          <label class="ev-champ">Heures creuses (€/kWh)<input type="number" step="0.0001" min="0.01" id="ev-profil-prix-hc" class="ev-input" inputmode="decimal"></label>
-          <label class="ev-champ">Heures pleines (€/kWh)<input type="number" step="0.0001" min="0.01" id="ev-profil-prix-hp" class="ev-input" inputmode="decimal"></label>
-          <label class="ev-champ ev-large">Part rechargée en heures creuses (%)<input type="number" step="5" min="0" max="100" id="ev-profil-part-hc" class="ev-input" inputmode="numeric"></label>
-        </div>
-        <div class="ev-hint">Prix TTC du kWh sur ta facture. Sans option heures creuses, mets le même prix dans les deux cases.</div>
-      </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-domicile">
         <h3>Domicile et voix</h3>
@@ -385,11 +309,6 @@
           <label class="ev-check"><input type="checkbox" id="ev-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
           <label class="ev-check"><input type="checkbox" id="ev-reglage-feux"> 🚦 Feux tricolores sur la carte et « Au feu, tournez… » (OpenStreetMap)</label>
         </details>
-        <details class="ev-sous-menu">
-          <summary>🔋 Voiture électrique</summary>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-aires"> 🛣️ Sur autoroute et voie express : prochaine borne et aires (en bas à gauche)</label>
-          <label class="ev-check"><input type="checkbox" id="ev-reglage-parking-arrivee"> 🅿️ Proposer des parkings à 2 km de l'arrivée</label>
-        </details>
         <button id="ev-reglages-conseilles-btn" class="ev-lien ev-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
       </div>
 
@@ -414,11 +333,6 @@
         <div class="ev-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-abonnements">
-        <h3>💳 Mes abonnements de recharge</h3>
-        <div class="ev-hint">Réseau tel qu'il apparaît sur les bornes (ex. Ionity, Tesla, Electra) et ton prix au kWh avec l'abonnement : il remplace le tarif public dans les calculs.</div>
-        <button id="ev-abo-ajouter-btn" class="ev-btn" type="button">➕ Ajouter l'abonnement</button>
-      </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-cles">
         <h3>Clés API</h3>
@@ -472,78 +386,6 @@
         <button id="ev-remise-zero-btn" class="ev-btn ev-btn-plein" type="button">🧹 Remettre à zéro</button>
       </div>
 
-      <div class="ev-carte-bloc" id="ev-bloc-paiement">
-        <h3>💳 Payer aux bornes</h3>
-        <div class="ev-hint">Pas besoin de tout avoir. Pour partir tranquille : <strong>ta carte bancaire sans contact</strong>, <strong>un badge multi-réseaux</strong> pour les bornes qui ne prennent pas la carte, et l'appli du réseau que tu utilises le plus.</div>
-        <details class="ev-sous-menu" open>
-          <summary>Mes moyens de paiement</summary>
-          <div class="ev-hint">Coche ce que tu as. La fiche de chaque borne te dit alors si tu peux y payer, et le filtre « ✅ Je peux payer » de la carte ne garde que ces bornes.</div>
-        </details>
-        <details class="ev-sous-menu">
-          <summary>Les façons de payer</summary>
-          <ul class="ev-aide-liste">
-            <li><strong>💳 Carte bancaire sans contact</strong> : le plus simple, comme à la pompe. Obligatoire sur les bornes rapides (50 kW et plus) installées depuis avril 2024. Les bornes plus anciennes et les bornes lentes n'en ont pas toujours.</li>
-            <li><strong>📱 QR code sur la borne</strong> : tu le scannes avec l'appareil photo, une page de paiement s'ouvre et tu saisis ta carte. Sans compte ni appli, mais il faut du réseau.</li>
-            <li><strong>📲 Appli du réseau</strong> : tu crées un compte une fois, avec ta carte. Tu lances la recharge depuis le téléphone. C'est souvent là que le prix est le plus bas, surtout avec un abonnement.</li>
-            <li><strong>🪪 Badge (carte de recharge)</strong> : une carte en plastique à passer devant la borne. Un seul badge marche sur des dizaines de réseaux. Indispensable sur les bornes de ville et de parking sans lecteur de carte bancaire. Le prix peut être un peu plus élevé qu'en direct.</li>
-            <li><strong>🔌 Brancher et c'est tout</strong> (« Plug &amp; Charge ») : la voiture est reconnue au branchement. Seulement sur certains réseaux et certaines voitures.</li>
-          </ul>
-        </details>
-        <details class="ev-sous-menu">
-          <summary>Les réseaux de recharge rapide</summary>
-          <div class="ev-hint">« Site » ouvre le site du réseau, « Appli » la cherche dans le Play Store.</div>
-          <ul class="ev-aide-liste">
-            <li><strong>Ionity</strong> : aires d'autoroute, bornes très puissantes. <a href="https://www.ionity.eu/fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=IONITY&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>TotalEnergies</strong> : stations-service et autoroutes. <a href="https://www.totalenergies.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=TotalEnergies%20recharge%20%C3%A9lectrique&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Tesla Superchargeur</strong> : une partie des stations est ouverte aux autres marques, avec l'appli Tesla. <a href="https://www.tesla.com/fr_fr/supercharger" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Tesla&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Electra</strong> : villes et grands axes. <a href="https://www.go-electra.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Electra%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Fastned</strong> : aires et sorties d'autoroute (toit jaune). <a href="https://www.fastnedcharging.com/fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Fastned&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Power Dot</strong> : parkings de commerces et de restaurants. <a href="https://www.powerdot.eu/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Power%20Dot%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Lidl</strong> : parkings des magasins. <a href="https://www.lidl.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Lidl%20Plus&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Engie Vianeo</strong> : aires d'autoroute. <a href="https://www.vianeo.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Engie%20Vianeo&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Allego</strong> : commerces, hôtels, grands axes. <a href="https://www.allego.eu/fr-fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Allego%20Smoov&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Zunder</strong> : grands axes, surtout dans le sud. <a href="https://www.zunder.com/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Zunder&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Atlante</strong> : grands axes et parkings. <a href="https://atlante.energy/fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Atlante%20recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Izivia (EDF)</strong> : villes, parkings, commerces. <a href="https://izivia.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Izivia&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-          </ul>
-        </details>
-        <details class="ev-sous-menu">
-          <summary>Les badges multi-réseaux</summary>
-          <div class="ev-hint">Un seul suffit. Ils se commandent sur le site ou dans l'appli et arrivent par la poste : à prévoir avant un long trajet.</div>
-          <ul class="ev-aide-liste">
-            <li><strong>Chargemap Pass</strong> : badge payant à l'achat, sans abonnement, très répandu. <a href="https://chargemap.com/fr-fr/pass" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Chargemap&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Freshmile</strong> : badge peu cher, sans abonnement. <a href="https://www.freshmile.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Freshmile&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Shell Recharge</strong> : badge gratuit, sans abonnement. <a href="https://www.shell.fr/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Shell%20Recharge&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Fulli</strong> : petit abonnement mensuel, sans commission par recharge. <a href="https://www.fulli.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Fulli&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Ulys Electric</strong> : le badge de télépéage qui paie aussi la recharge. <a href="https://ulys.com/" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Ulys&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Octopus Electroverse</strong> : badge gratuit, sans abonnement. <a href="https://electroverse.com/fr-FR" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Electroverse&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-            <li><strong>Charge myHyundai</strong> : le badge proposé par Hyundai pour ses voitures. <a href="https://chargemyhyundai.com/web/fr/hyundai-fr" target="_blank" rel="noopener">Site</a> · <a href="https://play.google.com/store/search?q=Charge%20myHyundai&amp;c=apps" target="_blank" rel="noopener">Appli</a></li>
-          </ul>
-        </details>
-        <details class="ev-sous-menu">
-          <summary>Les pièges à connaître</summary>
-          <ul class="ev-aide-liste">
-            <li><strong>Somme bloquée</strong> : en payant par carte bancaire, la borne réserve d'abord quelques dizaines d'euros sur ton compte. Seul le vrai montant est débité, le reste est libéré quelques jours plus tard.</li>
-            <li><strong>Prix au kWh ou à la minute</strong> : le prix est affiché sur la borne ou dans l'appli. À la minute, une recharge lente coûte cher.</li>
-            <li><strong>Frais de stationnement</strong> : certains réseaux font payer chaque minute passée branché après la fin de la recharge. Débranche dès que c'est fini.</li>
-            <li><strong>Même borne, prix différents</strong> : carte bancaire, appli du réseau et badge ne donnent pas le même prix sur une même borne.</li>
-            <li><strong>Pas de réseau mobile</strong> : en sous-sol, QR code et appli ne marchent pas. Le badge et la carte bancaire, si.</li>
-            <li><strong>Facture</strong> : par carte bancaire, pense à demander le reçu sur la borne ou à noter le numéro de la recharge.</li>
-          </ul>
-        </details>
-        <details class="ev-sous-menu">
-          <summary>Dans GPS</summary>
-          <ul class="ev-aide-liste">
-            <li>Sur la carte, la pastille <strong>CB</strong> sur une borne indique qu'elle accepte la carte bancaire.</li>
-            <li>Le filtre <strong>💳 Carte bancaire</strong>, en haut de la carte, ne montre que ces bornes.</li>
-            <li>Le filtre <strong>✅ Je peux payer</strong> ne garde que les bornes où tes moyens de paiement (cochés ci-dessus) passent.</li>
-            <li>Sur la fiche d'une borne, <strong>« Signaler cette borne en panne »</strong> l'écarte de tes trajets pendant trois jours.</li>
-            <li>Dans Trajet › Options avancées, <strong>« Privilégier les bornes qui acceptent la carte bancaire »</strong> choisit ces bornes pour tes arrêts.</li>
-            <li>Si tu as un abonnement, indique ton prix dans <strong>Menu › Abonnements de recharge</strong> : le coût du trajet en tient compte.</li>
-          </ul>
-        </details>
-        <div class="ev-hint">Informations vérifiées en octobre 2026. Les prix et les offres changent souvent : vérifie-les dans l'appli ou sur le site du réseau.</div>
-      </div>
 
       <div class="ev-carte-bloc" id="ev-bloc-etat">
         <h3>🩺 État de l'appli</h3>
@@ -586,24 +428,6 @@
             <li>Résumé du trajet : sorties et échangeurs, « Quand partir ? », partager le trajet.</li>
           </ul>
         </details>
-        <details class="ev-sous-menu">
-          <summary>✅ Essais à faire sur la route</summary>
-          <div class="ev-hint">Cochez au fil de vos trajets (à l'arrêt). Ce qui ne marche pas : dites-le-moi, avec une capture si possible.</div>
-          <div class="ev-colonne">
-            <label class="ev-check"><input type="checkbox" data-essai="0"> Voix : consignes claires, « Puis… » lisible dans le bandeau</label>
-            <label class="ev-check"><input type="checkbox" data-essai="1"> Ronds-points : tracé et voiture bien sur la route (carte 3D)</label>
-            <label class="ev-check"><input type="checkbox" data-essai="2"> Proposition (itinéraire plus rapide ou parking) : répondre « oui » à la voix</label>
-            <label class="ev-check"><input type="checkbox" data-essai="3"> 🎤 « prochaine borne ? », « trouve un café » : réponse correcte</label>
-            <label class="ev-check"><input type="checkbox" data-essai="4"> Écran verrouillé : la notification de guidage s'affiche</label>
-            <label class="ev-check"><input type="checkbox" data-essai="5"> Vibration avant une manœuvre (si activée dans le Profil)</label>
-            <label class="ev-check"><input type="checkbox" data-essai="6"> Autoroute : tuiles ⚡ 🍴 🌳 en bas à gauche, distances justes</label>
-            <label class="ev-check"><input type="checkbox" data-essai="7"> Préchauffage rappelé ~20 min avant une borne rapide</label>
-            <label class="ev-check"><input type="checkbox" data-essai="8"> À la borne : minuteur, puis notification « recharge terminée »</label>
-            <label class="ev-check"><input type="checkbox" data-essai="9"> À « Reprendre la route » : la recharge arrive dans le journal (Outils)</label>
-            <label class="ev-check"><input type="checkbox" data-essai="10"> 🆘 SOS : route, sens et lieu corrects</label>
-            <label class="ev-check"><input type="checkbox" data-essai="11"> Arrivée : bilan, puis « 🚗 Ma voiture » sur la carte</label>
-          </div>
-        </details>
         <details class="ev-sous-menu" id="ev-diag-bloc">
           <summary>🛟 Signaler un problème</summary>
           <div class="ev-hint">Quelque chose n'a pas marché ? En roulant, dites <strong>« signale un problème »</strong> : l'instant est noté. À l'arrêt, envoyez le rapport ci-dessous. Il contient l'état de l'appli et les derniers événements, <strong>sans vos clés ni vos adresses</strong>.</div>
@@ -632,7 +456,7 @@
 
 <!-- Navigation -->
 <nav class="ev-nav">
-  <button type="button" class="ev-nav-btn actif" data-vue="bornes"><span>🗺️</span>Carte</button>
+  <button type="button" class="ev-nav-btn actif" data-vue="accueil"><span>🗺️</span>Carte</button>
   <button type="button" class="ev-nav-btn" data-vue="trajet"><span>🧭</span>Trajet</button>
   <button type="button" class="ev-nav-btn" data-vue="menu"><span>☰</span>Menu</button>
 </nav>
@@ -781,14 +605,6 @@
         <li>Tous les passagers <strong>derrière la glissière</strong>, loin des voies. Pas de triangle sur autoroute.</li>
         <li>Appelez depuis une <strong>borne orange</strong> (tous les 2 km : elle vous localise) ou le <strong>112</strong> en donnant route, sens et PR ci-dessus.</li>
         <li>Sur autoroute, le dépannage se fait <strong>uniquement par les dépanneurs agréés</strong>, envoyés par ces appels.</li>
-      </ul>
-    </details>
-    <details class="ev-sous-menu">
-      <summary>🔋 Voiture électrique</summary>
-      <ul class="ev-aide-liste">
-        <li>Dites aux secours que c'est une <strong>voiture électrique</strong>.</li>
-        <li>Après un choc, ou en cas de fumée, de bruit ou d'odeur anormale : <strong>éloignez-vous</strong> du véhicule (risque batterie).</li>
-        <li>Batterie vide : ne pas pousser sur la voie ; le dépanneur la remorque sur plateau.</li>
       </ul>
     </details>
     <div class="ev-hint">Numéros : 112 (urgences), 15 (SAMU), 17 (police), 18 (pompiers), 114 (par SMS).</div>

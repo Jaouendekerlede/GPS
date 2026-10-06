@@ -2344,9 +2344,7 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   carte3D.definirInclinaisonPlate(reglages.inclinaison_ronds_points ?? 40);
   carte3D.definirIconeVoiture(reglages.icone_voiture);
   $("ev-nav-menu").classList.add("hidden");
-  $("ev-nav-frise").classList.add("hidden");
   $("ev-nav-recherche").classList.add("hidden");
-  $("ev-nav-borne-perso").classList.add("hidden");
   $("ev-nav-parkings").classList.add("hidden");
   $("ev-nav-secours").classList.add("hidden");
   $("ev-nav-feuille").classList.add("hidden");
@@ -2356,7 +2354,6 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   $("ev-nav-recherche-res").innerHTML = "";
   $("ev-navigation").classList.remove("hidden");
   $("ev-nav-etape-borne").classList.add("hidden");
-  $("ev-nav-batterie-panneau").classList.add("hidden");
   $("ev-nav-recentrer-btn").classList.add("hidden");
   $("ev-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
   majBoutonOrientation();

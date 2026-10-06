@@ -1,7 +1,6 @@
 import { brancherCapture, noter } from "./journal-erreurs.js";
 import { initialiserUI, executerAction, proposerRechargeMaison, viderChampsTrajet } from "./ui.js";
 import { navigationActive, navigationInterrompue } from "./navigation.js";
-import { afficherPresentation, retirerPresentation, presentationAutorisee, MENTION_COURTE, MENTION_LEGALE } from "./presentation.js";
 import { restaurerDepuisAdresse, proposerRappelSauvegarde } from "./ui-sauvegarde.js";
 import { proposerInstallation } from "./ui-installation.js";
 import { toast } from "./ui-commun.js";
@@ -12,11 +11,7 @@ brancherCapture();
 noter("appli", "ouverture");
 
 // Présentation légère à l'ouverture (jamais devant une navigation à reprendre).
-if (presentationAutorisee(location, navigationActive() || !!navigationInterrompue())) afficherPresentation();
-else retirerPresentation();
 // Mentions dans le Profil.
-document.getElementById("ev-mention-profil").textContent = MENTION_COURTE;
-document.getElementById("ev-mention-legale").textContent = MENTION_LEGALE;
 
 // Ouverte par un lien de restauration : les données sont remises avant
 // que l'interface ne les lise.
