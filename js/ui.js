@@ -9,7 +9,7 @@ import { planifierTrajet, planifierAlternative, planifierAllerRetour } from "./t
 import { diagnostiquerCleTomTom } from "./tomtom.js";
 
 import { exporterTrajetTexte, formaterMinutes } from "./planner.js";
-import { initCarte, afficherAutonomie, fondSuivant, choisirFond, rechargerFond, activerCarte3D, carte3DActive, fondCourant, derniereErreur3D, definirDecalageBas, centreVisible, rayonVisibleKm, zoomActuel, centrer, classePuissance, puissanceBorne, afficherBornes, rafraichirBorne, selectionnerBorne, montrerBornes, afficherPosition, afficherTrajet, afficherAlternatives, effacerTrajet, placerCurseur, definirAppuiLong, afficherPointsPassage } from "./carte.js";
+import { carteLeaflet, initCarte, afficherAutonomie, fondSuivant, choisirFond, rechargerFond, activerCarte3D, carte3DActive, fondCourant, derniereErreur3D, definirDecalageBas, centreVisible, rayonVisibleKm, zoomActuel, centrer, classePuissance, puissanceBorne, afficherBornes, rafraichirBorne, selectionnerBorne, montrerBornes, afficherPosition, afficherTrajet, afficherAlternatives, effacerTrajet, placerCurseur, definirAppuiLong, afficherPointsPassage } from "./carte.js";
 import { resoudreLieu, haversineKm } from "./geo.js";
 import { escapeHtml, lienGoogleMaps, lienWaze, estNuit } from "./util.js";
 import { $, toast, bandeau, euros, nombre, nomCourt, nombreOuUndefined, hint, alerte, tuile, telechargerTexte, badgeOperateur } from "./ui-commun.js";
@@ -23,6 +23,7 @@ import { niveauPrecision } from "./recalage.js";
 import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
 import { boutonPartage, partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
+import { demarrerRadarsCarte } from "./radars-carte.js";
 import { icone, iconeFond } from "./icones.js";
 import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
@@ -1607,6 +1608,7 @@ export function initialiserUI() {
   cablerComplements();
 
   cablerRechercheBas();
+  demarrerRadarsCarte(carteLeaflet());
   chargerPrefs();
   rendreProfil();
   appliquerTheme();

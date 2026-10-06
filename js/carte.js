@@ -116,6 +116,10 @@ let surDeplacementManuel = null;
 
 const ZOOM_SNAP = 0.5;
 
+export function carteLeaflet() {
+  return carte;
+}
+
 export function initCarte(idElement, { fondInitial = "sombre", onDeplacement } = {}) {
   carte = L.map(idElement, {
     zoomControl: false,
