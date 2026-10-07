@@ -508,7 +508,12 @@ function majEcran() {
   const kmh = kmhBrut > 250 ? 0 : kmhBrut;
   const limite = route.limites[etat.idx];
   $("gps-nav-vitesse").innerHTML = `<strong>${kmh}</strong><span>km/h</span>`;
-  $("gps-nav-vitesse").classList.toggle("exces", !!limite && kmh > limite + 3);
+  // Anneau de couleur autour du compteur : vert en dessous, orange en approche
+  // de la limite, rouge au-delà (même marge que l'alerte sonore).
+  const margeAffichage = etat.prefs.margeVitesse ?? TOLERANCE_VITESSE_KMH;
+  const etatVitesse = !limite ? "" : kmh > limite + margeAffichage ? "rouge" : kmh >= limite - 5 ? "orange" : "vert";
+  $("gps-nav-vitesse").dataset.etatVitesse = etatVitesse;
+  $("gps-nav-vitesse").classList.toggle("exces", etatVitesse === "rouge");
   // Le panneau reste toujours visible ; un tiret si la limite n'est pas connue.
   $("gps-nav-limite").textContent = limite || "–";
   $("gps-nav-limite").classList.toggle("inconnue", !limite);

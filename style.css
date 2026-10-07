@@ -97,7 +97,7 @@
 .hidden { display: none !important; }
 html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--fond);
   color: var(--texte);
   -webkit-text-size-adjust: 100%;
@@ -695,6 +695,10 @@ body.gps-bandeau-compact .gps-nav-aires { gap: 4px; }
 .gps-nav-vitesse span { font-size: 10px; color: var(--texte-att); }
 .gps-nav-vitesse.exces { background: #b3122a; border-color: #ff5c7a; }
 .gps-nav-vitesse.exces span { color: #fff; }
+/* Anneau autour du compteur : vert sous la limite, orange en approche
+   (le rouge, lui, prend tout le fond via .exces ci-dessus, plus visible). */
+.gps-nav-vitesse[data-etat-vitesse="vert"] { box-shadow: 0 0 0 4px #22c55e; }
+.gps-nav-vitesse[data-etat-vitesse="orange"] { box-shadow: 0 0 0 4px #f97316; }
 
 .gps-nav-boutons { position: absolute; right: 12px; bottom: calc(108px + var(--securite-bas)); display: flex; flex-direction: column; gap: 10px; }
 .gps-nav-recentrer { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(112px + var(--securite-bas)); padding: 12px 20px; border-radius: 24px; border: none; background: #3d8bff; color: #fff; font-size: 15px; font-weight: 800; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); cursor: pointer; }
@@ -835,11 +839,11 @@ body.gps-mode-navigation .gps-maj { display: none; }
 /* Zone de danger (radars) : bandeau orange sous la manœuvre. */
 .gps-nav-danger { align-self: flex-start; padding: 8px 14px; border-radius: 12px; background: #e8590c; color: #fff; font-size: 17px; font-weight: 800; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45); }
 /* Fenêtre des voies (comme Sygic), à droite sous le bandeau. */
-.gps-nav-vue-voies { align-self: flex-end; width: 170px; padding: 8px; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 16px; background: linear-gradient(#1b2433, #2a3344); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55); }
+.gps-nav-vue-voies { align-self: flex-end; width: 140px; padding: 7px; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 14px; background: linear-gradient(#1b2433, #2a3344); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55); }
 .gps-nav-vue-voies svg { display: block; width: 100%; height: auto; }
 .gps-nav-vue-voies-instruction { color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.04em; text-align: center; text-transform: uppercase; }
 .gps-nav-vue-voies-distance { color: #fff; font-size: 20px; font-weight: 900; text-align: center; margin: 2px 0; }
-body.gps-mode-voiture .gps-nav-vue-voies { width: 190px; }
+body.gps-mode-voiture .gps-nav-vue-voies { width: 160px; }
 body.gps-mode-voiture .gps-nav-vue-voies-instruction { font-size: 13px; }
 /* Routes coupées à éviter (Trajet > options) et visée sur la carte */
 .gps-zones-evitees { display: flex; flex-direction: column; gap: 6px; }
@@ -1204,6 +1208,7 @@ body.gps-aires-replie .gps-nav-aires { display: none !important; }
 /* Palette daltonien : orange et bleu au lieu du rouge et du vert */
 body.gps-daltonien .gps-nav-vitesse.exces { background: #c2410c; border-color: #fdba74; }
 body.gps-daltonien .gps-nav-vitesse.exces span { color: #fff; }
+body.gps-daltonien .gps-nav-vitesse[data-etat-vitesse="orange"] { box-shadow: 0 0 0 4px #3b82f6; }
 body.gps-daltonien .gps-nav-limite { border-color: #1d4ed8; }
 body.gps-daltonien .gps-nav-danger { background: #c2410c; }
 
