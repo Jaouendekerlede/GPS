@@ -250,12 +250,12 @@ export async function servicesLeLongDe(morceaux) {
 // Renvoie { ok, points } avec points = [{ lat, lon, type }] (type : passage, stop, cedez).
 export async function alertesLeLongDu(coords) {
   const rectangles = rectanglesLeLongDu(coords);
-  const requete = `[out:json][timeout:25];(${rectangles.map((b) => `node["railway"="level_crossing"](${b});node["highway"="stop"](${b});node["highway"="give_way"](${b});node["shop"="bakery"](${b});node["amenity"="pharmacy"](${b});`).join("")});out;`;
+  const requete = `[out:json][timeout:25];(${rectangles.map((b) => `node["railway"="level_crossing"](${b});node["highway"="stop"](${b});node["highway"="give_way"](${b});`).join("")});out;`;
   const r = await interrogerOverpass(requete);
   if (!r.ok) return r;
   const points = r.elements.map((e) => {
     const t = e.tags || {};
-    const type = t.railway === "level_crossing" ? "passage" : t.highway === "stop" ? "stop" : t.highway === "give_way" ? "cedez" : t.shop === "bakery" ? "boulangerie" : "pharmacie";
+    const type = t.railway === "level_crossing" ? "passage" : t.highway === "stop" ? "stop" : "cedez";
     return { lat: e.lat, lon: e.lon, type };
   });
   return { ok: true, points };

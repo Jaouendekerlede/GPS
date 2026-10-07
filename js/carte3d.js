@@ -25,7 +25,7 @@ const INCLINAISON_MAX = 78;
 const ECART_ZOOM = -0.7;
 // Tracé : vert sur la carte de nuit, bleu franc sur la carte claire (plus
 // lisible sur les routes jaunes et le fond beige).
-const COULEUR_RESTANT_NUIT = "#22e5a0";
+const COULEUR_RESTANT_NUIT = "#1a6fe8";
 const COULEUR_RESTANT_JOUR = "#1a6fe8";
 let COULEUR_RESTANT = COULEUR_RESTANT_NUIT;
 let fondActif = "sombre";
@@ -676,11 +676,11 @@ function ajouterCouchesExplo() {
   carte.addLayer({ id: "alt-zone", type: "line", source: "plan-alternatives", layout: rond, paint: { "line-color": "#000000", "line-width": 26, "line-opacity": 0.01 } }, dessous);
   const filtre = (type) => ["==", ["get", "type"], type];
   carte.addLayer({ id: "plan-halo", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#04221a", "line-width": 11, "line-opacity": 0.35 } }, dessous);
-  carte.addLayer({ id: "plan-aller", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#22e5a0", "line-width": 6, "line-opacity": 0.95 } }, dessous);
+  carte.addLayer({ id: "plan-aller", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#1a6fe8", "line-width": 6, "line-opacity": 0.95 } }, dessous);
   carte.addLayer({ id: "plan-retour", type: "line", source: "plan", filter: filtre("retour"), paint: { "line-color": "#ffb400", "line-width": 4, "line-opacity": 0.85, "line-dasharray": [2, 2] } }, dessous);
   // Ralentissements et bouchons par-dessus le tracé (couleur calculée par carte.js).
   carte.addLayer({ id: "plan-bouchons", type: "line", source: "plan", filter: filtre("bouchon"), layout: rond, paint: { "line-color": ["get", "couleur"], "line-width": 6, "line-opacity": 0.95 } }, dessous);
-  carte.addLayer({ id: "autonomie-ligne", type: "line", source: "autonomie", paint: { "line-color": "#22e5a0", "line-width": 3, "line-dasharray": [2, 2] } }, dessous);
+  carte.addLayer({ id: "autonomie-ligne", type: "line", source: "autonomie", paint: { "line-color": "#1a6fe8", "line-width": 3, "line-dasharray": [2, 2] } }, dessous);
   carte.on("click", "alt-zone", (e) => explo.alternatives[e.features?.[0]?.properties?.i]?.onClic?.());
   carte.on("moveend", () => {
     if (!explo.actif || enNavigation) return;
@@ -864,7 +864,7 @@ function rendreTrajet(recadrer) {
   }
   carte.getSource("plan").setData({ type: "FeatureCollection", features });
   if (d.from_lat !== undefined) {
-    const el = pastille(18, "#22e5a0");
+    const el = pastille(18, "#1a6fe8");
     el.title = d.from_name || "Départ";
     m.push(marqueur(el, d.from_lat, d.from_lon));
   }

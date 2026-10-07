@@ -1,6 +1,6 @@
-/* Trajet VE -- appli "carte d'abord" (carte plein écran, panneau
-   coulissant, barre de navigation), aux couleurs du panneau Trajet VE de
-   JARVIS : fond nuit, vert électrique #22e5a0, cyan #00e5ff. */
+/* GPS -- appli "carte d'abord" (carte plein écran, panneau coulissant,
+   barre de navigation). Couleurs façon Waze : fond sombre, bleu #1a6fe8
+   comme seul accent (plus de vert/cyan électrique hérité de Trajet VE). */
 
 :root {
   --fond: #05080e;
@@ -11,14 +11,14 @@
   --texte-att: rgba(230, 238, 249, 0.66);
   --texte-faible: rgba(230, 238, 249, 0.45);
   --bordure: rgba(255, 255, 255, 0.09);
-  --vert: #22e5a0;
-  --vert-clair: #6ff2c4;
+  --vert: #1a6fe8;
+  --vert-clair: #6fb3ff;
   --cyan: #4fe0ff;
   --violet: #c46bff;
   --orange: #ffcf70;
   --rouge: #ff7a90;
   --jaune: #ffd23f;
-  --vert-vif: #4dffb8;
+  --vert-vif: #4da8ff;
   --violet-texte: #d199ff;
   --meta: #a8f0d8;
   --rouge-texte: #ff9aaa;
@@ -36,7 +36,7 @@
   --pointilles: rgba(255, 255, 255, 0.35);
   /* couleurs de puissance des bornes : identiques dans les deux thèmes */
   --p-ultra: #c46bff;
-  --p-rapide: #22e5a0;
+  --p-rapide: #1a6fe8;
   --p-acc: #4fe0ff;
   --nav-h: 62px;
   --feuille-visible: 212px;
@@ -55,14 +55,14 @@
   --texte-att: rgba(16, 24, 38, 0.74);
   --texte-faible: rgba(16, 24, 38, 0.62);
   --bordure: rgba(16, 24, 38, 0.12);
-  --vert: #12c78b;
-  --vert-clair: #067a55;
-  --cyan: #0a7fa3;
+  --vert: #1a6fe8;
+  --vert-clair: #0b4fb3;
+  --cyan: #0a5fb0;
   --violet: #8a2fd1;
   --orange: #a86200;
   --rouge: #c8243f;
   --jaune: #7a5c00;
-  --vert-vif: #067a55;
+  --vert-vif: #0b4fb3;
   --violet-texte: #7b22c2;
   --meta: #0b6b4c;
   --rouge-texte: #b01f38;
@@ -85,9 +85,9 @@
 :root[data-theme="clair"] .gps-barre-recherche,
 :root[data-theme="clair"] .gps-chip { box-shadow: 0 4px 14px rgba(16, 24, 38, 0.18); }
 :root[data-theme="clair"] .gps-barre-recherche { background: #ffffff; }
-:root[data-theme="clair"] .gps-chip.actif { color: #ffffff; background: #0f9d6e; border-color: #0f9d6e; }
-:root[data-theme="clair"] .gps-segments button.active { color: #ffffff; background: #0f9d6e; }
-:root[data-theme="clair"] .gps-btn-principal { color: #ffffff; background: linear-gradient(90deg, #0fa874, #0a8fb3); }
+:root[data-theme="clair"] .gps-chip.actif { color: #ffffff; background: #1a6fe8; border-color: #1a6fe8; }
+:root[data-theme="clair"] .gps-segments button.active { color: #ffffff; background: #1a6fe8; }
+:root[data-theme="clair"] .gps-btn-principal { color: #ffffff; background: linear-gradient(90deg, #1a6fe8, #0b4fb3); }
 :root[data-theme="clair"] .gps-urgence-entete { color: #b01f38; }
 :root[data-theme="clair"] .gps-alerte { color: var(--rouge-texte); }
 :root[data-theme="clair"] .gps-nav-alerte { color: #fff; }
@@ -366,7 +366,7 @@ textarea.gps-input { resize: vertical; }
   padding: 15px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(90deg, #22e5a0, #00d4f0);
+  background: linear-gradient(90deg, #1a6fe8, #4fe0ff);
   color: #03201a;
   font-size: 16px;
   font-weight: 800;
@@ -398,7 +398,7 @@ textarea.gps-input { resize: vertical; }
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
-  background: linear-gradient(90deg, #22e5a0, #00e5ff, #22e5a0);
+  background: linear-gradient(90deg, #1a6fe8, #4fe0ff, #1a6fe8);
   background-size: 200% auto;
   color: #05130e;
   animation: badgeBrillance 3s linear infinite;
@@ -565,7 +565,7 @@ textarea.gps-input { resize: vertical; }
 .gps-frise-valeur { font-size: 16px; font-weight: 800; color: var(--vert-clair); }
 .gps-frise-piste { position: relative; height: 12px; margin: 16px 8px 4px; border-radius: 999px; background: var(--piste); touch-action: none; cursor: pointer; }
 .gps-frise-piste::before { content: ""; position: absolute; inset: -16px 0; }
-.gps-frise-remplissage { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: linear-gradient(90deg, #22e5a0, #6ff2c4); pointer-events: none; }
+.gps-frise-remplissage { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: linear-gradient(90deg, #1a6fe8, #6fb3ff); pointer-events: none; }
 .gps-frise-arrets { position: absolute; inset: 0; pointer-events: none; }
 .gps-charge-timeline-stop { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 26px; height: 26px; border-radius: 50%; background: var(--bloc); border: 2px solid var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 12px; pointer-events: auto; cursor: pointer; z-index: 2; }
 .gps-frise-curseur { position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); width: 24px; height: 24px; border-radius: 50%; background: var(--cyan); border: 3px solid #fff; box-shadow: 0 0 14px rgba(0, 229, 255, 0.9); pointer-events: none; z-index: 3; }
@@ -1083,11 +1083,11 @@ body.gps-borne-bas .gps-nav-boutons, body.gps-borne-bas .gps-nav-vitesse-bloc { 
 /* ── Menu : rubriques rangées par groupe, une page par rubrique ───────── */
 .gps-menu-titre { margin: 6px 4px -4px; font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--texte-att); }
 .gps-menu-groupe { display: flex; flex-direction: column; background: var(--bloc); border: 1px solid var(--bordure); border-radius: 16px; overflow: hidden; }
-.gps-menu-ligne { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px; background: none; border: none; border-bottom: 1px solid var(--bordure); color: var(--texte); font: inherit; text-align: left; cursor: pointer; }
+.gps-menu-ligne { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px; background: none; border: none; border-bottom: 1px solid var(--bordure); color: var(--texte); font: inherit; text-align: left; cursor: pointer; }
 .gps-menu-ligne:last-child { border-bottom: none; }
 .gps-menu-ligne:active { background: var(--bloc-2); }
 .gps-menu-ligne::after { content: "›"; font-size: 24px; line-height: 1; color: var(--texte-faible); }
-.gps-menu-icone { font-size: 22px; text-align: center; }
+.gps-menu-icone { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(26, 111, 232, .12); font-size: 17px; }
 .gps-menu-nom { display: block; font-size: 15.5px; font-weight: 700; }
 .gps-menu-detail { display: block; margin-top: 2px; font-size: 12.5px; color: var(--texte-att); }
 .gps-hors-rubrique { display: none !important; }
@@ -1148,18 +1148,28 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 .gps-bandeau-maj { position: absolute; z-index: 1300; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 15px; border-radius: 12px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgb(0 0 0 / 30%); }
 .gps-bandeau-maj button { padding: 7px 12px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-weight: 800; cursor: pointer; }
 
-/* Recherche en bas, façon Waze (1.25.0) */
-.gps-recherche-bas { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: 0; border-radius: 16px; background: #f1f5f9; color: #334155; font-size: 16px; font-weight: 700; text-align: left; cursor: pointer; box-shadow: inset 0 0 0 1px #e2e8f0; }
+/* Écran d'accueil façon Waze : pastille de recherche, raccourcis en cartes,
+   liste « Récemment » -- blanc sur fond clair ou sombre, comme Waze. */
+.gps-recherche-bas { display: flex; align-items: center; gap: 10px; width: 100%; padding: 16px 18px; border: 0; border-radius: 999px; background: #f1f5f9; color: #334155; font-size: 16px; font-weight: 700; text-align: left; cursor: pointer; box-shadow: inset 0 0 0 1px #e2e8f0, 0 6px 18px rgb(15 23 42 / 12%); }
+.gps-recherche-bas-micro { margin-left: auto; font-size: 18px; opacity: .75; }
 
-/* Raccourcis sous la recherche (1.26.0) */
-.gps-raccourcis { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; margin-top: 10px; }
-.gps-raccourci { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: 0; border-radius: 999px; background: #fff; color: #0f172a; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgb(15 23 42 / 10%); cursor: pointer; max-width: 100%; }
+/* Raccourcis sous la recherche : cartes avec icône dans un carré de couleur */
+.gps-raccourcis { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; margin-top: 12px; }
+.gps-raccourci { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; color: #0f172a; font-size: 13.5px; font-weight: 800; box-shadow: 0 2px 8px rgb(15 23 42 / 10%); cursor: pointer; max-width: 160px; flex: 0 0 auto; }
+.gps-raccourci span:first-child { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; background: rgba(26, 111, 232, .12); font-size: 17px; flex-shrink: 0; }
 .gps-raccourci span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gps-raccourcis-aide { font-size: 13px; opacity: .6; padding: 4px 2px; }
 
-/* Raccourci récent avec bouton pour le retirer (1.27.0) */
-.gps-raccourci-duo { display: inline-flex; align-items: center; gap: 2px; }
-.gps-raccourci-x { border: 0; background: transparent; color: #64748b; font-size: 14px; padding: 4px 6px; cursor: pointer; }
+/* « Récemment » : liste des derniers trajets, comme Waze (icône, titre, adresse) */
+.gps-recents { margin-top: 18px; }
+.gps-recents-titre { font-size: 12.5px; font-weight: 700; color: var(--texte-faible); text-transform: uppercase; letter-spacing: .04em; padding: 0 4px 6px; }
+.gps-recent-duo { display: flex; align-items: center; }
+.gps-recent { flex: 1; display: flex; align-items: center; gap: 12px; padding: 10px 4px; border: 0; background: none; text-align: left; cursor: pointer; color: var(--texte); border-bottom: 1px solid var(--separateur); }
+.gps-recent-icone { font-size: 18px; opacity: .55; flex-shrink: 0; width: 24px; text-align: center; }
+.gps-recent-texte { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+.gps-recent-titre { font-weight: 800; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gps-recent-sous { font-size: 12.5px; color: var(--texte-faible); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gps-recent-x { border: 0; background: transparent; color: var(--texte-faible); font-size: 15px; padding: 4px 8px; cursor: pointer; border-bottom: 1px solid var(--separateur); align-self: stretch; }
 
 /* Services sous les chiffres du bas de la navigation (1.28.0) */
 .gps-nav-services-bas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; font-weight: 700; color: rgb(255 255 255 / 85%); }
@@ -1193,6 +1203,7 @@ body.gps-daltonien .gps-nav-danger { background: #c2410c; }
 
 /* Outils et options : un seul élément de menu qui se déplie */
 .gps-menu-deroule > summary { list-style: none; cursor: pointer; }
+.gps-menu-deroule > summary.gps-menu-ligne::after { content: none; }
 .gps-menu-deroule > summary::-webkit-details-marker { display: none; }
 .gps-menu-fleche { margin-left: auto; opacity: .6; transition: transform .2s; }
 .gps-menu-deroule[open] > summary .gps-menu-fleche { transform: rotate(180deg); }

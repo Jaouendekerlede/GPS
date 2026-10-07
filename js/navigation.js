@@ -265,7 +265,7 @@ async function chercherAlertesConduite(route) {
 }
 
 // Annonces à distance (200 à 300 m selon le type), une seule fois par lieu.
-const SEUIL_ALERTE_M = { passage: 300, stop: 150, cedez: 150, boulangerie: 200, pharmacie: 200 };
+const SEUIL_ALERTE_M = { passage: 300, stop: 150, cedez: 150 };
 
 function verifierAlertesConduite() {
   const liste = etat.route?.alertesConduite;
@@ -276,8 +276,7 @@ function verifierAlertesConduite() {
     if (d <= 30) continue;
     const actif = a.type === "virage" ? etat.prefs.alerteVirages
       : a.type === "passage" ? etat.prefs.alertePassages
-        : a.type === "boulangerie" || a.type === "pharmacie" ? etat.prefs.alerteLieux
-          : etat.prefs.alerteStops;
+        : etat.prefs.alerteStops;
     if (!actif) continue;
     // Conseils débutants : annonces plus tôt (distances × 1,5).
     const coef = etat.prefs.debutant ? 1.5 : 1;
@@ -286,12 +285,11 @@ function verifierAlertesConduite() {
     const cle = `${a.type}|${Math.round(a.offset)}`;
     if (etat.alertesAnnoncees.has(cle)) continue;
     etat.alertesAnnoncees.add(cle);
-    const nomLieu = { boulangerie: "Boulangerie", pharmacie: "Pharmacie", stop: "Stop", cedez: "Cédez le passage" };
     const texte = a.type === "virage"
       ? `${texteVirage(a.angle)} dans ${seuil} mètres, ralentissez.`
       : a.type === "passage"
         ? `Passage à niveau dans ${seuil} mètres, ralentissez.`
-        : `${nomLieu[a.type]} dans ${seuil} mètres.`;
+        : `${a.type === "stop" ? "Stop" : "Cédez le passage"} dans ${seuil} mètres.`;
     parler(texte, true);
   }
 }
@@ -2455,7 +2453,6 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
       alertePassages: reglages.alerte_passages_niveau !== false,
       alerteStops: reglages.alerte_stops !== false,
       debutant: reglages.debutant === true,
-      alerteLieux: reglages.alerte_lieux === true,
       feux: reglages.feux !== false,
       fenetreVoies: reglages.fenetre_voies !== false,
       vueCarrefour: reglages.vue_carrefour !== false,

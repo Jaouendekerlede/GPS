@@ -345,7 +345,7 @@ function fondParDefaut() {
 
 function appliquerTheme() {
   const reglages = lireReglages();
-  const choix = reglages.theme || "sombre";
+  const choix = reglages.theme || "clair";
   const theme = themeResolu(choix);
   document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.contraste = reglages.contraste_fort ? "fort" : "normal";
@@ -1320,7 +1320,6 @@ function rendreReglagesProfil() {
   $("gps-reglage-alerte-passages").checked = reglages.alerte_passages_niveau !== false;
   $("gps-reglage-alerte-stops").checked = reglages.alerte_stops !== false;
   $("gps-reglage-debutant").checked = reglages.debutant === true;
-  $("gps-reglage-alerte-lieux").checked = reglages.alerte_lieux === true;
   $("gps-reglage-daltonien").checked = reglages.daltonien === true;
   document.body.classList.toggle("gps-daltonien", reglages.daltonien === true);
   $("gps-reglage-conso").value = reglages.conso_l_100 ?? "";
@@ -1620,7 +1619,7 @@ function majInfoRegion() {
 // Barre « Où allez-vous ? » en bas de l'écran d'accueil : ouvre la planification, destination prête à saisir.
 // Interrupteurs du menu « Outils » : même réglage que dans Profil › Navigation,
 // appliqué tout de suite. Le contraste est activé par défaut à « non ».
-const ACTIF_PAR_DEFAUT = { contraste_fort: false, debutant: false, daltonien: false, alerte_lieux: false };
+const ACTIF_PAR_DEFAUT = { contraste_fort: false, debutant: false, daltonien: false };
 
 function estActifReglage(cle) {
   const r = lireReglages();
@@ -1817,13 +1816,13 @@ function cablerRechercheBas() {
     if (d) localStorage.setItem(CLE_SUGGESTIONS_MASQUEES, JSON.stringify([...suggestionsMasquees(), d]));
     majSuggestionTrajet();
   }, true);
-  $("gps-raccourcis").addEventListener("click", (e) => {
+  $("vue-accueil").addEventListener("click", (e) => {
     const x = e.target.closest("[data-oublier]");
     if (!x) return;
     const dest = x.dataset.oublier;
     for (const h of listerHistoriqueTrajets().filter((h) => h.destination === dest)) supprimerTrajetHistorique(h.id);
     rendreRaccourcis();
-    toast(`${nomCourt(dest).split(",")[0]} retiré des raccourcis.`);
+    toast(`${nomCourt(dest).split(",")[0]} retiré des récents.`);
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
   $("gps-reglage-daltonien").addEventListener("change", (e) => document.body.classList.toggle("gps-daltonien", e.target.checked));
@@ -1867,7 +1866,6 @@ function cablerRechercheBas() {
       alerte_passages_niveau: $("gps-reglage-alerte-passages").checked,
       alerte_stops: $("gps-reglage-alerte-stops").checked,
       debutant: $("gps-reglage-debutant").checked,
-      alerte_lieux: $("gps-reglage-alerte-lieux").checked,
       daltonien: $("gps-reglage-daltonien").checked,
       conso_l_100: Number($("gps-reglage-conso").value) || null,
       prix_carburant_l: Number($("gps-reglage-prix-carburant").value) || null,
@@ -1879,7 +1877,7 @@ function cablerRechercheBas() {
     afficherVue("trajet");
     $("gps-destination-input").focus();
   });
-  $("gps-raccourcis").addEventListener("click", (e) => {
+  $("vue-accueil").addEventListener("click", (e) => {
     const b = e.target.closest("[data-dest]");
     if (!b) return;
     $("gps-destination-input").value = b.dataset.dest;
@@ -1894,21 +1892,34 @@ function cablerRechercheBas() {
 }
 
 // Raccourcis sous la recherche : Maison, Travail, puis les dernières destinations.
+// Raccourcis (Domicile, Travail, actions près de moi) en cartes, et liste
+// « Récemment » séparée en dessous -- même disposition que Waze.
 function rendreRaccourcis() {
   const r = lireReglages();
   const items = [];
-  if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Maison", dest: "Chez moi" });
+  if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Domicile", dest: "Chez moi" });
   if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail" });
-  const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 3);
-  for (const d of recents) items.push({ icone: "🕐", texte: nomCourt(d).split(",")[0], dest: d, recent: true });
-  const personnels = items.length
-    ? items.map((i) => i.recent
-        ? `<span class="gps-raccourci-duo"><button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button><button type="button" class="gps-raccourci-x" data-oublier="${escapeHtml(i.dest)}" aria-label="Retirer ${escapeHtml(i.texte)}">✕</button></span>`
-        : `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("")
-    : '<span class="gps-raccourcis-aide">Maison, Travail et vos derniers trajets apparaîtront ici.</span>';
   const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restau"]];
-  const ligneActions = actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci gps-raccourci-action" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`).join("");
-  $("gps-raccourcis").innerHTML = ligneActions + personnels;
+  const cartes = [
+    ...items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`),
+    ...actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`),
+  ].join("");
+  $("gps-raccourcis").innerHTML = cartes || '<span class="gps-raccourcis-aide">Domicile et Travail apparaîtront ici (Profil › Domicile et voix).</span>';
+
+  const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 5);
+  const zone = $("gps-recents");
+  if (!zone) return;
+  if (!recents.length) { zone.innerHTML = ""; return; }
+  const lignes = recents.map((d) => {
+    const morceaux = nomCourt(d).split(",");
+    const titre = morceaux[0].trim();
+    const sous = morceaux.slice(1).join(",").trim();
+    return `<span class="gps-recent-duo">
+      <button type="button" class="gps-recent" data-dest="${escapeHtml(d)}"><span class="gps-recent-icone" aria-hidden="true">🕐</span><span class="gps-recent-texte"><span class="gps-recent-titre">${escapeHtml(titre)}</span>${sous ? `<span class="gps-recent-sous">${escapeHtml(sous)}</span>` : ""}</span></button>
+      <button type="button" class="gps-recent-x" data-oublier="${escapeHtml(d)}" aria-label="Retirer ${escapeHtml(titre)}">✕</button>
+    </span>`;
+  }).join("");
+  zone.innerHTML = `<div class="gps-recents-titre">Récemment</div>${lignes}`;
 }
 
 // Météo sur l'itinéraire, avant le départ : départ, milieu et arrivée à l'heure de passage.

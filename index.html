@@ -8,9 +8,9 @@
 <title>GPS</title>
 <meta name="theme-color" content="#05080e" />
 <script>
-  // Thème appliqué avant l'affichage (évite un flash sombre en thème clair).
+  // Thème appliqué avant l'affichage (évite un flash de l'autre thème au chargement).
   try {
-    var choix = JSON.parse(localStorage.getItem("trajetve_reglages") || "{}").theme || "sombre";
+    var choix = JSON.parse(localStorage.getItem("trajetve_reglages") || "{}").theme || "clair";
     if (choix === "auto") choix = matchMedia("(prefers-color-scheme: light)").matches ? "clair" : "sombre";
     document.documentElement.dataset.theme = choix;
   } catch (e) {}
@@ -59,8 +59,9 @@
   <div id="gps-poignee" class="gps-poignee-zone"><div class="gps-poignee"></div></div>
   <div id="gps-feuille-corps" class="gps-feuille-corps">
     <div class="gps-vue" id="vue-accueil" style="padding:14px 4px 6px">
-      <button type="button" id="gps-recherche-bas" class="gps-recherche-bas"><span aria-hidden="true">🔍</span><span>Où allez-vous ?</span></button>
+      <button type="button" id="gps-recherche-bas" class="gps-recherche-bas"><span aria-hidden="true">🔍</span><span>Où allez-vous ?</span><span class="gps-recherche-bas-micro" aria-hidden="true">🎤</span></button>
       <div class="gps-raccourcis" id="gps-raccourcis"></div>
+      <div class="gps-recents" id="gps-recents"></div>
     </div>
 
 
@@ -174,11 +175,8 @@
       <div class="gps-menu-titre">Outils</div>
       <details class="gps-menu-groupe gps-menu-deroule">
         <summary class="gps-menu-ligne"><span class="gps-menu-icone">🧰</span><span><span class="gps-menu-nom">Outils et options</span><span class="gps-menu-detail">Recherches, rendez-vous, réglages rapides</span></span><span class="gps-menu-fleche" aria-hidden="true">▾</span></summary>
-          <button type="button" class="gps-menu-ligne" data-pres="pharmacie"><span class="gps-menu-icone">💊</span><span><span class="gps-menu-nom">Pharmacie la plus proche</span><span class="gps-menu-detail">Recherche autour de moi</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-pres="urgences"><span class="gps-menu-icone">🏥</span><span><span class="gps-menu-nom">Urgences la plus proche</span><span class="gps-menu-detail">Hôpital avec urgences, autour de moi</span></span></button>
           <button type="button" class="gps-menu-ligne" data-action="importer-rdv"><span class="gps-menu-icone">📅</span><span><span class="gps-menu-nom">Rendez-vous (.ics)</span><span class="gps-menu-detail">Itinéraire et heure de départ conseillée</span></span></button>
           <button type="button" class="gps-menu-ligne" data-action="statistiques"><span class="gps-menu-icone">📊</span><span><span class="gps-menu-nom">Mes statistiques</span><span class="gps-menu-detail">Trajets, kilomètres, carburant</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-basculer="alerte_lieux" data-id="gps-reglage-alerte-lieux"><span class="gps-menu-icone">🥖</span><span><span class="gps-menu-nom">Boulangerie et pharmacie en passant</span><span class="gps-menu-detail">Désactivé</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="debutant" data-id="gps-reglage-debutant"><span class="gps-menu-icone">🎓</span><span><span class="gps-menu-nom">Conseils pour débutants</span><span class="gps-menu-detail">Désactivés</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="daltonien" data-id="gps-reglage-daltonien"><span class="gps-menu-icone">🎨</span><span><span class="gps-menu-nom">Couleurs daltonisme</span><span class="gps-menu-detail">Désactivées</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="voix_guidage" data-id="gps-reglage-voix"><span class="gps-menu-icone">🔊</span><span><span class="gps-menu-nom">Voix de guidage</span><span class="gps-menu-detail">Activée</span></span></button>
@@ -337,7 +335,6 @@
           <label class="gps-champ">Distance d'annonce des virages<select id="gps-reglage-distance-virage" class="gps-input"><option value="150">150 m</option><option value="300">300 m</option><option value="500">500 m</option></select></label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-passages"> 🚧 Annoncer les passages à niveau</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-stops"> 🛑 Annoncer les stops et cédez-le-passage</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-lieux"> 🥖 Annoncer les boulangeries et pharmacies devant soi</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-debutant"> 🎓 Conseils pour débutants : annonces plus tôt (distances × 1,5)</label>
           <p class="gps-hint">Les virages sont repérés sur le tracé lui-même. Les passages à niveau, stops et cédez-le-passage viennent d'OpenStreetMap, comme les feux.</p>
         </details>

@@ -1,4 +1,4 @@
-// Actions « près de moi » : station-service, aire de repos, parking, restaurant, pharmacie, urgences.
+// Actions « près de moi » sous la recherche : station-service, aire de repos, parking, restaurant.
 // Cherche autour de la position, affiche le plus proche (distance) et centre la carte dessus.
 import { resoudreLieu, haversineKm } from "./geo.js";
 import { centrer } from "./carte.js";
@@ -10,11 +10,8 @@ const RECHERCHES = {
   repos: { libelle: "Aire de repos", filtre: '["highway"~"^(services|rest_area)$"]' },
   parking: { libelle: "Parking", filtre: '["amenity"="parking"]' },
   restaurant: { libelle: "Restaurant", filtre: '["amenity"~"^(restaurant|cafe)$"]' },
-  pharmacie: { libelle: "Pharmacie", filtre: '["amenity"="pharmacy"]' },
-  urgences: { libelle: "Urgences hospitalières", filtre: '["amenity"="hospital"]' },
 };
 const RAYON_M = 10000;
-const RAYON_COURT_M = 3000;
 
 export async function chercherPresDeMoi(type) {
   const recherche = RECHERCHES[type];
@@ -22,23 +19,16 @@ export async function chercherPresDeMoi(type) {
   toast(`🔎 ${recherche.libelle} : recherche autour de toi…`);
   const pos = await resoudreLieu("ma position");
   if (pos.erreur) return toast(pos.erreur);
+  const requete = `[out:json][timeout:20];nwr${recherche.filtre}(around:${RAYON_M},${pos.lat},${pos.lon});out center 60;`;
   // Mémoire d'un jour et serveurs de secours : même service que les parkings.
-  // Si le service est lent, on refait une recherche plus courte (beaucoup plus légère).
-  let r = null;
-  let rayon = RAYON_M;
-  for (const essai of [RAYON_M, RAYON_COURT_M]) {
-    rayon = essai;
-    const requete = `[out:json][timeout:20];nwr${recherche.filtre}(around:${essai},${pos.lat},${pos.lon});out center 60;`;
-    r = await interrogerOverpass(requete, { dureeJours: 1 });
-    if (r.ok) break;
-  }
+  const r = await interrogerOverpass(requete, { dureeJours: 1 });
   if (!r.ok) return toast(`${recherche.libelle} : ${r.erreur}. Réessaie dans une minute.`);
   const lieux = r.elements
     .map((e) => ({ lat: e.lat ?? e.center?.lat, lon: e.lon ?? e.center?.lon, nom: e.tags?.name || e.tags?.brand || "" }))
     .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lon))
     .map((l) => ({ ...l, d: haversineKm(pos.lat, pos.lon, l.lat, l.lon) }))
     .sort((a, b) => a.d - b.d);
-  if (!lieux.length) return toast(`Aucun ${recherche.libelle.toLowerCase()} trouvé dans les ${rayon / 1000} km.`);
+  if (!lieux.length) return toast(`Aucun ${recherche.libelle.toLowerCase()} trouvé dans les ${RAYON_M / 1000} km.`);
   const p = lieux[0];
   const dist = p.d < 1 ? `${Math.round(p.d * 1000)} m` : `${p.d.toFixed(1).replace(".", ",")} km`;
   centrer(p.lat, p.lon, 14);
