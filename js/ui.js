@@ -1336,6 +1336,9 @@ function rendreReglagesProfil() {
   document.body.classList.toggle("gps-daltonien", reglages.daltonien === true);
   $("gps-reglage-conso").value = reglages.conso_l_100 ?? "";
   $("gps-reglage-prix-carburant").value = reglages.prix_carburant_l ?? "";
+  $("gps-reglage-type-vehicule").value = reglages.type_vehicule || "particulier";
+  $("gps-reglage-carburant").value = reglages.carburant_prefere || "essence";
+  $("gps-reglage-carburant-2").value = reglages.carburant_prefere || "essence";
   $("gps-reglage-taille-globale").value = String(reglages.taille_globale ?? 100);
   $("gps-reglage-taille-globale-val").textContent = String(reglages.taille_globale ?? 100);
   appliquerTailleGlobale(reglages.taille_globale);
@@ -1784,7 +1787,7 @@ function afficherRappelCarteDemain() {
     id: "gps-rappel-carte",
     texte: `🗺️ Trajet prévu vers ${nomCourt(t.destination || "").split(",")[0]} : téléchargez la carte de la région pour rouler sans réseau.`,
     boutons: [
-      { libelle: "Télécharger", action: () => document.querySelector('.gps-menu-ligne[data-bloc="gps-bloc-cartes"]')?.click() },
+      { libelle: "Télécharger", action: () => document.querySelector('.gps-menu-ligne[data-bloc="gps-bloc-affichage-carte"]')?.click() },
       { libelle: "Plus tard", action: () => {} },
     ],
   });
@@ -1838,6 +1841,9 @@ function cablerRechercheBas() {
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
   $("gps-reglage-daltonien").addEventListener("change", (e) => document.body.classList.toggle("gps-daltonien", e.target.checked));
+  // Carburant préféré : même réglage affiché à deux endroits (Infos du véhicule et Stations-service).
+  $("gps-reglage-carburant").addEventListener("change", (e) => ($("gps-reglage-carburant-2").value = e.target.value));
+  $("gps-reglage-carburant-2").addEventListener("change", (e) => ($("gps-reglage-carburant").value = e.target.value));
   $("gps-reglage-carte-2d").addEventListener("change", (e) => {
     sauverReglages({ carte_2d: e.target.value });
     rechargerFond();
@@ -1884,6 +1890,8 @@ function cablerRechercheBas() {
       alerte_stops: $("gps-reglage-alerte-stops").checked,
       debutant: $("gps-reglage-debutant").checked,
       daltonien: $("gps-reglage-daltonien").checked,
+      type_vehicule: $("gps-reglage-type-vehicule").value,
+      carburant_prefere: $("gps-reglage-carburant").value,
       conso_l_100: Number($("gps-reglage-conso").value) || null,
       prix_carburant_l: Number($("gps-reglage-prix-carburant").value) || null,
       taille_globale: Number($("gps-reglage-taille-globale").value),

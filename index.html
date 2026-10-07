@@ -179,7 +179,6 @@
       <div class="gps-menu-titre">Outils</div>
       <details class="gps-menu-groupe gps-menu-deroule">
         <summary class="gps-menu-ligne"><span class="gps-menu-icone" style="background:#ec4899"><span class="gps-menu-glyphe">🧰</span></span><span><span class="gps-menu-nom">Outils et options</span><span class="gps-menu-detail">Recherches, rendez-vous, réglages rapides</span></span><span class="gps-menu-fleche" aria-hidden="true">▾</span></summary>
-          <button type="button" class="gps-menu-ligne" data-action="importer-rdv"><span class="gps-menu-icone">📅</span><span><span class="gps-menu-nom">Rendez-vous (.ics)</span><span class="gps-menu-detail">Itinéraire et heure de départ conseillée</span></span></button>
           <button type="button" class="gps-menu-ligne" data-action="statistiques"><span class="gps-menu-icone">📊</span><span><span class="gps-menu-nom">Mes statistiques</span><span class="gps-menu-detail">Trajets, kilomètres, carburant</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="debutant" data-id="gps-reglage-debutant"><span class="gps-menu-icone">🎓</span><span><span class="gps-menu-nom">Conseils pour débutants</span><span class="gps-menu-detail">Désactivés</span></span></button>
           <button type="button" class="gps-menu-ligne" data-basculer="daltonien" data-id="gps-reglage-daltonien"><span class="gps-menu-icone">🎨</span><span><span class="gps-menu-nom">Couleurs daltonisme</span><span class="gps-menu-detail">Désactivées</span></span></button>
@@ -195,24 +194,30 @@
       </details>
       <div class="gps-menu-titre">Profil et réglages</div>
       <div class="gps-menu-groupe">
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-navigation"><span class="gps-menu-icone" style="background:#3b82f6"><span class="gps-menu-glyphe">🧭</span></span><span><span class="gps-menu-nom">Navigation</span><span class="gps-menu-detail">Affichage, voix, alertes</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-cartes"><span class="gps-menu-icone" style="background:#16a34a"><span class="gps-menu-glyphe">🗺️</span></span><span><span class="gps-menu-nom">Cartes</span><span class="gps-menu-detail">Carte hors ligne, carte 3D</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-domicile"><span class="gps-menu-icone" style="background:#06b6d4"><span class="gps-menu-glyphe">🏠</span></span><span><span class="gps-menu-nom">Domicile et voix</span><span class="gps-menu-detail">Adresses du domicile et du travail</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-apparence"><span class="gps-menu-icone" style="background:#9333ea"><span class="gps-menu-glyphe">🎨</span></span><span><span class="gps-menu-nom">Apparence</span><span class="gps-menu-detail">Sombre, clair ou automatique</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-general"><span class="gps-menu-icone" style="background:#06b6d4"><span class="gps-menu-glyphe">⚙️</span></span><span><span class="gps-menu-nom">Général</span><span class="gps-menu-detail">Thème, contraste, taille de l'écran</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-affichage-carte"><span class="gps-menu-icone" style="background:#16a34a"><span class="gps-menu-glyphe">🗺️</span></span><span><span class="gps-menu-nom">Affichage de la carte</span><span class="gps-menu-detail">Fond de carte, carte 3D, hors ligne</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-voix"><span class="gps-menu-icone" style="background:#06b6d4"><span class="gps-menu-glyphe">🔊</span></span><span><span class="gps-menu-nom">Voix et son</span><span class="gps-menu-detail">Guidage vocal, commandes mains libres</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-navigation"><span class="gps-menu-icone" style="background:#3b82f6"><span class="gps-menu-glyphe">🧭</span></span><span><span class="gps-menu-nom">Navigation</span><span class="gps-menu-detail">Alertes, aide à la conduite</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-vehicule"><span class="gps-menu-icone" style="background:#0ea5e9"><span class="gps-menu-glyphe">🚗</span></span><span><span class="gps-menu-nom">Infos du véhicule</span><span class="gps-menu-detail">Type de véhicule, carburant préféré</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-stations"><span class="gps-menu-icone" style="background:#16a34a"><span class="gps-menu-glyphe">⛽</span></span><span><span class="gps-menu-nom">Stations-service</span><span class="gps-menu-detail">Carburant préféré, consommation</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-notifications"><span class="gps-menu-icone" style="background:#9333ea"><span class="gps-menu-glyphe">🔔</span></span><span><span class="gps-menu-nom">Notifications</span><span class="gps-menu-detail">Guidage sur écran verrouillé</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-trajets-planifies"><span class="gps-menu-icone" style="background:#0891b2"><span class="gps-menu-glyphe">📅</span></span><span><span class="gps-menu-nom">Trajets planifiés</span><span class="gps-menu-detail">Rendez-vous importés (.ics)</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-rappels"><span class="gps-menu-icone" style="background:#f97316"><span class="gps-menu-glyphe">⏰</span></span><span><span class="gps-menu-nom">Rappels</span><span class="gps-menu-detail">Pause à mi-parcours, conseils débutants</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-domicile"><span class="gps-menu-icone" style="background:#0d9488"><span class="gps-menu-glyphe">🏠</span></span><span><span class="gps-menu-nom">Domicile et travail</span><span class="gps-menu-detail">Adresses pour les raccourcis</span></span></button>
           <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-cles"><span class="gps-menu-icone" style="background:#475569"><span class="gps-menu-glyphe">🔑</span></span><span><span class="gps-menu-nom">Clés API</span><span class="gps-menu-detail">TomTom et Open Charge Map</span></span></button>
       </div>
       <div class="gps-menu-titre">Mes données</div>
       <div class="gps-menu-groupe">
-          <button type="button" class="gps-menu-ligne" data-action="exporter-reglages"><span class="gps-menu-icone" style="background:#3b82f6"><span class="gps-menu-glyphe">⬇️</span></span><span><span class="gps-menu-nom">Exporter mes réglages</span><span class="gps-menu-detail">Fichier JSON, sans les clés d'accès</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-action="importer-reglages"><span class="gps-menu-icone" style="background:#6366f1"><span class="gps-menu-glyphe">⬆️</span></span><span><span class="gps-menu-nom">Importer mes réglages</span><span class="gps-menu-detail">Depuis un fichier JSON exporté</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-action="exporter-trajets"><span class="gps-menu-icone" style="background:#64748b"><span class="gps-menu-glyphe">📄</span></span><span><span class="gps-menu-nom">Exporter mes trajets</span><span class="gps-menu-detail">Fichier CSV (indemnités kilométriques)</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-sauvegarde"><span class="gps-menu-icone" style="background:#9333ea"><span class="gps-menu-glyphe">💾</span></span><span><span class="gps-menu-nom">Sauvegarde</span><span class="gps-menu-detail">Lien de restauration, Google Drive</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-raz"><span class="gps-menu-icone" style="background:#f97316"><span class="gps-menu-glyphe">🧹</span></span><span><span class="gps-menu-nom">Remise à zéro</span><span class="gps-menu-detail">Effacer les données de l'appli</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-action="exporter-reglages"><span class="gps-menu-icone" style="background:#3b82f6">⬇️</span><span><span class="gps-menu-nom">Exporter mes réglages</span><span class="gps-menu-detail">Fichier JSON, sans les clés d'accès</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-action="importer-reglages"><span class="gps-menu-icone" style="background:#6366f1">⬆️</span><span><span class="gps-menu-nom">Importer mes réglages</span><span class="gps-menu-detail">Depuis un fichier JSON exporté</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-action="exporter-trajets"><span class="gps-menu-icone" style="background:#64748b">📄</span><span><span class="gps-menu-nom">Exporter mes trajets</span><span class="gps-menu-detail">Fichier CSV (indemnités kilométriques)</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-sauvegarde"><span class="gps-menu-icone" style="background:#9333ea">💾</span><span><span class="gps-menu-nom">Sauvegarde</span><span class="gps-menu-detail">Lien de restauration, Google Drive</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-raz"><span class="gps-menu-icone" style="background:#f97316">🧹</span><span><span class="gps-menu-nom">Remise à zéro</span><span class="gps-menu-detail">Effacer les données de l'appli</span></span></button>
       </div>
       <div class="gps-menu-titre">Aide</div>
       <div class="gps-menu-groupe">
           <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-etat"><span class="gps-menu-icone" style="background:#06b6d4"><span class="gps-menu-glyphe">🩺</span></span><span><span class="gps-menu-nom">État de l'appli</span><span class="gps-menu-detail">GPS, réseau, clés, données des bornes, hors ligne</span></span></button>
-          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-aide"><span class="gps-menu-icone" style="background:#64748b"><span class="gps-menu-glyphe">❓</span></span><span><span class="gps-menu-nom">Aide et astuces</span><span class="gps-menu-detail">Mode d'emploi, signaler un problème, version</span></span></button>
+          <button type="button" class="gps-menu-ligne" data-vue="profil" data-bloc="gps-bloc-aide"><span class="gps-menu-icone" style="background:#64748b">❓</span><span><span class="gps-menu-nom">À propos</span><span class="gps-menu-detail">Mode d'emploi, mentions légales, version</span></span></button>
       </div>
     </div>
 
@@ -243,8 +248,8 @@
     <div id="vue-profil" class="gps-vue hidden">
       <div class="gps-vue-entete"><h2>🚗 Profil et réglages</h2></div>
 
-      <div class="gps-carte-bloc" id="gps-bloc-apparence">
-        <h3>🎨 Apparence</h3>
+      <div class="gps-carte-bloc" id="gps-bloc-general">
+        <h3>⚙️ Général</h3>
         <div class="gps-segments" id="gps-theme-choix">
           <button type="button" data-theme-choix="sombre">🌙 Sombre</button>
           <button type="button" data-theme-choix="clair">☀️ Clair</button>
@@ -252,82 +257,29 @@
         </div>
         <div class="gps-hint">« Auto » suit le réglage clair/sombre de ton téléphone. S'applique tout de suite.</div>
         <label class="gps-check"><input type="checkbox" id="gps-reglage-contraste"> 🔆 Contraste renforcé (textes et contours plus marqués)</label>
-      </div>
-
-
-
-      <div class="gps-carte-bloc" id="gps-bloc-domicile">
         <label class="gps-check"><input type="checkbox" id="gps-reglage-daltonien"> 🎨 Couleurs pour le daltonisme (orange et bleu au lieu du rouge et du vert)</label>
         <label class="gps-champ">🔠 Taille de tout l'écran : <span id="gps-reglage-taille-globale-val" class="gps-valeur">100</span> %
           <input type="range" min="85" max="125" step="5" value="100" id="gps-reglage-taille-globale" class="gps-curseur">
         </label>
-        <h3>Domicile et voix</h3>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-domicile">
+        <h3>🏠 Domicile et travail</h3>
         <label class="gps-champ">Adresse du travail (pour « Travail »)
           <input type="text" id="gps-reglage-travail" class="gps-input" placeholder="Ex : 3 rue de la Gare, Rennes">
         </label>
         <label class="gps-champ">Adresse du domicile (pour « Chez moi »)
           <input type="text" id="gps-reglage-domicile" class="gps-input" placeholder="Ex : 12 rue des Lilas, Rennes">
         </label>
-        <label class="gps-check"><input type="checkbox" id="gps-reglage-annonce"> 🔊 Annoncer le résultat à voix haute</label>
       </div>
 
       <div class="gps-carte-bloc" id="gps-bloc-navigation">
         <h3>🧭 Navigation</h3>
-        <label class="gps-champ">⛽ Consommation du véhicule (litres / 100 km) <input type="number" min="0" max="40" step="0.1" id="gps-reglage-conso" class="gps-input" placeholder="ex. 6,5"></label>
-        <label class="gps-champ">⛽ Prix du carburant (€ / litre) <input type="number" min="0" max="5" step="0.01" id="gps-reglage-prix-carburant" class="gps-input" placeholder="ex. 1,85"></label>
         <div class="gps-hint">Tout est déjà réglé comme conseillé ; ouvrez une rubrique pour changer.</div>
-        <details class="gps-sous-menu">
-          <summary>🖥️ Affichage</summary>
-          <label class="gps-champ">🔠 Taille du texte en navigation : <span id="gps-reglage-taille-texte-val" class="gps-valeur">100</span> %
-            <input type="range" min="80" max="130" step="5" value="100" id="gps-reglage-taille-texte" class="gps-curseur">
-          </label>
-          <label class="gps-champ">📐 Inclinaison de la vue 3D : <span id="gps-reglage-inclinaison-val" class="gps-valeur">70</span>°
-          <input type="range" min="40" max="78" step="2" value="70" id="gps-reglage-inclinaison" class="gps-curseur">
-          <span class="gps-km-estime">Plus incliné : on voit plus loin devant, jusqu'à l'horizon.</span>
-        </label>
-        <label class="gps-champ">📐 Inclinaison aux ronds-points/carrefours : <span id="gps-reglage-inclinaison-plate-val" class="gps-valeur">40</span>°
-          <input type="range" min="15" max="60" step="5" value="40" id="gps-reglage-inclinaison-plate" class="gps-curseur">
-          <span class="gps-km-estime">Vue réduite pour mieux distinguer les routes qui se croisent (redémarrer la navigation pour appliquer).</span>
-        </label>
-        <label class="gps-champ">🔍 Zoom en navigation : <span id="gps-reglage-decalage-zoom-val" class="gps-valeur">0</span>
-          <input type="range" min="-2" max="2" step="0.5" value="0" id="gps-reglage-decalage-zoom" class="gps-curseur">
-          <span class="gps-km-estime">Ajout par-dessus le zoom automatique (vitesse, manœuvres) : négatif pour voir plus loin, positif pour voir plus près.</span>
-        </label>
-        <label class="gps-champ">🪧 Affichage en navigation
-            <select id="gps-reglage-taille-bandeau" class="gps-input">
-              <option value="compact">Compact : la carte reste bien visible (conseillé)</option>
-              <option value="grand">Grand : flèche, rue et infos en très gros</option>
-            </select>
-          </label>
-          <label class="gps-champ">Icône de la voiture
-            <select id="gps-reglage-icone" class="gps-input">
-              <option value="fleche_bleue">Flèche bleue</option>
-              <option value="fleche_verte">Flèche verte</option>
-              <option value="fleche_orange">Flèche orange</option>
-              <option value="fleche_rouge">Flèche rouge</option>
-              <option value="voiture">Voiture vue de dessus</option>
-              <option value="point">Point avec direction</option>
-            </select>
-          </label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-epure"> 🧘 Écran épuré en longue ligne droite (bandeau replié, autoroute : l'essentiel)</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-nuit-douce"> 🌙 Écran moins lumineux la nuit</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-zoom-renforce"> 🔍 Zoom renforcé aux ronds-points, grands carrefours, sorties et entrées de voie rapide</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-vue-carrefour"> 🗺️ Dessin du vrai carrefour dans le panneau (ronds-points, carrefours à plusieurs routes)</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-fenetre-voies"> 🛣️ Fenêtre des voies (comme Sygic) quand il faut choisir sa file</label>
-        </details>
-        <details class="gps-sous-menu">
-          <summary>🗣️ Voix et mains libres</summary>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-voix"> 🔊 Guidage vocal (on peut aussi le couper en route avec 🔊)</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-reponses-voix"> 🗣️ Mains sur le volant : répondre à la voix (« oui », « non », « le premier »…) aux propositions</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-voix-voies"> 🛣️ Dire quelle voie prendre (« prenez la voie de droite »)</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-vibration"> 📳 Vibrer avant chaque manœuvre</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-notif"> 🔔 Guidage visible écran verrouillé (notification)</label>
-        </details>
         <details class="gps-sous-menu">
           <summary>⚠️ Alertes</summary>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-voix-travaux"> 🚧 Annoncer les travaux, routes fermées et ralentissements</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-zones-danger"> ⚠️ Zones de danger (radars fixes, comme la loi l'autorise : zone sans emplacement précis)</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur,</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-bip"> 🔔 Bip en cas d'excès de vitesse</label>
           <label class="gps-champ">Alerte de vitesse à partir de<select id="gps-reglage-marge-vitesse" class="gps-input"><option value="0">limite exacte</option><option value="5">+5 km/h</option><option value="10">+10 km/h</option><option value="15">+15 km/h</option></select></label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-meteo-route"> 🌦️ Annoncer la météo devant soi (orage, neige, verglas, forte pluie, vent)</label>
@@ -339,23 +291,13 @@
           <label class="gps-champ">Distance d'annonce des virages<select id="gps-reglage-distance-virage" class="gps-input"><option value="150">150 m</option><option value="300">300 m</option><option value="500">500 m</option></select></label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-passages"> 🚧 Annoncer les passages à niveau</label>
           <label class="gps-check"><input type="checkbox" id="gps-reglage-alerte-stops"> 🛑 Annoncer les stops et cédez-le-passage</label>
-          <label class="gps-check"><input type="checkbox" id="gps-reglage-debutant"> 🎓 Conseils pour débutants : annonces plus tôt (distances × 1,5)</label>
           <p class="gps-hint">Les virages sont repérés sur le tracé lui-même. Les passages à niveau, stops et cédez-le-passage viennent d'OpenStreetMap, comme les feux.</p>
         </details>
         <button id="gps-reglages-conseilles-btn" class="gps-lien gps-lien-centre" type="button">↺ Revenir aux réglages conseillés</button>
       </div>
 
-      <div class="gps-carte-bloc" id="gps-bloc-cartes">
-        <h3>Cartes</h3>
-        <div class="gps-region-bloc">
-          <div class="gps-champ-titre"><strong>📥 Carte hors ligne de ma région</strong></div>
-          <div class="gps-hint">Télécharge la carte 3D autour de chez vous : elle s'affichera partout dans la région sans réseau. À faire en Wi-Fi. (Le guidage sans réseau reste celui des trajets préparés avec « Hors ligne ».)</div>
-          <label class="gps-champ">Rayon autour de la maison
-            <select id="gps-region-rayon" class="gps-input"></select>
-          </label>
-          <button id="gps-region-btn" class="gps-btn gps-btn-plein" type="button">📥 Télécharger ma région</button>
-          <div id="gps-region-info" class="gps-hint"></div>
-        </div>
+      <div class="gps-carte-bloc" id="gps-bloc-affichage-carte">
+        <h3>🗺️ Affichage de la carte</h3>
         <label class="gps-check"><input type="checkbox" id="gps-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
         <label class="gps-champ">Fond de carte (Jour / Nuit)
           <select id="gps-reglage-carte-2d" class="gps-input">
@@ -371,6 +313,112 @@
           </select>
         </label>
         <div class="gps-hint">Si la carte choisie ne répond pas, l'autre prend le relais ; sinon la navigation passe en 2D.</div>
+        <label class="gps-champ">🔠 Taille du texte en navigation : <span id="gps-reglage-taille-texte-val" class="gps-valeur">100</span> %
+          <input type="range" min="80" max="130" step="5" value="100" id="gps-reglage-taille-texte" class="gps-curseur">
+        </label>
+        <label class="gps-champ">📐 Inclinaison de la vue 3D : <span id="gps-reglage-inclinaison-val" class="gps-valeur">70</span>°
+        <input type="range" min="40" max="78" step="2" value="70" id="gps-reglage-inclinaison" class="gps-curseur">
+        <span class="gps-km-estime">Plus incliné : on voit plus loin devant, jusqu'à l'horizon.</span>
+      </label>
+      <label class="gps-champ">📐 Inclinaison aux ronds-points/carrefours : <span id="gps-reglage-inclinaison-plate-val" class="gps-valeur">40</span>°
+        <input type="range" min="15" max="60" step="5" value="40" id="gps-reglage-inclinaison-plate" class="gps-curseur">
+        <span class="gps-km-estime">Vue réduite pour mieux distinguer les routes qui se croisent (redémarrer la navigation pour appliquer).</span>
+      </label>
+      <label class="gps-champ">🔍 Zoom en navigation : <span id="gps-reglage-decalage-zoom-val" class="gps-valeur">0</span>
+        <input type="range" min="-2" max="2" step="0.5" value="0" id="gps-reglage-decalage-zoom" class="gps-curseur">
+        <span class="gps-km-estime">Ajout par-dessus le zoom automatique (vitesse, manœuvres) : négatif pour voir plus loin, positif pour voir plus près.</span>
+      </label>
+      <label class="gps-champ">🪧 Affichage en navigation
+          <select id="gps-reglage-taille-bandeau" class="gps-input">
+            <option value="compact">Compact : la carte reste bien visible (conseillé)</option>
+            <option value="grand">Grand : flèche, rue et infos en très gros</option>
+          </select>
+        </label>
+        <label class="gps-champ">Icône de la voiture
+          <select id="gps-reglage-icone" class="gps-input">
+            <option value="fleche_bleue">Flèche bleue</option>
+            <option value="fleche_verte">Flèche verte</option>
+            <option value="fleche_orange">Flèche orange</option>
+            <option value="fleche_rouge">Flèche rouge</option>
+            <option value="voiture">Voiture vue de dessus</option>
+            <option value="point">Point avec direction</option>
+          </select>
+        </label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-epure"> 🧘 Écran épuré en longue ligne droite (bandeau replié, autoroute : l'essentiel)</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-nuit-douce"> 🌙 Écran moins lumineux la nuit</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-zoom-renforce"> 🔍 Zoom renforcé aux ronds-points, grands carrefours, sorties et entrées de voie rapide</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-vue-carrefour"> 🗺️ Dessin du vrai carrefour dans le panneau (ronds-points, carrefours à plusieurs routes)</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-fenetre-voies"> 🛣️ Fenêtre des voies (comme Sygic) quand il faut choisir sa file</label>
+        <div class="gps-region-bloc">
+          <div class="gps-champ-titre"><strong>📥 Carte hors ligne de ma région</strong></div>
+          <div class="gps-hint">Télécharge la carte 3D autour de chez vous : elle s'affichera partout dans la région sans réseau. À faire en Wi-Fi. (Le guidage sans réseau reste celui des trajets préparés avec « Hors ligne ».)</div>
+          <label class="gps-champ">Rayon autour de la maison
+            <select id="gps-region-rayon" class="gps-input"></select>
+          </label>
+          <button id="gps-region-btn" class="gps-btn gps-btn-plein" type="button">📥 Télécharger ma région</button>
+          <div id="gps-region-info" class="gps-hint"></div>
+        </div>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-voix">
+        <h3>🔊 Voix et son</h3>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-voix"> 🔊 Guidage vocal (on peut aussi le couper en route avec 🔊)</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-annonce"> 🔊 Annoncer le résultat à voix haute</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-reponses-voix"> 🗣️ Mains sur le volant : répondre à la voix (« oui », « non », « le premier »…) aux propositions</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-voix-voies"> 🛣️ Dire quelle voie prendre (« prenez la voie de droite »)</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-vibration"> 📳 Vibrer avant chaque manœuvre</label>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-vehicule">
+        <h3>🚗 Infos du véhicule</h3>
+        <label class="gps-champ">Type de véhicule
+          <select id="gps-reglage-type-vehicule" class="gps-input">
+            <option value="particulier">Particulier</option>
+            <option value="utilitaire">Utilitaire</option>
+            <option value="deux_roues">Deux-roues</option>
+          </select>
+        </label>
+        <label class="gps-champ">Carburant préféré
+          <select id="gps-reglage-carburant" class="gps-input">
+            <option value="essence">Essence</option>
+            <option value="diesel">Diesel</option>
+            <option value="electrique">Électrique</option>
+            <option value="hybride">Hybride</option>
+            <option value="gpl">GPL</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-stations">
+        <h3>⛽ Stations-service</h3>
+        <label class="gps-champ">Carburant préféré
+          <select id="gps-reglage-carburant-2" class="gps-input">
+            <option value="essence">Essence</option>
+            <option value="diesel">Diesel</option>
+            <option value="electrique">Électrique</option>
+            <option value="hybride">Hybride</option>
+            <option value="gpl">GPL</option>
+          </select>
+        </label>
+        <label class="gps-champ">⛽ Consommation du véhicule (litres / 100 km) <input type="number" min="0" max="40" step="0.1" id="gps-reglage-conso" class="gps-input" placeholder="ex. 6,5"></label>
+        <label class="gps-champ">⛽ Prix du carburant (€ / litre) <input type="number" min="0" max="5" step="0.01" id="gps-reglage-prix-carburant" class="gps-input" placeholder="ex. 1,85"></label>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-notifications">
+        <h3>🔔 Notifications</h3>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-notif"> 🔔 Guidage visible écran verrouillé (notification)</label>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-trajets-planifies">
+        <h3>📅 Trajets planifiés</h3>
+        <div class="gps-hint">Importez un rendez-vous (fichier .ics) : la destination se remplit toute seule, et l'heure de départ conseillée s'affiche avec l'itinéraire.</div>
+        <button type="button" class="gps-btn gps-btn-plein" data-action="importer-rdv">📅 Importer un rendez-vous (.ics)</button>
+      </div>
+
+      <div class="gps-carte-bloc" id="gps-bloc-rappels">
+        <h3>⏰ Rappels</h3>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-pause-mi-parcours"> 🔄 À mi-parcours (trajets de plus de 4 h) : rappel de pause / changement de conducteur</label>
+        <label class="gps-check"><input type="checkbox" id="gps-reglage-debutant"> 🎓 Conseils pour débutants : annonces plus tôt (distances × 1,5)</label>
       </div>
 
 
@@ -432,7 +480,7 @@
       </div>
 
       <div class="gps-carte-bloc" id="gps-bloc-aide">
-        <h3>❓ Aide et astuces</h3>
+        <h3>ℹ️ À propos</h3>
         <details class="gps-sous-menu">
           <summary>Sans réseau : ce qui marche, ce qui ne marche pas</summary>
           <ul class="gps-aide-liste">

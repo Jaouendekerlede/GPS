@@ -1140,11 +1140,11 @@ button.gps-bandeau { width: 100%; border: none; font-family: inherit; text-align
 
 .gps-accueil, #gps-accueil { display: none !important; }
 
-/* ===== GPS : menu sans rubriques électriques ===== */
-[data-bloc="gps-bloc-vehicule"], [data-bloc="gps-bloc-electricite"], [data-bloc="gps-bloc-abonnements"], [data-bloc="gps-bloc-paiement"],
+/* ===== GPS : menu sans rubriques électriques (le véhicule est revenu, hors
+   électrique : voir gps-bloc-vehicule, qui n'est plus visé ici) ===== */
+[data-bloc="gps-bloc-electricite"], [data-bloc="gps-bloc-abonnements"], [data-bloc="gps-bloc-paiement"],
 [data-vue="outils"] { display: none !important; }
 .gps-menu-groupe:has(> [data-vue="outils"]), .gps-menu-titre:has(+ .gps-menu-groupe > [data-vue="outils"]) { display: none !important; }
-.gps-menu-groupe:has(> [data-bloc="gps-bloc-vehicule"]) { display: none !important; }
 
 /* Services le long de la route : une ligne discrète (1.23.0) */
 .gps-nav-aires { display: inline-flex; gap: 6px; align-items: center; padding: 4px 9px; border-radius: 999px; background: rgb(13 18 27 / 55%); color: rgb(255 255 255 / 85%); font-size: 12px; font-weight: 700; box-shadow: none; border: 0; }
