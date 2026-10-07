@@ -6,7 +6,7 @@
 // préparées. Les autres services (TomTom, bornes, météo) ne passent pas ici :
 // TomTom interdit de stocker ses cartes, et les autres doivent être frais.
 
-const CACHE_NOM = "gps-v44";
+const CACHE_NOM = "gps-v45";
 // Empreinte des fichiers ci-dessous, vérifiée par les tests : les téléphones
 // ne reçoivent une modification que si ce fichier change. À chaque
 // publication : augmenter CACHE_NOM et recopier l'empreinte donnée par le test.
@@ -17,10 +17,9 @@ const FICHIERS_COQUILLE = [
   "./style.css",
   "./manifest.json",
   "./js/main.js",
-  "./js/ui.js", "./js/radars-carte.js", "./js/presentation.js", "./js/aide-conduite.js", "./vendor/leaflet/leaflet.js", "./vendor/leaflet/leaflet.css", "./vendor/leaflet/leaflet-rotate.js", "./vendor/leaflet/images/marker-icon.png", "./vendor/markercluster/leaflet.markercluster.js", "./vendor/markercluster/MarkerCluster.css", "./vendor/markercluster/MarkerCluster.Default.css", "./vendor/maplibre/maplibre-gl.js", "./vendor/maplibre/maplibre-gl.css", "./js/pres-de-moi.js",
+  "./js/ui.js", "./js/radars-carte.js", "./js/presentation.js", "./js/aide-conduite.js", "./vendor/leaflet/leaflet.js", "./vendor/leaflet/leaflet.css", "./vendor/leaflet/leaflet-rotate.js", "./vendor/leaflet/images/marker-icon.png", "./vendor/markercluster/leaflet.markercluster.js", "./vendor/markercluster/MarkerCluster.css", "./vendor/markercluster/MarkerCluster.Default.css", "./vendor/maplibre/maplibre-gl.js", "./vendor/maplibre/maplibre-gl.css",
   "./js/ui-commun.js",
       "./js/ui-sauvegarde.js",
-  "./js/ui-parkings.js",
     "./js/ui-installation.js",
   "./js/restauration.js",
   "./js/trajet.js",

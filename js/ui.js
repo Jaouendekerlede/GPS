@@ -24,13 +24,11 @@ import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
 import { boutonPartage, partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
 import { demarrerRadarsCarte } from "./radars-carte.js";
-import { cablerPresDeMoi } from "./pres-de-moi.js";
 import { meteoDesPoints, alerteMeteo } from "./meteo-route.js";
 import { icone, iconeFond } from "./icones.js";
 import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
 import { reconnaissanceDispo, ecouter, interpreterCommande } from "./commandes-vocales.js";
-import { cablerParkings, planifierParkings, cablerTrafic } from "./ui-parkings.js";
 import { demarrerNavigation, etatDiagnostic, navigationActive, retourNavigationEnCours, traceRestante, navigationInterrompue, oublierNavigationInterrompue } from "./navigation.js";
 import { ageTexte } from "./reprise.js";
 import { cablerDiagnostic } from "./ui-diagnostic.js";
@@ -325,8 +323,6 @@ const OUI_NON = { oui: "✅ oui", partiel: "⚠️ sur une partie des points", n
 
 
 function surDeplacementCarte() {
-  // Parkings : aussi sur l'écran du trajet (se garer à l'arrivée).
-  planifierParkings();
   const contexteTrajet = vueCourante === "resultat" || (vueCourante === "fiche" && vueAvantBorne === "resultat");
   if (rechercheManuelle || contexteTrajet || navigationActive()) return;
   clearTimeout(minuteurDeplacement);
@@ -439,8 +435,6 @@ function cablerCarte() {
   if (reglages.carte_explo_3d) basculerCarte3D(true, false);
 
   for (const f of reglages.filtres_carte || []) filtres.add(f);
-  cablerParkings();
-  cablerTrafic();
   cablerSOS();
   cablerDiagnostic();
   // Liste d'essais sur la route : cases mémorisées sur ce téléphone.
@@ -1887,7 +1881,6 @@ function cablerRechercheBas() {
     lancerTrajet();
   });
   rendreRaccourcis();
-  cablerPresDeMoi();
   cablerBasculesMenu();
   afficherRappelCarteDemain();
 }
@@ -1900,11 +1893,7 @@ function rendreRaccourcis() {
   const items = [];
   if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Domicile", dest: "Chez moi", fond: "#fee2e2" });
   if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail", fond: "#ffedd5" });
-  const actions = [["essence", "⛽", "Station", "#fee2e2"], ["repos", "🌳", "Aire", "#dcfce7"], ["parking", "🅿️", "Parking", "#dbeafe"], ["restaurant", "🍴", "Restau", "#ffedd5"]];
-  const cartes = [
-    ...items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true" style="background:${i.fond}">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`),
-    ...actions.map(([k, ic, t, fond]) => `<button type="button" class="gps-raccourci" data-pres="${k}"><span aria-hidden="true" style="background:${fond}">${ic}</span><span>${t}</span></button>`),
-  ].join("");
+  const cartes = items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true" style="background:${i.fond}">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`).join("");
   $("gps-raccourcis").innerHTML = cartes || '<span class="gps-raccourcis-aide">Domicile et Travail apparaîtront ici (Profil › Domicile et voix).</span>';
 
   const recents = [...new Set(listerHistoriqueTrajets().map((h) => h.destination).filter(Boolean))].slice(0, 5);

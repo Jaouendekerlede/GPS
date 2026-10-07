@@ -1031,30 +1031,8 @@ function rendreParkings() {
   });
 }
 
-export function exploParkings(liste) {
-  explo.parkings = liste;
-  rendreParkings();
-}
-
-export function exploMontrerParkings(visible) {
-  explo.parkingsVisibles = visible;
-  for (const m of explo.marqueursParkings) {
-    if (visible && explo.actif && !enNavigation && carte) m.addTo(carte);
-    else m.remove();
-  }
-}
-
 // Zone visible au-dessus du panneau : carte inclinée, donc les quatre coins
 // (le haut de l'écran regarde plus loin que le bas).
-export function exploLimitesVisibles() {
-  const { width, height } = carte.getCanvas().getBoundingClientRect();
-  const bas = Math.max(1, height - explo.decalageBas);
-  const coins = [[0, 0], [width, 0], [0, bas], [width, bas]].map((p) => carte.unproject(p));
-  const lats = coins.map((c) => c.lat);
-  const lons = coins.map((c) => c.lng);
-  return { sud: Math.min(...lats), nord: Math.max(...lats), ouest: Math.min(...lons), est: Math.max(...lons) };
-}
-
 export function exploCurseur(lat, lon, label) {
   explo.curseur = lat === undefined || lon === undefined ? null : { lat, lon, label };
   rendreCurseur();
