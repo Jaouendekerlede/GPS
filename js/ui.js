@@ -292,8 +292,12 @@ function cablerNavigation() {
   $("vue-menu").addEventListener("click", (e) => {
     const l = e.target.closest(".gps-menu-ligne");
     if (!l) return;
+    // Seules les lignes qui pointent vraiment vers un bloc ou une vue
+    // naviguent. Les actions (statistiques, export…), les interrupteurs et
+    // le résumé « Outils et options » n'ont ni l'un ni l'autre : on les
+    // laisse à leurs propres gestionnaires (cablerBasculesMenu, le dépliant).
     if (l.dataset.bloc) ouvrirBloc(l.dataset.bloc);
-    else ouvrirRubrique(l.dataset.vue, null, `${l.querySelector(".gps-menu-icone").textContent} ${l.querySelector(".gps-menu-nom").textContent}`);
+    else if (l.dataset.vue) ouvrirRubrique(l.dataset.vue, null, `${l.querySelector(".gps-menu-icone").textContent} ${l.querySelector(".gps-menu-nom").textContent}`);
   });
 }
 
