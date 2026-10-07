@@ -504,6 +504,9 @@ function cablerCarte() {
   $("gps-localiser-btn").addEventListener("click", localiser);
 }
 
+// Zoom à l'ouverture et sur « Me localiser » : même valeur que Waze (rue par rue).
+const ZOOM_LOCALISATION = 16;
+
 async function localiser() {
   toast("📍 Recherche de ta position…");
   const pos = await resoudreLieu("ma position");
@@ -512,7 +515,7 @@ async function localiser() {
     return false;
   }
   afficherPosition(pos.lat, pos.lon, pos.precision);
-  centrer(pos.lat, pos.lon, Math.max(zoomActuel(), 13.5));
+  centrer(pos.lat, pos.lon, Math.max(zoomActuel(), ZOOM_LOCALISATION));
   toast(Number.isFinite(pos.precision) ? `📍 Position trouvée (précision ±${Math.round(pos.precision)} m).` : "📍 Position trouvée.");
   return true;
 }
@@ -521,14 +524,14 @@ async function positionDeDepart() {
   const pos = await resoudreLieu("ma position");
   if (!pos.erreur) {
     afficherPosition(pos.lat, pos.lon, pos.precision);
-    centrer(pos.lat, pos.lon, 13.5);
+    centrer(pos.lat, pos.lon, ZOOM_LOCALISATION);
     return;
   }
   const domicile = lireReglages().adresse_domicile;
   if (domicile) {
     const lieu = await resoudreLieu("chez moi", domicile);
     if (!lieu.erreur) {
-      centrer(lieu.lat, lieu.lon, 13);
+      centrer(lieu.lat, lieu.lon, ZOOM_LOCALISATION);
       return;
     }
   }
