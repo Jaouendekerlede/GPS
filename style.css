@@ -1089,7 +1089,11 @@ body.gps-borne-bas .gps-nav-boutons, body.gps-borne-bas .gps-nav-vitesse-bloc { 
 .gps-menu-ligne:last-child { border-bottom: none; }
 .gps-menu-ligne:active { background: var(--bloc-2); }
 .gps-menu-ligne::after { content: "›"; font-size: 24px; line-height: 1; color: var(--texte-faible); }
-.gps-menu-icone { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(26, 111, 232, .12); font-size: 17px; }
+/* Rond de couleur pleine + icône blanche, comme la liste Paramètres de Waze
+   (l'icône reste un emoji dans le code ; .gps-menu-glyphe le rend blanc,
+   séparément du fond pour ne pas aussi le blanchir). */
+.gps-menu-icone { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; font-size: 17px; }
+.gps-menu-glyphe { filter: brightness(0) invert(1); }
 .gps-menu-nom { display: block; font-size: 15.5px; font-weight: 700; }
 .gps-menu-detail { display: block; margin-top: 2px; font-size: 12.5px; color: var(--texte-att); }
 .gps-hors-rubrique { display: none !important; }
