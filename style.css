@@ -320,7 +320,7 @@ body[data-feuille="haut"] .gps-fabs { opacity: 0; pointer-events: none; }
   height: calc(var(--nav-h) + var(--securite-bas));
   padding-bottom: var(--securite-bas);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr) 58px;
   background: var(--nav-fond);
   border-top: 1px solid var(--bordure-forte);
 }
@@ -328,6 +328,9 @@ body[data-feuille="haut"] .gps-fabs { opacity: 0; pointer-events: none; }
 .gps-nav-btn span { font-size: 21px; filter: grayscale(0.7); opacity: 0.8; }
 .gps-nav-btn.actif { color: var(--vert-clair); font-weight: 700; }
 .gps-nav-btn.actif span { filter: none; opacity: 1; }
+.gps-nav-voix { border-left: 1px solid var(--bordure); }
+.gps-nav-voix .gps-icone { width: 22px; height: 22px; }
+.gps-nav-voix.muet { color: #ef4444; }
 
 /* ── Éléments communs ──────────────────────────────────────────────────── */
 .gps-carte-bloc { background: var(--bloc); border: 1px solid var(--bordure); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }

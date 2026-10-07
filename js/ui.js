@@ -29,7 +29,7 @@ import { icone, iconeFond } from "./icones.js";
 import { appelsTomTomDuJour, QUOTA_TOMTOM_JOUR } from "./tomtom.js";
 import { ouvrirSOS, cablerSOS } from "./ui-sos.js";
 import { reconnaissanceDispo, ecouter, interpreterCommande } from "./commandes-vocales.js";
-import { demarrerNavigation, etatDiagnostic, navigationActive, retourNavigationEnCours, traceRestante, navigationInterrompue, oublierNavigationInterrompue } from "./navigation.js";
+import { demarrerNavigation, etatDiagnostic, navigationActive, retourNavigationEnCours, traceRestante, navigationInterrompue, oublierNavigationInterrompue, basculerVoix, majIconeVoixGlobale } from "./navigation.js";
 import { ageTexte } from "./reprise.js";
 import { cablerDiagnostic } from "./ui-diagnostic.js";
 import { estimerPreparation, preparerHorsLigne, guidagePrepare, bilanPreparation, RAYONS_REGION_KM, estimerRegion, preparerRegion, regionPreparee } from "./hors-ligne.js";
@@ -299,6 +299,8 @@ function cablerNavigation() {
     if (l.dataset.bloc) ouvrirBloc(l.dataset.bloc);
     else if (l.dataset.vue) ouvrirRubrique(l.dataset.vue, null, `${l.querySelector(".gps-menu-icone").textContent} ${l.querySelector(".gps-menu-nom").textContent}`);
   });
+  $("gps-voix-global-btn").addEventListener("click", () => basculerVoix());
+  majIconeVoixGlobale();
 }
 
 // ── Paiement : état "carte bancaire" toujours sourcé ───────────────────────
@@ -1902,6 +1904,7 @@ function cablerRechercheBas() {
       prix_carburant_l: Number($("gps-reglage-prix-carburant").value) || null,
       taille_globale: Number($("gps-reglage-taille-globale").value),
     });
+    majIconeVoixGlobale();
     toast("✅ Réglages enregistrés");
   });
   $("gps-recherche-bas").addEventListener("click", () => {

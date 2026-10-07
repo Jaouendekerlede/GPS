@@ -1553,6 +1553,34 @@ function surVisibilite() {
 
 // ── Démarrage / arrêt ───────────────────────────────────────────────────────
 
+// ── Voix : réglage persistant, bouton accessible depuis tous les écrans ────
+
+// Hors guidage, l'état fait foi est le réglage enregistré ; pendant le
+// guidage, etat.voix (initialisé depuis ce même réglage) peut diverger
+// temporairement (commande vocale, bouton), d'où la priorité à etat ici.
+export function voixActivee() {
+  return etat ? etat.voix : lireReglages().voix_guidage !== false;
+}
+
+export function basculerVoix(valeurForcee) {
+  const nouveau = valeurForcee ?? !voixActivee();
+  sauverReglages({ voix_guidage: nouveau });
+  if (etat) {
+    etat.voix = nouveau;
+    if (!nouveau) speechSynthesis.cancel();
+  }
+  majIconeVoixGlobale();
+  return nouveau;
+}
+
+export function majIconeVoixGlobale() {
+  const b = $("gps-voix-global-btn");
+  if (!b) return;
+  const actif = voixActivee();
+  b.innerHTML = icone(actif ? "son" : "muet");
+  b.classList.toggle("muet", !actif);
+}
+
 let cable = false;
 
 function cablerBoutons() {
@@ -1560,11 +1588,6 @@ function cablerBoutons() {
   cable = true;
   $("gps-nav-stop-btn").addEventListener("click", () => {
     if (confirm("Arrêter la navigation ?")) arreterNavigation();
-  });
-  $("gps-nav-voix-btn").addEventListener("click", () => {
-    etat.voix = !etat.voix;
-    $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
-    if (!etat.voix) speechSynthesis.cancel();
   });
   $("gps-nav-orientation-btn").addEventListener("click", () => {
     etat.sensDeMarche = !etat.sensDeMarche;
@@ -2046,8 +2069,7 @@ async function commandeVocale() {
   const arret = etat.arretsRestants[0];
   switch (c.action) {
     case "voix":
-      etat.voix = c.valeur;
-      $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
+      basculerVoix(c.valeur);
       if (etat.voix) parler("Voix activée.", true);
       break;
     case "barree":
@@ -2463,7 +2485,7 @@ export async function demarrerNavigation(plan, { options = {}, demo = false, cha
   $("gps-navigation").classList.remove("hidden");
   $("gps-nav-point").classList.add("hidden");
   $("gps-nav-recentrer-btn").classList.add("hidden");
-  $("gps-nav-voix-btn").innerHTML = icone(etat.voix ? "son" : "muet");
+  majIconeVoixGlobale();
   majBoutonOrientation();
   $("gps-nav-fleche").textContent = "⏳";
   $("gps-nav-rue").classList.add("hidden");
