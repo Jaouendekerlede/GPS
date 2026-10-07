@@ -505,7 +505,7 @@ function cablerCarte() {
 }
 
 // Zoom à l'ouverture et sur « Me localiser » : même valeur que Waze (rue par rue).
-const ZOOM_LOCALISATION = 16;
+const ZOOM_LOCALISATION = 17;
 
 async function localiser() {
   toast("📍 Recherche de ta position…");
