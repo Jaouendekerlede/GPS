@@ -30,7 +30,9 @@ export function presentationOuverture() {
       <path d="${TRACE}" fill="none" stroke="#334155" stroke-width="30" stroke-linecap="round"/>
       <path d="${TRACE}" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="8 10" opacity="0.8"/>
       <g>
-        <text font-size="30" text-anchor="middle" dominant-baseline="central">🚗</text>
+        <!-- L'émoji 🚗 est dessiné face à gauche ; sans ce retournement,
+             rotate="auto" l'oriente nez vers l'arrière (voiture en marche arrière). -->
+        <text transform="scale(-1,1)" font-size="30" text-anchor="middle" dominant-baseline="central">🚗</text>
         <animateMotion dur="${DUREE_ANIMATION_MS}ms" begin="0.2s" fill="freeze" rotate="auto" path="${TRACE}"/>
       </g>
     </svg>
