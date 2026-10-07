@@ -1241,3 +1241,11 @@ body.gps-daltonien .gps-nav-danger { background: #c2410c; }
 .gps-resultat-bas { display: flex; gap: 10px; margin-top: 16px; }
 .gps-btn-pale { flex: 1; padding: 14px; border: 0; border-radius: 999px; background: var(--bloc-2); color: var(--texte); font-size: 15px; font-weight: 800; cursor: pointer; }
 .gps-resultat-bas .gps-btn-principal { flex: 1; margin: 0; }
+
+/* Bouton à glisser (comme Waze) sur les options d'Outils, à la place du
+   chevron générique ; .gps-menu-toggle supprime le chevron par défaut. */
+.gps-menu-ligne.gps-menu-toggle::after { content: none; }
+.gps-menu-switch { width: 46px; height: 27px; border-radius: 999px; background: #cbd5e1; position: relative; flex-shrink: 0; transition: background .18s; }
+.gps-menu-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 23px; height: 23px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 35%); transition: transform .18s; }
+.gps-menu-toggle[data-actif="true"] .gps-menu-switch { background: #1a6fe8; }
+.gps-menu-toggle[data-actif="true"] .gps-menu-switch::after { transform: translateX(19px); }

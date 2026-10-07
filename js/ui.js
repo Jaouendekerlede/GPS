@@ -1643,7 +1643,9 @@ function estActifReglage(cle) {
 
 function majBasculesMenu() {
   document.querySelectorAll("[data-basculer]").forEach((b) => {
-    b.querySelector(".gps-menu-detail").textContent = estActifReglage(b.dataset.basculer) ? "Activé" : "Désactivé";
+    const actif = estActifReglage(b.dataset.basculer);
+    b.querySelector(".gps-menu-detail").textContent = actif ? "Activé" : "Désactivé";
+    b.dataset.actif = String(actif);
   });
 }
 
