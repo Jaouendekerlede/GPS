@@ -1877,6 +1877,7 @@ function cablerRechercheBas() {
     afficherVue("trajet");
     $("gps-destination-input").focus();
   });
+  $("gps-haut-menu-btn").addEventListener("click", () => afficherVue("menu"));
   $("vue-accueil").addEventListener("click", (e) => {
     const b = e.target.closest("[data-dest]");
     if (!b) return;
@@ -1897,12 +1898,12 @@ function cablerRechercheBas() {
 function rendreRaccourcis() {
   const r = lireReglages();
   const items = [];
-  if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Domicile", dest: "Chez moi" });
-  if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail" });
-  const actions = [["essence", "⛽", "Station"], ["repos", "🌳", "Aire"], ["parking", "🅿️", "Parking"], ["restaurant", "🍴", "Restau"]];
+  if (r.adresse_domicile) items.push({ icone: "🏠", texte: "Domicile", dest: "Chez moi", fond: "#fee2e2" });
+  if (r.adresse_travail) items.push({ icone: "💼", texte: "Travail", dest: "Travail", fond: "#ffedd5" });
+  const actions = [["essence", "⛽", "Station", "#fee2e2"], ["repos", "🌳", "Aire", "#dcfce7"], ["parking", "🅿️", "Parking", "#dbeafe"], ["restaurant", "🍴", "Restau", "#ffedd5"]];
   const cartes = [
-    ...items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`),
-    ...actions.map(([k, ic, t]) => `<button type="button" class="gps-raccourci" data-pres="${k}"><span aria-hidden="true">${ic}</span><span>${t}</span></button>`),
+    ...items.map((i) => `<button type="button" class="gps-raccourci" data-dest="${escapeHtml(i.dest)}"><span aria-hidden="true" style="background:${i.fond}">${i.icone}</span><span>${escapeHtml(i.texte)}</span></button>`),
+    ...actions.map(([k, ic, t, fond]) => `<button type="button" class="gps-raccourci" data-pres="${k}"><span aria-hidden="true" style="background:${fond}">${ic}</span><span>${t}</span></button>`),
   ].join("");
   $("gps-raccourcis").innerHTML = cartes || '<span class="gps-raccourcis-aide">Domicile et Travail apparaîtront ici (Profil › Domicile et voix).</span>';
 

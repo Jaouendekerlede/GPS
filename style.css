@@ -193,6 +193,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .gps-haut > * { pointer-events: auto; }
 .gps-haut-ligne { display: flex; gap: 8px; }
+/* Bouton menu en haut à gauche, comme Waze (carré blanc arrondi) */
+.gps-haut-menu-btn { width: 52px; height: 52px; border: 0; border-radius: 16px; background: #fff; color: #1f2937; font-size: 22px; box-shadow: 0 4px 14px rgb(15 23 42 / 18%); cursor: pointer; }
 .gps-barre-recherche {
   flex: 1;
   display: flex;
