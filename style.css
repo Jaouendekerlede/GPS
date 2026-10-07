@@ -1210,3 +1210,30 @@ body.gps-daltonien .gps-nav-danger { background: #c2410c; }
 .gps-menu-fleche { margin-left: auto; opacity: .6; transition: transform .2s; }
 .gps-menu-deroule[open] > summary .gps-menu-fleche { transform: rotate(180deg); }
 .gps-menu-deroule > .gps-menu-ligne { padding-left: 28px; }
+
+/* Pastille de durée sur les itinéraires proposés (toujours visible), comme Waze */
+.gps-badge-alt { padding: 6px 12px; border-radius: 12px; background: #fff; color: #0f172a; font-size: 14px; font-weight: 800; box-shadow: 0 3px 10px rgb(15 23 42 / 25%); white-space: nowrap; transform: translate(-50%, -50%); cursor: pointer; }
+
+/* Écran de résultat façon Waze : barre compacte, onglets de mode, bas fixe */
+.gps-resultat-haut { display: flex; align-items: center; gap: 10px; }
+.gps-resultat-retour { flex-shrink: 0; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--bloc); color: var(--texte); font-size: 20px; cursor: pointer; }
+.gps-resultat-champs { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border: 0; border-radius: 14px; background: var(--bloc); text-align: left; cursor: pointer; min-width: 0; }
+.gps-resultat-ligne { font-size: 14.5px; font-weight: 700; color: var(--texte); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gps-resultat-ligne:first-child { color: var(--texte-att); font-weight: 600; border-bottom: 1px solid var(--bordure); padding-bottom: 6px; }
+
+.gps-mode-segments { display: flex; gap: 6px; margin-top: 10px; background: var(--bloc); border-radius: 14px; padding: 4px; }
+.gps-mode-tab { flex: 1; padding: 8px; border-radius: 11px; border: 2px solid transparent; background: none; font-size: 20px; cursor: pointer; }
+.gps-mode-tab.actif { border-color: #1a6fe8; background: var(--panneau); }
+
+.gps-resultat-entete { display: flex; align-items: baseline; gap: 10px; margin-top: 12px; }
+.gps-resultat-entete strong { font-size: 26px; font-weight: 900; }
+.gps-pastille-peage { padding: 3px 10px; border-radius: 999px; background: var(--bloc-2); color: var(--texte-att); font-size: 12px; font-weight: 700; }
+.gps-resultat-distance { margin-left: auto; color: var(--texte-att); font-size: 15px; font-weight: 600; }
+.gps-resultat-desc { margin-top: 2px; color: var(--texte-att); font-size: 13.5px; }
+
+.gps-quand-partir { display: none; flex-direction: column; gap: 6px; margin-top: 8px; }
+.gps-quand-partir.visible { display: flex; }
+
+.gps-resultat-bas { display: flex; gap: 10px; margin-top: 16px; }
+.gps-btn-pale { flex: 1; padding: 14px; border: 0; border-radius: 999px; background: var(--bloc-2); color: var(--texte); font-size: 15px; font-weight: 800; cursor: pointer; }
+.gps-resultat-bas .gps-btn-principal { flex: 1; margin: 0; }

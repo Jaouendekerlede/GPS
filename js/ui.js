@@ -12,7 +12,7 @@ import { exporterTrajetTexte, formaterMinutes } from "./planner.js";
 import { carteLeaflet, initCarte, afficherAutonomie, fondSuivant, choisirFond, rechargerFond, activerCarte3D, carte3DActive, fondCourant, derniereErreur3D, definirDecalageBas, centreVisible, rayonVisibleKm, zoomActuel, centrer, classePuissance, puissanceBorne, afficherBornes, rafraichirBorne, selectionnerBorne, montrerBornes, afficherPosition, afficherTrajet, afficherAlternatives, effacerTrajet, placerCurseur, definirAppuiLong, afficherPointsPassage } from "./carte.js";
 import { resoudreLieu, haversineKm } from "./geo.js";
 import { escapeHtml, lienGoogleMaps, lienWaze, estNuit } from "./util.js";
-import { $, toast, bandeau, euros, nombre, nomCourt, nombreOuUndefined, hint, alerte, tuile, telechargerTexte, badgeOperateur } from "./ui-commun.js";
+import { $, toast, bandeau, euros, nombre, nomCourt, nombreOuUndefined, hint, alerte, telechargerTexte, badgeOperateur } from "./ui-commun.js";
 import { exporterSauvegarde, importerSauvegarde, envoyerLienRestauration, majInfoLien } from "./ui-sauvegarde.js";
 import { installerAppli, majBoutonInstallation } from "./ui-installation.js";
 import { cablerZonesEvitees } from "./ui-zones.js";
@@ -20,8 +20,8 @@ import { classeNumero } from "./panneau-nav.js";
 import { cablerSuggestions } from "./ui-suggestions.js";
 import { lignesEtat } from "./etat-appli.js";
 import { niveauPrecision } from "./recalage.js";
-import { boutonQuandPartir, quandPartir } from "./ui-quand-partir.js";
-import { boutonPartage, partagerTrajet } from "./ui-partage.js";
+import { quandPartir } from "./ui-quand-partir.js";
+import { partagerTrajet } from "./ui-partage.js";
 import { cablerDrive } from "./ui-drive.js";
 import { demarrerRadarsCarte } from "./radars-carte.js";
 import { meteoDesPoints, alerteMeteo } from "./meteo-route.js";
@@ -864,19 +864,20 @@ function afficherResultat(p) {
   trajetAffiche = true;
   $("gps-voir-resultat-btn").classList.remove("hidden");
 
-  $("gps-resultat-titre").textContent = `${nomCourt(p.from_name).split(",")[0]} → ${nomCourt(p.to_name).split(",")[0]}`;
-  const tuiles = [
-    tuile("cyan", `${nombre(p.distance_km)} km`, "Distance"),
-    tuile("violet", p.duree_text, "Route"),
-  ].join("");
+  $("gps-resultat-depart").textContent = nomCourt(p.from_name).split(",")[0] || "Votre position";
+  $("gps-resultat-destination").textContent = nomCourt(p.to_name).split(",")[0];
+  const modeActuel = $("gps-mode-transport").value || "voiture";
+  document.querySelectorAll("#gps-mode-segments .gps-mode-tab").forEach((b) => b.classList.toggle("actif", b.dataset.mode === modeActuel));
+
+  const entete = `<div class="gps-resultat-entete"><strong>${p.duree_text}</strong>${p.km_peage ? `<span class="gps-pastille-peage">Péage</span>` : ""}<span class="gps-resultat-distance">${nombre(p.distance_km)} km</span></div><div class="gps-resultat-desc">Meilleur itinéraire${p.km_peage ? " avec péage" : ""}</div>`;
   const peage = p.km_peage
     ? `<div class="gps-meteo-info">🛣️ Péages : environ <strong>${euros(coutPeage(p.km_peage))}</strong> (estimation sur ${nombre(p.km_peage)} km)</div>`
     : "";
   const carb = coutCarburant(p.distance_km);
   const carburant = carb != null ? `<div class="gps-meteo-info">⛽ Carburant : environ <strong>${euros(carb)}</strong> (aller simple)</div>` : "";
-  $("gps-trajet-summary").innerHTML = `<div class="gps-tuiles">${tuiles}</div>${peage}${carburant}`;
+  $("gps-trajet-summary").innerHTML = entete + peage + carburant;
 
-  $("gps-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p) + boutonQuandPartir() + boutonPartage();
+  $("gps-etapes").innerHTML = etapesHtml(p) + echangeursHtml(p);
 
   $("gps-maps-link").href = lienGoogleMaps(p.to_lat, p.to_lon);
   $("gps-qrcode-box").classList.add("hidden");
@@ -993,8 +994,8 @@ function afficherItineraires(p) {
       .filter(({ i }) => i !== index)
       .map(({ route, i }) => {
         const plan = itineraires.plans[i];
-        const duree = plan?.ok ? `${formaterMinutes(plan.duree_totale_min ?? plan.duree_min)} au total` : `${route.duree_text} de route`;
-        return { coords: route.coords, libelle: `Itinéraire ${i + 1} · ${duree}`, onClic: () => choisirItineraire(i) };
+        const duree = plan?.ok ? formaterMinutes(plan.duree_totale_min ?? plan.duree_min) : route.duree_text;
+        return { coords: route.coords, libelle: duree, onClic: () => choisirItineraire(i) };
       }),
   );
 }
@@ -1099,6 +1100,19 @@ function cablerResultat() {
   $("gps-nav-demarrer-btn").addEventListener("click", () => lancerNavigation(false));
   $("gps-nav-demo-btn").addEventListener("click", () => lancerNavigation(true));
   $("gps-modifier-btn").addEventListener("click", () => afficherVue("trajet"));
+  // Onglets voiture / vélo / à pied sur le résultat : recalcule dans le nouveau mode.
+  $("gps-mode-segments").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mode]");
+    if (!b || !dernierTrajet) return;
+    $("gps-mode-transport").value = b.dataset.mode;
+    lancerTrajet();
+  });
+  // « Partir plus tard » : déplié, calcule la durée selon l'heure de départ.
+  $("gps-quand-partir-btn").addEventListener("click", () => {
+    const zone = $("gps-quand-partir");
+    const ouvert = zone.classList.toggle("visible");
+    if (ouvert && dernierTrajet) quandPartir(dernierTrajet);
+  });
   $("gps-quitter-trajet-btn").addEventListener("click", quitterTrajet);
   $("gps-export-btn").addEventListener("click", () => {
     if (dernierTrajet) telechargerTexte(`trajet_ve_${Date.now()}.txt`, exporterTrajetTexte(dernierTrajet));
@@ -1285,6 +1299,7 @@ function rendreReglagesProfil() {
   if (matchMedia("(pointer: coarse)").matches) {
   }
   $("gps-reglage-jour-nuit").checked = reglages.jour_nuit_auto !== false;
+  $("gps-reglage-carte-2d").value = reglages.carte_2d || "auto";
   $("gps-reglage-taille-bandeau").value = reglages.taille_bandeau === "grand" ? "grand" : "compact";
   $("gps-reglage-zoom-renforce").checked = reglages.zoom_renforce !== false;
   $("gps-reglage-voix").checked = reglages.voix_guidage !== false;
@@ -1823,6 +1838,10 @@ function cablerRechercheBas() {
   });
   $("gps-reglage-marge-vitesse").addEventListener("change", (e) => sauverReglages({ marge_vitesse: Number(e.target.value) }));
   $("gps-reglage-daltonien").addEventListener("change", (e) => document.body.classList.toggle("gps-daltonien", e.target.checked));
+  $("gps-reglage-carte-2d").addEventListener("change", (e) => {
+    sauverReglages({ carte_2d: e.target.value });
+    rechargerFond();
+  });
   $("gps-reglage-taille-globale").addEventListener("input", (e) => {
     $("gps-reglage-taille-globale-val").textContent = e.target.value;
     appliquerTailleGlobale(e.target.value);
@@ -1835,6 +1854,7 @@ function cablerRechercheBas() {
       annonce_vocale: $("gps-reglage-annonce").checked,
       carte_3d: $("gps-reglage-carte3d").value,
       jour_nuit_auto: $("gps-reglage-jour-nuit").checked,
+      carte_2d: $("gps-reglage-carte-2d").value,
       taille_bandeau: $("gps-reglage-taille-bandeau").value,
       zoom_renforce: $("gps-reglage-zoom-renforce").checked,
       voix_guidage: $("gps-reglage-voix").checked,

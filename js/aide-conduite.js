@@ -125,8 +125,9 @@ export function appliquerLimitesOsm(route, routes) {
           const d = ex * ex + ey * ey;
           if (d < dmin) { dmin = d; meilleur = i; }
         }
-    // 200 m environ (1° de latitude ≈ 111 km) : au-delà, la route n'est pas celle du tracé.
-    return dmin <= (0.002 / 111) ** 2 ? meilleur : -1;
+    // 200 m : au-delà, la route n'est pas celle du tracé (1° ≈ 111 320 m).
+    const seuilDeg = 200 / 111320;
+    return dmin <= seuilDeg ** 2 ? meilleur : -1;
   };
   for (const r of routes) {
     const v = vitesseMaxOsm(r.maxspeed);

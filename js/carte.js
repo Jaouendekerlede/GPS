@@ -59,6 +59,7 @@ const PAUSE_APRES_REFUS_MS = 10 * 60 * 1000;
 let tomtomRefuseJusqua = 0;
 
 function fondTomTom(style, repli) {
+  if (lireReglages().carte_2d === "osm") return repli();
   const cle = getApiKeys().tomtom;
   if (!cle || Date.now() < tomtomRefuseJusqua) return repli();
   // Une tuile TomTom 512 px couvre la même zone qu'une tuile 256 px : on
@@ -203,7 +204,7 @@ export function dessinerRouteNavigation(coords, arrets, destination) {
   const ll = coords.map(([lon, lat]) => L.latLng(lat, lon));
   pointsRoute = ll;
   indiceDecoupe = -1;
-  const restant = { color: "#1a6fe8", weight: 9, opacity: 0.95, interactive: false };
+  const restant = { color: "#7c3aed", weight: 9, opacity: 0.95, interactive: false };
   const parcouru = { color: "#6b7385", weight: 9, opacity: 0.9, interactive: false };
   L.polyline(ll, { color: "#062a1e", weight: 14, opacity: 0.55, interactive: false }).addTo(coucheNav);
   ligneRestante = L.polyline(ll, restant).addTo(coucheNav);
@@ -626,18 +627,29 @@ function ajouterArrets(arrets, icone, prefixe, onClicArret) {
 
 // liste : [{ coords, libelle, onClic }] -- sans recadrer la carte, car
 // elle est rafraîchie au fil des calculs pendant que l'utilisateur regarde.
+// Pastille blanche visible en permanence sur chaque itinéraire proposé (pas
+// seulement au survol), comme les bulles de durée de Waze sur les autres trajets.
+function badgeAlternative(latlng, texte, onClic) {
+  return L.marker(latlng, {
+    icon: L.divIcon({ className: "", iconSize: null, html: `<div class="gps-badge-alt">${escapeHtml(texte)}</div>` }),
+    zIndexOffset: 5500,
+    interactive: true,
+  }).on("click", onClic);
+}
+
 function afficherAlternatives2D(liste) {
   coucheAlternatives.clearLayers();
   for (const { coords, libelle, onClic } of liste) {
     if (!coords?.length) continue;
     const latlngs = coords.map(([lon, lat]) => [lat, lon]);
-    const trace = L.polyline(latlngs, { color: "#7d8797", weight: 5, opacity: 0.75 }).addTo(coucheAlternatives);
+    const trace = L.polyline(latlngs, { color: "#c4b5fd", weight: 5, opacity: 0.85 }).addTo(coucheAlternatives);
     // Zone de toucher plus large que le trait visible (doigt sur téléphone).
     const zone = L.polyline(latlngs, { color: "#000", weight: 22, opacity: 0 }).addTo(coucheAlternatives);
     for (const l of [trace, zone]) {
-      l.bindTooltip(escapeHtml(libelle), { sticky: true }).on("click", onClic);
+      l.on("click", onClic);
       l.bringToBack();
     }
+    badgeAlternative(latlngs[Math.floor(latlngs.length / 2)], libelle, onClic).addTo(coucheAlternatives);
   }
 }
 
@@ -648,7 +660,7 @@ function afficherTrajet2D(data, onClicArret) {
   placerCurseur2D(undefined, undefined);
   if (!data?.coords?.length) return;
 
-  const aller = L.polyline(data.coords.map(([lon, lat]) => [lat, lon]), { color: "#1a6fe8", weight: 6, opacity: 0.9 }).addTo(coucheTrajet);
+  const aller = L.polyline(data.coords.map(([lon, lat]) => [lat, lon]), { color: "#7c3aed", weight: 6, opacity: 0.9 }).addTo(coucheTrajet);
   // Ralentissements et bouchons par-dessus le tracé.
   for (const b of data.bouchons || []) {
     const morceau = data.coords.slice(b.debut, b.fin + 1).map(([lon, lat]) => [lat, lon]);

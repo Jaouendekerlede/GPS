@@ -492,7 +492,6 @@ function majEcran() {
   majZoneDanger();
   verifierApprocheRadar();
   verifierAlertesConduite();
-  majAires();
   // Affichage compact : une seule info sous le bandeau (alerte, sinon voies,
   // sinon prochaine borne) pour garder la carte visible.
   if (document.body.classList.contains("gps-bandeau-compact")) {
@@ -637,26 +636,6 @@ async function chercherAires() {
 // Colonne en bas à gauche (comme Sygic) : prochaine borne sur la route,
 // puis les deux aires suivantes, avec la distance.
 const HORIZON_AIRES_M = 150000;
-
-// Une seule ligne discrète : distance à la prochaine station-service et à la prochaine aire de repos.
-function majAires() {
-  const el = $("gps-nav-aires");
-  const suivante = (liste) => (liste || []).find((x) => x > etat.offset + 50);
-  const essence = suivante(etat.servicesEssence);
-  const repos = suivante(etat.servicesRepos);
-  const morceaux = [];
-  if (essence !== undefined) morceaux.push(`<span>⛽ ${distanceAffichee(essence - etat.offset)}</span>`);
-  if (repos !== undefined) morceaux.push(`<span>🌳 ${distanceAffichee(repos - etat.offset)}</span>`);
-  const html = morceaux.join("<i>·</i>");
-  if (el.dataset.html !== html) {
-    el.dataset.html = html;
-    el.innerHTML = html;
-  }
-  el.classList.toggle("hidden", !html);
-  const bas = $("gps-nav-services-bas");
-  if (bas) bas.innerHTML = html ? `<span class="gps-nav-services-titre">Sur la route</span>${html}` : "";
-}
-
 
 function majZoneDanger() {
   const zone = etat.prefs.dangers && !etat.aLaBorne ? (etat.route.zonesDanger || []).find((z) => etat.offset >= z.debut && etat.offset <= z.fin) : null;
@@ -1574,21 +1553,6 @@ let cable = false;
 function cablerBoutons() {
   if (cable) return;
   cable = true;
-  // Stations et aires : dérouler ou replier la fenêtre (choix retenu sur cet appareil).
-  const bascule = $("gps-nav-aires-bascule");
-  const appliquerRepli = (replie) => {
-    document.body.classList.toggle("gps-aires-replie", replie);
-    bascule.textContent = replie ? "⛽🌳" : "▾";
-    bascule.setAttribute("aria-expanded", String(!replie));
-  };
-  let repliePrecedent = false;
-  try { repliePrecedent = localStorage.getItem("gps_aires_replie") === "1"; } catch { /* navigation privée : choix non retenu */ }
-  appliquerRepli(repliePrecedent);
-  bascule.addEventListener("click", () => {
-    const replie = !document.body.classList.contains("gps-aires-replie");
-    try { localStorage.setItem("gps_aires_replie", replie ? "1" : "0"); } catch { /* sans stockage : le choix vaut pour cette fois */ }
-    appliquerRepli(replie);
-  });
   $("gps-nav-stop-btn").addEventListener("click", () => {
     if (confirm("Arrêter la navigation ?")) arreterNavigation();
   });

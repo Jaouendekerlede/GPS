@@ -11,10 +11,6 @@ const DECALAGES_MIN = [0, 30, 60, 120, 180];
 
 const heure = (d) => d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-export function boutonQuandPartir() {
-  return `<button type="button" id="gps-quand-partir-btn" class="gps-btn gps-btn-plein">🕐 Quand partir ? (trafic prévu)</button><div id="gps-quand-partir" class="gps-quand-partir"></div>`;
-}
-
 export async function quandPartir(p) {
   const zone = $("gps-quand-partir");
   zone.innerHTML = `<div class="gps-hint">⏳ Calcul selon l'heure de départ…</div>`;

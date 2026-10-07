@@ -25,8 +25,8 @@ const INCLINAISON_MAX = 78;
 const ECART_ZOOM = -0.7;
 // Tracé : vert sur la carte de nuit, bleu franc sur la carte claire (plus
 // lisible sur les routes jaunes et le fond beige).
-const COULEUR_RESTANT_NUIT = "#1a6fe8";
-const COULEUR_RESTANT_JOUR = "#1a6fe8";
+const COULEUR_RESTANT_NUIT = "#7c3aed";
+const COULEUR_RESTANT_JOUR = "#7c3aed";
 let COULEUR_RESTANT = COULEUR_RESTANT_NUIT;
 let fondActif = "sombre";
 const COULEUR_PARCOURU = "#6b7385";
@@ -671,12 +671,12 @@ function ajouterCouchesExplo() {
   carte.addSource("autonomie", { type: "geojson", data: VIDE });
   const dessous = coucheSousLesNoms();
   const rond = { "line-cap": "round", "line-join": "round" };
-  carte.addLayer({ id: "alt-ligne", type: "line", source: "plan-alternatives", layout: rond, paint: { "line-color": "#7d8797", "line-width": 5, "line-opacity": 0.8 } }, dessous);
+  carte.addLayer({ id: "alt-ligne", type: "line", source: "plan-alternatives", layout: rond, paint: { "line-color": "#c4b5fd", "line-width": 5, "line-opacity": 0.8 } }, dessous);
   // Zone de toucher bien plus large que le trait (doigt sur téléphone).
   carte.addLayer({ id: "alt-zone", type: "line", source: "plan-alternatives", layout: rond, paint: { "line-color": "#000000", "line-width": 26, "line-opacity": 0.01 } }, dessous);
   const filtre = (type) => ["==", ["get", "type"], type];
   carte.addLayer({ id: "plan-halo", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#04221a", "line-width": 11, "line-opacity": 0.35 } }, dessous);
-  carte.addLayer({ id: "plan-aller", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#1a6fe8", "line-width": 6, "line-opacity": 0.95 } }, dessous);
+  carte.addLayer({ id: "plan-aller", type: "line", source: "plan", filter: filtre("aller"), layout: rond, paint: { "line-color": "#7c3aed", "line-width": 6, "line-opacity": 0.95 } }, dessous);
   carte.addLayer({ id: "plan-retour", type: "line", source: "plan", filter: filtre("retour"), paint: { "line-color": "#ffb400", "line-width": 4, "line-opacity": 0.85, "line-dasharray": [2, 2] } }, dessous);
   // Ralentissements et bouchons par-dessus le tracé (couleur calculée par carte.js).
   carte.addLayer({ id: "plan-bouchons", type: "line", source: "plan", filter: filtre("bouchon"), layout: rond, paint: { "line-color": ["get", "couleur"], "line-width": 6, "line-opacity": 0.95 } }, dessous);

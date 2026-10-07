@@ -7,10 +7,6 @@ import { formaterMinutes } from "./planner.js";
 const nomCourt = (n) => String(n || "").split(",")[0].trim();
 const heure = (ms) => new Date(ms).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-export function boutonPartage() {
-  return `<button type="button" id="gps-partager-trajet-btn" class="gps-btn gps-btn-plein">📤 Partager ce trajet</button>`;
-}
-
 export function texteTrajet(p) {
   const depart = p.depart_ms || Date.now();
   const total = p.duree_totale_min ?? p.duree_min ?? 0;

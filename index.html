@@ -133,16 +133,20 @@
 
     <!-- ══ Résultat du trajet ══ -->
     <div id="vue-resultat" class="gps-vue hidden">
-      <div class="gps-vue-entete">
-        <h2 id="gps-resultat-titre">🧭 Itinéraire</h2>
-        <span class="gps-entete-btns">
-          <button id="gps-modifier-btn" class="gps-lien" type="button">✏️ Modifier</button>
-          <button id="gps-quitter-trajet-btn" class="gps-lien" type="button">✕ Quitter</button>
-        </span>
+      <div class="gps-resultat-haut">
+        <button id="gps-quitter-trajet-btn" class="gps-resultat-retour" type="button" aria-label="Quitter">←</button>
+        <button id="gps-modifier-btn" class="gps-resultat-champs" type="button">
+          <span id="gps-resultat-depart" class="gps-resultat-ligne">Votre position</span>
+          <span id="gps-resultat-destination" class="gps-resultat-ligne">Destination</span>
+        </button>
+      </div>
+      <div class="gps-mode-segments" id="gps-mode-segments">
+        <button type="button" class="gps-mode-tab" data-mode="voiture" aria-label="Voiture">🚗</button>
+        <button type="button" class="gps-mode-tab" data-mode="velo" aria-label="Vélo">🚲</button>
+        <button type="button" class="gps-mode-tab" data-mode="pieton" aria-label="À pied">🚶</button>
       </div>
       <div id="gps-trajet-summary"></div>
       <div id="gps-itineraires" class="gps-carte-bloc gps-itineraires hidden"></div>
-      <button id="gps-nav-demarrer-btn" class="gps-btn-principal gps-btn-go" type="button">▶ Démarrer la navigation</button>
       <button id="gps-nav-demo-btn" class="gps-lien gps-lien-centre" type="button">🎬 Essayer en mode démo (trajet simulé)</button>
 
       <div id="gps-etapes" class="gps-etapes"></div>
@@ -156,9 +160,12 @@
         <button id="gps-hors-ligne-btn" class="gps-action" type="button" title="Télécharger la carte et le guidage de ce trajet pour rouler sans réseau"><span>📥</span>Hors ligne</button>
       </div>
       <div id="gps-qrcode-box" class="gps-qrcode hidden"></div>
+      <div id="gps-quand-partir" class="gps-quand-partir"></div>
 
-
-
+      <div class="gps-resultat-bas">
+        <button id="gps-quand-partir-btn" class="gps-btn-pale" type="button">Partir plus tard</button>
+        <button id="gps-nav-demarrer-btn" class="gps-btn-principal" type="button">Y aller</button>
+      </div>
     </div>
 
     <!-- ══ Favoris ══ -->
@@ -350,6 +357,13 @@
           <div id="gps-region-info" class="gps-hint"></div>
         </div>
         <label class="gps-check"><input type="checkbox" id="gps-reglage-jour-nuit"> 🌗 Carte de nuit / de jour automatique (au coucher et au lever du soleil)</label>
+        <label class="gps-champ">Fond de carte (Jour / Nuit)
+          <select id="gps-reglage-carte-2d" class="gps-input">
+            <option value="auto">TomTom si une clé est renseignée, sinon OpenStreetMap</option>
+            <option value="tomtom">TomTom (nécessite ta clé TomTom)</option>
+            <option value="osm">OpenStreetMap, toujours</option>
+          </select>
+        </label>
         <label class="gps-champ">Fournisseur de la carte 3D
           <select id="gps-reglage-carte3d" class="gps-input">
             <option value="libre">OpenFreeMap — gratuite, sans clé ni limite</option>
@@ -503,8 +517,6 @@
   </div>
 
   <div class="gps-nav-vitesse-bloc">
-    <button id="gps-nav-aires-bascule" class="gps-nav-aires-bascule" type="button" aria-expanded="true" aria-label="Dérouler ou replier les stations et aires de repos">▾</button>
-    <div id="gps-nav-aires" class="gps-nav-aires hidden" aria-label="Aires de repos devant"></div>
     <div id="gps-nav-limite" class="gps-nav-limite hidden"></div>
     <div id="gps-nav-vitesse" class="gps-nav-vitesse"><strong>0</strong><span>km/h</span></div>
   </div>
@@ -584,7 +596,6 @@
       <div><strong id="gps-nav-reste-temps">—</strong><span>restant</span></div>
       <div><strong id="gps-nav-reste-km">—</strong><span>km</span></div>
     </div>
-    <div class="gps-nav-services-bas" id="gps-nav-services-bas"></div>
   </div>
 </div>
 
