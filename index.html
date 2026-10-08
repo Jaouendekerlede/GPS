@@ -43,6 +43,10 @@
 
 <!-- Boutons flottants sur la carte -->
 <div class="gps-fabs">
+  <!-- Couper/remettre la voix : au-dessus des icônes de carte, comme Waze.
+       Accessible aussi pendant le guidage (gps-nav-voix-btn, même réglage) --
+       demande explicite de l'utilisateur. -->
+  <button id="gps-voix-global-btn" class="gps-fab" type="button" title="Couper / remettre la voix"></button>
   <button id="gps-fond-btn" class="gps-fab" type="button" title="Changer le fond de carte"></button>
   <button id="gps-carte3d-btn" class="gps-fab gps-fab-texte" type="button" title="Carte en 3D / 2D">3D</button>
   <button id="gps-localiser-btn" class="gps-fab" type="button" title="Me localiser" data-icone="localiser"></button>
@@ -537,11 +541,6 @@
   <button type="button" class="gps-nav-btn actif" data-vue="accueil"><span>🗺️</span>Carte</button>
   <button type="button" class="gps-nav-btn" data-vue="trajet"><span>🧭</span>Trajet</button>
   <button type="button" class="gps-nav-btn" data-vue="menu"><span>☰</span>Menu</button>
-  <!-- Couper/remettre la voix : accessible à tout moment, sur tous les
-       écrans (y compris pendant le guidage) -- demande explicite de
-       l'utilisateur. Case à part (pas un onglet d'écran) dans la même
-       barre, toujours visible. -->
-  <button id="gps-voix-global-btn" class="gps-nav-btn gps-nav-voix" type="button" title="Couper / remettre la voix"></button>
 </nav>
 
 <!-- Mode urgence -->
@@ -578,6 +577,7 @@
   </div>
 
   <div class="gps-nav-boutons">
+    <button id="gps-nav-voix-btn" class="gps-fab" type="button" title="Couper / remettre la voix"></button>
     <button id="gps-nav-micro-btn" class="gps-fab" type="button" title="Commande vocale" data-icone="micro"></button>
     <button id="gps-nav-3d-btn" class="gps-fab gps-fab-texte" type="button" title="Vue 3D / 2D">3D</button>
     <button id="gps-nav-barree-btn" class="gps-fab" type="button" title="Route barrée devant : chercher un autre chemin" data-icone="barriere"></button>

@@ -263,6 +263,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gps-diagnostic { display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.4; padding: 10px 12px; border-radius: 12px; background: var(--voile); border: 1px solid var(--bordure); }
 .gps-fab-texte { font-size: 15px; font-weight: 900; color: var(--texte); }
 .gps-fab.actif { border-color: var(--vert); color: var(--vert-vif); }
+.gps-fab.muet { border-color: #ef4444; color: #ef4444; }
 /* Étiquette du curseur « où serai-je ? » sur la carte 3D */
 .gps-curseur-3d { position: relative; }
 .gps-curseur-3d-texte { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 3px 8px; border-radius: 8px; background: var(--chip); color: var(--texte); font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
@@ -320,7 +321,7 @@ body[data-feuille="haut"] .gps-fabs { opacity: 0; pointer-events: none; }
   height: calc(var(--nav-h) + var(--securite-bas));
   padding-bottom: var(--securite-bas);
   display: grid;
-  grid-template-columns: repeat(3, 1fr) 58px;
+  grid-template-columns: repeat(3, 1fr);
   background: var(--nav-fond);
   border-top: 1px solid var(--bordure-forte);
 }
@@ -328,9 +329,6 @@ body[data-feuille="haut"] .gps-fabs { opacity: 0; pointer-events: none; }
 .gps-nav-btn span { font-size: 21px; filter: grayscale(0.7); opacity: 0.8; }
 .gps-nav-btn.actif { color: var(--vert-clair); font-weight: 700; }
 .gps-nav-btn.actif span { filter: none; opacity: 1; }
-.gps-nav-voix { border-left: 1px solid var(--bordure); }
-.gps-nav-voix .gps-icone { width: 22px; height: 22px; }
-.gps-nav-voix.muet { color: #ef4444; }
 
 /* ── Éléments communs ──────────────────────────────────────────────────── */
 .gps-carte-bloc { background: var(--bloc); border: 1px solid var(--bordure); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }

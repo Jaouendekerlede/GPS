@@ -1574,11 +1574,13 @@ export function basculerVoix(valeurForcee) {
 }
 
 export function majIconeVoixGlobale() {
-  const b = $("gps-voix-global-btn");
-  if (!b) return;
   const actif = voixActivee();
-  b.innerHTML = icone(actif ? "son" : "muet");
-  b.classList.toggle("muet", !actif);
+  for (const id of ["gps-voix-global-btn", "gps-nav-voix-btn"]) {
+    const b = $(id);
+    if (!b) continue;
+    b.innerHTML = icone(actif ? "son" : "muet");
+    b.classList.toggle("muet", !actif);
+  }
 }
 
 let cable = false;
@@ -1589,6 +1591,7 @@ function cablerBoutons() {
   $("gps-nav-stop-btn").addEventListener("click", () => {
     if (confirm("Arrêter la navigation ?")) arreterNavigation();
   });
+  $("gps-nav-voix-btn").addEventListener("click", () => basculerVoix());
   $("gps-nav-orientation-btn").addEventListener("click", () => {
     etat.sensDeMarche = !etat.sensDeMarche;
     majBoutonOrientation();
